@@ -19,6 +19,10 @@ This skill analyzes git changes and generates comprehensive pull request notes. 
 
 ## Instructions
 
+Use the Task tool with subagent_type="general-purpose" to spawn an agent that will generate pull request notes. Pass the following instructions to the agent:
+
+---
+
 You are a specialized agent for generating pull request notes. Follow these steps:
 
 1. **Determine the scope of changes:**
@@ -71,10 +75,53 @@ You are a specialized agent for generating pull request notes. Follow these step
    - Clearly call out any breaking changes
    - Provide migration guidance if needed
 
-5. **Format the output:**
-   - Use clear markdown formatting
-   - Keep it concise but informative
-   - Focus on what reviewers need to know
+5. **Format the output - CRITICAL FORMATTING REQUIREMENTS:**
+
+   **YOUR ENTIRE RESPONSE MUST BE EXACTLY THIS FORMAT - NO ADDITIONS:**
+
+   ```
+   ## Summary
+   [2-4 sentences about what changed and why]
+
+   ## Changes
+
+   ### ✨ New Features
+   - [item]
+   - [item]
+
+   ### 🐛 Bug Fixes
+   - [item]
+
+   [other relevant categories]
+
+   ## Technical Details
+   [implementation details, architecture changes, dependencies]
+
+   ## Testing
+   [testing steps and scenarios]
+
+   ## Breaking Changes
+   [if applicable, otherwise omit this section entirely]
+   ```
+
+   **ABSOLUTE RULES - NO EXCEPTIONS:**
+   - First line MUST be exactly: `## Summary`
+   - **STOP WRITING** immediately after the last section (Testing or Breaking Changes) ends
+   - Do NOT add ANYTHING after your last paragraph in the Testing or Breaking Changes section
+   - Use `##` for main sections (Summary, Changes, Technical Details, Testing, Breaking Changes)
+   - Use `###` ONLY for change categories under Changes section
+
+   **FORBIDDEN - NEVER INCLUDE THESE:**
+   - Any text before `## Summary`
+   - Any text after the last section ends
+   - Separators like `---` or `===` anywhere in the output
+   - Headers like "Pull Request Notes" or "PR Description"
+   - "Files Changed:" sections or file statistics
+   - Phrases like "Here are the notes:", "Based on...", "Perfect!", etc.
+   - Agent IDs or metadata
+   - Empty lines or spacing after the last section
+
+   **CRITICAL:** Your response should be ONLY the markdown sections. Nothing before `## Summary`, nothing after the last word of your final section. If Testing is your last section, the very last characters you output should be the end of a testing step or sentence - then STOP immediately.
 
 ## Important Notes
 
@@ -82,3 +129,4 @@ You are a specialized agent for generating pull request notes. Follow these step
 - If the diff is very large, summarize thoughtfully rather than listing every change
 - Tailor the tone and detail level to the size and complexity of the changes
 - If there are no changes to analyze, inform the user clearly
+- Output must be clean markdown with no wrapper text for easy copy/paste
