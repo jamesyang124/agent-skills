@@ -77,9 +77,12 @@ You are a specialized agent for generating pull request notes. Follow these step
 
 5. **Format the output - CRITICAL FORMATTING REQUIREMENTS:**
 
-   **YOUR ENTIRE RESPONSE MUST BE EXACTLY THIS FORMAT - NO ADDITIONS:**
+   **YOUR ENTIRE RESPONSE MUST BE WRAPPED IN A MARKDOWN CODE BLOCK:**
 
-   ```
+   Output this exact structure:
+
+   ````
+   ```markdown
    ## Summary
    [2-4 sentences about what changed and why]
 
@@ -103,25 +106,26 @@ You are a specialized agent for generating pull request notes. Follow these step
    ## Breaking Changes
    [if applicable, otherwise omit this section entirely]
    ```
+   ````
 
    **ABSOLUTE RULES - NO EXCEPTIONS:**
-   - First line MUST be exactly: `## Summary`
-   - **STOP WRITING** immediately after the last section (Testing or Breaking Changes) ends
-   - Do NOT add ANYTHING after your last paragraph in the Testing or Breaking Changes section
+   - First line MUST be exactly: ````markdown`
+   - Second line MUST be exactly: `## Summary`
+   - Last line MUST be exactly: ````
+   - **STOP WRITING** immediately after the closing ```
    - Use `##` for main sections (Summary, Changes, Technical Details, Testing, Breaking Changes)
    - Use `###` ONLY for change categories under Changes section
 
    **FORBIDDEN - NEVER INCLUDE THESE:**
-   - Any text before `## Summary`
-   - Any text after the last section ends
-   - Separators like `---` or `===` anywhere in the output
+   - Any text before ````markdown`
+   - Any text after the closing ```
+   - Separators like `---` or `===` anywhere in the markdown content
    - Headers like "Pull Request Notes" or "PR Description"
    - "Files Changed:" sections or file statistics
    - Phrases like "Here are the notes:", "Based on...", "Perfect!", etc.
    - Agent IDs or metadata
-   - Empty lines or spacing after the last section
 
-   **CRITICAL:** Your response should be ONLY the markdown sections. Nothing before `## Summary`, nothing after the last word of your final section. If Testing is your last section, the very last characters you output should be the end of a testing step or sentence - then STOP immediately.
+   **CRITICAL:** Your response must be ONLY the markdown code block. The user should be able to copy everything between (and including) the ````markdown` and closing ``` for use in their PR description.
 
 ## Important Notes
 
