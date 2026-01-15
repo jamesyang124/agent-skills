@@ -19,7 +19,9 @@ This skill analyzes git changes and generates comprehensive pull request notes. 
 
 ## Instructions
 
-Use the Task tool with subagent_type="general-purpose" to spawn an agent that will generate pull request notes. Pass the following instructions to the agent:
+Use the Task tool with subagent_type="general-purpose" to spawn an agent that will generate pull request notes. Pass the following instructions to the agent.
+
+**CRITICAL: After the agent completes, you MUST output the generated PR notes directly in the terminal by displaying the agent's response verbatim. Do NOT summarize or modify the output. The user needs the full markdown content in the terminal for copy/paste.**
 
 ---
 
@@ -35,8 +37,10 @@ You are a specialized agent for generating pull request notes. Follow these step
 2. **Retrieve the diff:**
    - For single commit: Use `git show HEAD` or `git diff HEAD~1 HEAD`
    - For branch changes:
-     - Identify the base branch (main or master)
-     - Use `git diff main...HEAD` or `git diff master...HEAD` (with three dots for the merge base)
+     - Identify the remote base branch (origin/main or origin/master)
+     - First run `git fetch origin` to ensure remote refs are up to date
+     - Use `git diff origin/main...HEAD` or `git diff origin/master...HEAD` (with three dots for the merge base)
+     - **Always use the remote branch (origin/main or origin/master) as the base, not the local branch**
 
 3. **Analyze the changes:**
    - Review all modified files
@@ -51,31 +55,28 @@ You are a specialized agent for generating pull request notes. Follow these step
 
    **## Changes**
    - List key changes organized by category:
-     - ✨ New Features
+     - ✨ New Features (maximum 5 items - prioritize the most impactful features)
      - 🐛 Bug Fixes
-     - ♻️ Refactoring
-     - 📝 Documentation
-     - 🎨 UI/UX
-     - ⚡ Performance
      - 🔧 Configuration
-     - 🧪 Tests
    - Use only categories that are relevant
    - Be specific but concise for each item
+   - Avoid redundant information that's already mentioned in other sections
 
    **## Technical Details**
-   - Highlight important implementation details
+   - Highlight important implementation details (maximum 5 items - prioritize the most critical technical updates)
    - Note any architectural changes or patterns introduced
    - Mention dependencies added or updated
-
-   **## Testing**
-   - Suggest testing steps or scenarios
-   - Note if automated tests were added/updated
+   - Do not repeat information already covered in the Changes section
 
    **## Breaking Changes** (if applicable)
    - Clearly call out any breaking changes
    - Provide migration guidance if needed
 
 5. **Format the output - CRITICAL FORMATTING REQUIREMENTS:**
+
+   **WORD COUNT LIMIT: The entire output must NOT exceed 3000 words. Keep the content concise and focused.**
+
+   **AVOID REDUNDANCY: Do not repeat information across sections. Each detail should appear only once in the most appropriate section.**
 
    **YOUR ENTIRE RESPONSE MUST BE WRAPPED IN A MARKDOWN CODE BLOCK:**
 
@@ -89,19 +90,20 @@ You are a specialized agent for generating pull request notes. Follow these step
    ## Changes
 
    ### ✨ New Features
-   - [item]
-   - [item]
+   - [item 1]
+   - [item 2]
+   - [maximum 5 items - only list the most important features]
 
    ### 🐛 Bug Fixes
    - [item]
 
-   [other relevant categories]
+   ### 🔧 Configuration
+   - [item]
 
    ## Technical Details
-   [implementation details, architecture changes, dependencies]
-
-   ## Testing
-   [testing steps and scenarios]
+   - [item 1]
+   - [item 2]
+   - [maximum 5 items - focus on critical technical updates, no repetition from Changes section]
 
    ## Breaking Changes
    [if applicable, otherwise omit this section entirely]
@@ -113,8 +115,11 @@ You are a specialized agent for generating pull request notes. Follow these step
    - Second line MUST be exactly: `## Summary`
    - Last line MUST be exactly: ````
    - **STOP WRITING** immediately after the closing ```
-   - Use `##` for main sections (Summary, Changes, Technical Details, Testing, Breaking Changes)
+   - Use `##` for main sections (Summary, Changes, Technical Details, Breaking Changes)
    - Use `###` ONLY for change categories under Changes section
+   - New Features section must have AT MOST 5 items
+   - Technical Details section must have AT MOST 5 items
+   - Each piece of information should appear in only ONE section - no redundancy
 
    **FORBIDDEN - NEVER INCLUDE THESE:**
    - Any text before ````markdown`
@@ -127,10 +132,22 @@ You are a specialized agent for generating pull request notes. Follow these step
 
    **CRITICAL:** Your response must be ONLY the markdown code block. The user should be able to copy everything between (and including) the ````markdown` and closing ``` for use in their PR description.
 
+6. **OUTPUT TO TERMINAL - MANDATORY:**
+   - After you generate the PR notes, they MUST be displayed in the terminal
+   - The calling assistant will output your response verbatim to the user
+   - This ensures the user can directly copy/paste the notes from their terminal
+   - Do NOT add any additional commentary after generating the notes
+
 ## Important Notes
 
 - Always read the actual diff before generating notes - never make assumptions
 - If the diff is very large, summarize thoughtfully rather than listing every change
+- **MANDATORY: The total output must not exceed 3000 words - be concise and prioritize the most important information**
+- **MANDATORY: New Features section must contain at most 5 items - focus on the most impactful features**
+- **MANDATORY: Technical Details section must contain at most 5 items - focus on the most critical technical updates**
+- **MANDATORY: Avoid redundant information - each detail should appear in only ONE section**
+- **DO NOT include a Testing section in the output**
 - Tailor the tone and detail level to the size and complexity of the changes
 - If there are no changes to analyze, inform the user clearly
 - Output must be clean markdown with no wrapper text for easy copy/paste
+- **MANDATORY: The generated notes MUST be displayed in the terminal output for the user to copy/paste directly**
