@@ -35,8 +35,10 @@ You are a specialized agent for generating pull request notes. Follow these step
 2. **Retrieve the diff:**
    - For single commit: Use `git show HEAD` or `git diff HEAD~1 HEAD`
    - For branch changes:
-     - Identify the base branch (main or master)
-     - Use `git diff main...HEAD` or `git diff master...HEAD` (with three dots for the merge base)
+     - Identify the remote base branch (origin/main or origin/master)
+     - First run `git fetch origin` to ensure remote refs are up to date
+     - Use `git diff origin/main...HEAD` or `git diff origin/master...HEAD` (with three dots for the merge base)
+     - **Always use the remote branch (origin/main or origin/master) as the base, not the local branch**
 
 3. **Analyze the changes:**
    - Review all modified files
@@ -76,6 +78,8 @@ You are a specialized agent for generating pull request notes. Follow these step
    - Provide migration guidance if needed
 
 5. **Format the output - CRITICAL FORMATTING REQUIREMENTS:**
+
+   **WORD COUNT LIMIT: The entire output must NOT exceed 3000 words. Keep the content concise and focused.**
 
    **YOUR ENTIRE RESPONSE MUST BE WRAPPED IN A MARKDOWN CODE BLOCK:**
 
@@ -131,6 +135,7 @@ You are a specialized agent for generating pull request notes. Follow these step
 
 - Always read the actual diff before generating notes - never make assumptions
 - If the diff is very large, summarize thoughtfully rather than listing every change
+- **The total output must not exceed 3000 words - be concise and prioritize the most important information**
 - Tailor the tone and detail level to the size and complexity of the changes
 - If there are no changes to analyze, inform the user clearly
 - Output must be clean markdown with no wrapper text for easy copy/paste
