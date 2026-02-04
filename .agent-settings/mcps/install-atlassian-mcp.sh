@@ -8,6 +8,7 @@ set -e
 VERSION="1.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+ATLASSIAN_MCP_IMAGE="${ATLASSIAN_MCP_IMAGE:-ghcr.io/sooperset/mcp-atlassian:latest}"
 
 # Colors
 RED='\033[0;31m'
@@ -34,7 +35,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show help\n"
     printf "    -o, --output FILE       Output file (overrides interactive selection)\n"
-    printf "    --agent AGENT           Specify agent non-interactively: 'gemini' or 'claude'.\n"
+    printf "    --agent AGENT           Specify agent non-interactively: 'gemini', 'claude', or 'codex'.\n"
     printf "    --jira-url URL          Jira URL\n"
     printf "    --confluence-url URL    Confluence URL (default: same as Jira)\n\n"
     printf "${YELLOW}Examples:${NC}\n"
@@ -68,12 +69,14 @@ if [[ -z "$AGENT" ]]; then
     printf "\n${YELLOW}Select the target agent:${NC}\n"
     printf "  1) Gemini\n"
     printf "  2) Claude\n"
-    printf "Enter choice [1-2]: "
+    printf "  3) Codex\n"
+    printf "Enter choice [1-3]: "
     read -n 1 -r AGENT_CHOICE
     echo ""
     case $AGENT_CHOICE in
         1) AGENT="gemini" ;;
         2) AGENT="claude" ;;
+        3) AGENT="codex" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
@@ -83,12 +86,15 @@ if [[ -z "$OUTPUT_FILE" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.gemini/settings.json"
     elif [[ "$AGENT" == "claude" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.mcp.json"
+    elif [[ "$AGENT" == "codex" ]]; then
+        OUTPUT_FILE="${PROJECT_ROOT}/.codex/config.toml"
     else
-        log_error "Invalid agent specified: ${AGENT}. Use 'gemini' or 'claude'."
+        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', or 'codex'."
         exit 1
     fi
 fi
 log_info "Will write configuration to: ${OUTPUT_FILE}"
+log_info "Using Atlassian MCP image: ${ATLASSIAN_MCP_IMAGE}"
 
 CONFLUENCE_URL="${CONFLUENCE_URL:-${JIRA_URL}}"
 
@@ -150,8 +156,40 @@ CONFLUENCE_API_TOKEN=${CONFLUENCE_API_TOKEN}
 EOF_ENV
 log_success "Created ${ENV_FILE_PATH}"
 
-# Create the agent-specific config that uses the env file
-MCP_CONFIG=$(cat <<EOFCONFIG
+mkdir -p "$(dirname "$OUTPUT_FILE")"
+
+if [[ "$AGENT" == "codex" ]]; then
+    if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
+        log_info "Merging with existing configuration..."
+        TMP_FILE="$(mktemp)"
+        awk '
+        BEGIN { skip = 0 }
+        /^\[mcp_servers\.atlassian(\.env)?\]/ { skip = 1; next }
+        skip == 1 && /^\[mcp_servers\.[^]]+\]/ { skip = 0 }
+        skip == 0 { print }
+        ' "$OUTPUT_FILE" > "$TMP_FILE"
+        cat "$TMP_FILE" > "$OUTPUT_FILE"
+        rm -f "$TMP_FILE"
+        if [[ -s "$OUTPUT_FILE" ]]; then
+            printf "\n" >> "$OUTPUT_FILE"
+        fi
+    fi
+
+    cat <<EOFCONFIG >> "$OUTPUT_FILE"
+[mcp_servers.atlassian]
+command = "docker"
+args = [
+  "run",
+  "-i",
+  "--rm",
+  "--env-file",
+  "${ENV_FILE_PATH}",
+  "${ATLASSIAN_MCP_IMAGE}"
+]
+EOFCONFIG
+else
+    # Create the agent-specific config that uses the env file
+    MCP_CONFIG=$(cat <<EOFCONFIG
 {
   "mcpServers": {
     "atlassian": {
@@ -162,7 +200,7 @@ MCP_CONFIG=$(cat <<EOFCONFIG
         "--rm",
         "--env-file",
         "${ENV_FILE_PATH}",
-        "ghcr.io/sooperset/mcp-atlassian:latest"
+        "${ATLASSIAN_MCP_IMAGE}"
       ]
     }
   }
@@ -170,16 +208,15 @@ MCP_CONFIG=$(cat <<EOFCONFIG
 EOFCONFIG
 )
 
-mkdir -p "$(dirname "$OUTPUT_FILE")"
-
-# Merge with existing
-if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
-    log_info "Merging with existing configuration..."
-    # Using jq is the robust way to set/overwrite the atlassian config.
-    MERGED=$(jq --argjson newConfig "$MCP_CONFIG" '.mcpServers.atlassian = $newConfig.mcpServers.atlassian' "$OUTPUT_FILE")
-    echo "$MERGED" | jq '.' > "$OUTPUT_FILE"
-else
-    echo "$MCP_CONFIG" | jq '.' > "$OUTPUT_FILE"
+    # Merge with existing JSON config
+    if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
+        log_info "Merging with existing configuration..."
+        # Using jq is the robust way to set/overwrite the atlassian config.
+        MERGED=$(jq --argjson newConfig "$MCP_CONFIG" '.mcpServers.atlassian = $newConfig.mcpServers.atlassian' "$OUTPUT_FILE")
+        echo "$MERGED" | jq '.' > "$OUTPUT_FILE"
+    else
+        echo "$MCP_CONFIG" | jq '.' > "$OUTPUT_FILE"
+    fi
 fi
 
 log_success "Atlassian MCP configuration updated to use Docker in: $OUTPUT_FILE"
@@ -187,7 +224,7 @@ log_success "Atlassian MCP configuration updated to use Docker in: $OUTPUT_FILE"
 echo ""
 log_info "Next steps:"
 echo "  1. Make sure you have Docker installed and running."
-echo "  2. Review the generated configuration in ${OUTPUT_FILE}."
-echo "  3. Review the environment file at ${PROJECT_ROOT}/.env.mcp-atlassian."
-echo "  4. Restart your development environment to apply the changes."
-
+echo "  2. Pull the image: docker pull ${ATLASSIAN_MCP_IMAGE}"
+echo "  3. Review the generated configuration in ${OUTPUT_FILE}."
+echo "  4. Review the environment file at ${PROJECT_ROOT}/.env.mcp-atlassian."
+echo "  5. Restart your development environment to apply the changes."

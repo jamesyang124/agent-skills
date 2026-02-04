@@ -33,7 +33,7 @@ You can provide all information using command-line flags.
 | Flag | Description |
 |---|---|
 | `-h, --help` | Show help |
-| `--agent AGENT` | Specify agent: `gemini` or `claude` |
+| `--agent AGENT` | Specify agent: `gemini`, `claude`, or `codex` |
 | `--jira-url URL` | Your Jira instance URL |
 | `--confluence-url URL` | Your Confluence instance URL (defaults to Jira URL) |
 | `-o, --output FILE`| Output configuration file path (e.g., `.gemini/settings.json`) |
@@ -53,5 +53,6 @@ The script performs two main actions regardless of the selected agent:
 2.  **Creates a Configuration File:** It generates a JSON configuration file that tells the agent how to run the Atlassian MCP server using Docker. This file points to the `.env.mcp-atlassian` file for credentials.
     -   For **Gemini**, the file is `.gemini/settings.json`.
     -   For **Claude**, the file is `.mcp.json`.
+    -   For **Codex**, the file is `.codex/config.toml`.
 
 After running the script, restart your agent to apply the changes.

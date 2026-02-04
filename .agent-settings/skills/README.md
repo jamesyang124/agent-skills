@@ -28,6 +28,10 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 └── keybindings-help/
     └── SKILL.md
 
+.agent/skills/
+├── generate-pr-notes -> ../../.agent-settings/skills/generate-pr-notes
+└── git-commit-conventional-strict -> ../../.agent-settings/skills/git-commit-conventional-strict
+
 .claude/skills/
 ├── generate-pr-notes -> ../../.agent-settings/skills/generate-pr-notes
 ├── git-commit-conventional-strict -> ../../.agent-settings/skills/git-commit-conventional-strict
@@ -47,11 +51,14 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 Use the `import-skills.sh` script to automatically create symlinks:
 
 ```bash
-# Import all skills to an agent
+# Import all skills to Antigravity (targets .agent folder)
+.agent-settings/skills/import-skills.sh agent
+
+# Import all skills to Claude
 .agent-settings/skills/import-skills.sh claude
 
-# Import specific skills to an agent
-.agent-settings/skills/import-skills.sh claude generate-pr-notes git-commit-conventional-strict
+# Import specific skills
+.agent-settings/skills/import-skills.sh agent generate-pr-notes git-commit-conventional-strict
 
 # Import to multiple agents
 .agent-settings/skills/import-skills.sh claude
@@ -74,6 +81,17 @@ Use the `import-skills.sh` script to automatically create symlinks:
 #### Manual Import
 
 If you prefer to create symlinks manually:
+
+##### For Antigravity
+
+```bash
+# Create skills directory if it doesn't exist
+mkdir -p .agent/skills
+
+# Link a skill from .agent-settings to .agent
+ln -s ../../.agent-settings/skills/generate-pr-notes .agent/skills/generate-pr-notes
+ln -s ../../.agent-settings/skills/git-commit-conventional-strict .agent/skills/git-commit-conventional-strict
+```
 
 ##### For Claude Agent
 

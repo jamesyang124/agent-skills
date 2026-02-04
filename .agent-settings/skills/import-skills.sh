@@ -57,6 +57,10 @@ get_available_skills() {
 # Function to create symlink
 create_skill_link() {
     local agent_name=$1
+    # Map 'antigravity' to 'agent' folder convention
+    if [ "$agent_name" = "antigravity" ]; then
+        agent_name="agent"
+    fi
     local skill_name=$2
     local agent_dir="$PROJECT_ROOT/.$agent_name"
     local skills_dir="$agent_dir/skills"
@@ -154,6 +158,10 @@ list_skills() {
 # Function to verify symlinks for an agent
 verify_agent_links() {
     local agent_name=$1
+    # Map 'antigravity' to 'agent' folder convention
+    if [ "$agent_name" = "antigravity" ]; then
+        agent_name="agent"
+    fi
     local skills_dir="$PROJECT_ROOT/.$agent_name/skills"
 
     if [ ! -d "$skills_dir" ]; then
@@ -203,7 +211,8 @@ Usage: $0 [OPTIONS] AGENT_NAME [SKILL_NAMES...]
 Automates importing skills from .agent-settings/skills/ to agent-specific folders.
 
 Arguments:
-  AGENT_NAME          Target agent folder name (e.g., claude, gemini, agent)
+  AGENT_NAME          Target agent folder name (e.g., agent, claude, gemini)
+                      Note: 'antigravity' will be automatically mapped to 'agent'
 
 Options:
   -a, --all          Import all available skills (default if no skills specified)
@@ -212,6 +221,12 @@ Options:
   -h, --help         Show this help message
 
 Examples:
+  # Import all skills to Antigravity (targets .agent folder)
+  $0 agent
+  
+  # Or use the 'antigravity' alias
+  $0 antigravity
+
   # Import all skills to Claude agent
   $0 claude
 

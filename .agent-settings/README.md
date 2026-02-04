@@ -30,6 +30,8 @@ The `.agent-settings` directory serves as a shared repository for:
     └── install-atlassian-mcp.sh           # Atlassian MCP installer
 
 Project Root (after configuration):
+├── .agent/
+│   └── skills/                            # Antigravity skills (symlinks)
 ├── .claude/
 │   ├── mcp.json                           # Claude MCP servers (committed)
 │   └── skills/                            # Project skills (symlinks)
@@ -50,6 +52,9 @@ Skills extend AI agent capabilities with specialized workflows and prompts.
 ```bash
 # List available skills
 .agent-settings/skills/import-skills.sh --list
+
+# Import all skills to Antigravity
+.agent-settings/skills/import-skills.sh agent
 
 # Import all skills to Claude
 .agent-settings/skills/import-skills.sh claude
@@ -86,16 +91,27 @@ This configuration supports the following AI coding assistants:
 
 | Assistant | Skills | MCP Servers | Migration |
 |-----------|--------|-------------|-----------|
+| **Antigravity** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Claude Code** | ✅ Native | ✅ Full Support | ✅ From others |
+| **Codex CLI** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Cursor** | ✅ Via symlinks | ⚠️ Limited | ✅ To Claude |
 | **GitHub Copilot** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
 | **Google AI Studio** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
+
+## Antigravity Configuration
+
+**Skills:** `.agent/skills/` - Project skills (symlinks, commit to Git)
 
 ## Claude Code Configuration
 
 **Global:** `~/.claude.json` - User settings (managed by Claude Code)
 **Project:** `.claude/mcp.json` - MCP servers (commit to Git)
 **Skills:** `.claude/skills/` - Project skills (symlinks, commit to Git)
+
+## Codex CLI Configuration
+
+**Global:** `~/.codex/config.toml` - User settings (managed by Codex CLI)
+**Project:** `.codex/config.toml` - MCP servers (commit to Git if desired)
 
 ## Project-Specific Configuration
 
@@ -116,7 +132,8 @@ This project uses Claude Code as the primary AI assistant with:
 - See `mcps/README.md` for setup instructions
 
 **Configuration Locations:**
-- Skills: `.claude/skills/` (symlinked from `.agent-settings/skills/`)
+- Antigravity Skills: `.agent/skills/` (symlinked from `.agent-settings/skills/`)
+- Claude Skills: `.claude/skills/` (symlinked from `.agent-settings/skills/`)
 - MCP Settings: `.claude/mcp.json` (not yet created)
 - Environment Variables: `.env` (not yet created, should be added to `.gitignore`)
 

@@ -2,20 +2,23 @@
 
 A collection of custom skills for Claude Code and compatible AI CLI tools.
 
-## What are Skills?
+## Skill Definition
 
-Skills are markdown files that teach AI agents how to perform specific, repeatable tasks. They use a filesystem-based architecture with progressive disclosure, consuming minimal context (~100 tokens during scanning, <5k when active).
+Skills are Markdown files (`SKILL.md`) that enable AI agents to perform specific, repeatable tasks. They utilize a filesystem-based architecture for efficient context consumption.
 
-## Skill Structure
+### Structure
 
-Each skill must follow this structure:
+Each skill resides in its own directory:
 
 ```
 skill-name/
 └── SKILL.md  (uppercase)
 ```
 
-### SKILL.md Format
+### SKILL.md Format Requirements
+
+- **File Name**: Must be `SKILL.md` (uppercase).
+- **YAML Frontmatter**: Includes `name` (lowercase, hyphens for spaces) and `description` fields.
 
 ```yaml
 ---
@@ -26,81 +29,73 @@ description: A clear description of what this skill does and when to use it
 # Skill Name
 
 [Instructions for the AI agent]
-
-## Usage
-...
-
-## Examples
-...
 ```
-
-**Required:**
-- File must be named `SKILL.md` (uppercase)
-- YAML frontmatter with `name` and `description` fields
-- `name` should be lowercase with hyphens for spaces
 
 ## Installation
 
-### For Claude Code
+Skills can be easily installed using the provided `import-skills.sh` script, which handles symlinking and setup for various AI agents. For detailed instructions on both automated and manual skill installation, please refer to the [Skills Management README](.agent-settings/skills/README.md).
 
-Create a symlink to make skills available across all projects:
+### Quick Start with Gemini CLI
+
+To install all available skills for Gemini CLI using the automated script:
 
 ```bash
-# Create skills directory if it doesn't exist
-mkdir -p ~/.claude/skills
-
-# Symlink your skill
-ln -s /path/to/agent-skills/skill-name ~/.claude/skills/skill-name
+./.agent-settings/skills/import-skills.sh gemini
 ```
 
-Example:
+This will create necessary symlinks (e.g., `~/.gemini/skills/skill-name`) and ensure skills are hot-reloaded without restarting your agent.
+
+### Quick Start with Atlassian MCP
+
+To set up Atlassian Jira and Confluence integration via the MCP server:
+
 ```bash
-ln -s /Users/murcurial/Coding/agent-skills/generate-pr-notes ~/.claude/skills/generate-pr-notes
+./.agent-settings/mcps/install-atlassian-mcp.sh
 ```
 
-With Claude Code 2.1.0+, skills are automatically hot-reloaded without restart.
+For detailed instructions, refer to the [MCP Setup Guide](.agent-settings/mcps/README.md).
 
-### For Other CLI Tools
+### Compatibility
 
-The SKILL.md format is compatible with:
+The `SKILL.md` format is compatible with:
 - **Claude Code** ✓
 - **Codex CLI** ✓
-- **Gemini CLI** (if it supports the skill format)
+- **Gemini CLI** ✓
 - **ChatGPT CLI tools** ✓
-
-Check each tool's documentation for their skills directory location and create similar symlinks.
 
 ## Available Skills
 
-### generate-pr-notes
+This project provides a collection of specialized skills to enhance your AI agent's capabilities. For detailed usage and features of each skill, refer to their respective `SKILL.md` files.
 
-Automatically generates comprehensive pull request notes based on git changes.
+*   **generate-pr-notes**: Automatically generates comprehensive pull request notes based on git changes.
+    [View Details](.agent-settings/skills/generate-pr-notes/SKILL.md)
+*   **git-commit-conventional-strict**: A strict Conventional Commits generator optimized for git-cliff, supporting SemVer and Emoji.
+    [View Details](.agent-settings/skills/git-commit-conventional-strict/SKILL.md)
+*   **api-spec-to-confluence**: Creates or updates a Confluence page from an API endpoint by analyzing the router and handler code, using the documentation template in this skill folder.
+    [View Details](.agent-settings/skills/api-spec-to-confluence/SKILL.md)
 
-**Usage:** `/generate-pr-notes`
 
-**Features:**
-- Analyzes commits or branch diffs
-- Creates structured PR descriptions with:
-  - Summary (why and business value)
-  - Changes organized by category (features, bug fixes, refactoring, etc.)
-  - Technical details
-  - Testing steps
-  - Breaking changes (if applicable)
+## Agent Settings Management
 
-## Directory Structure
+The `.agent-settings` directory centralizes configurations, utilities, and resources for AI coding assistants. This enables sharing skills and Model Context Protocol (MCP) server configurations across agents like Claude Code and Gemini CLI.
+
+*   **Skills Management**: Detailed guidance on importing, creating, and verifying skills.
+    [View Skills README](.agent-settings/skills/README.md)
+*   **Atlassian MCP Integration**: Setup instructions for integrating with Jira and Confluence via the MCP server.
+    [View MCP Setup Guide](.agent-settings/mcps/README.md)
+
+## Project Structure
 
 ```
-~/.claude/
-└── skills/              # Personal skills (symlinks)
-    └── generate-pr-notes -> /path/to/agent-skills/generate-pr-notes
-
-.claude/
-└── skills/              # Project-level skills (optional)
+.
+├── .agent-settings/               # Centralized agent configurations and resources
+│   ├── skills/                  # Definitions for reusable AI agent skills
+│   └── mcps/                    # Model Context Protocol (MCP) server configurations
+└── (AI Agent config folders)      # e.g., .gemini/, .claude/, .codex/
+    └── skills/                  # Symlinked skills for specific agents
 ```
 
-**Personal vs Project Skills:**
-- `~/.claude/skills/` - Available across all your projects
-- `.claude/skills/` - Project-specific, can be shared with team
+Agent-specific skill directories (e.g., `~/.gemini/skills/`) contain symlinks to skills defined in `.agent-settings/skills/`.
 
 ## Resources
 
@@ -111,13 +106,11 @@ Automatically generates comprehensive pull request notes based on git changes.
 
 ## Contributing
 
-To add a new skill to this repository:
+To contribute a new skill:
 
-1. Create a new directory with your skill name (lowercase-with-hyphens)
-2. Add a `SKILL.md` file with proper frontmatter
-3. Symlink it to your `~/.claude/skills/` directory
-4. Test the skill with `/skill-name`
-5. Commit and push
+1.  Create a skill directory with a `SKILL.md` file in `.agent-settings/skills/`.
+2.  Use `import-skills.sh` to symlink and test your skill.
+3.  Commit and push your changes.
 
 ## License
 

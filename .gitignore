@@ -25,3 +25,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .gemini
+.claude
+.codex
+
+GEMINI.md
+AGENTS.md
+CLAUDE.md
