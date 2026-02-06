@@ -1,6 +1,6 @@
 ---
 name: git-commit-conventional-cliff-optimized
-description: 專為 git-cliff 優化的嚴格版 Conventional Commits 生成器，支援 SemVer 與 Emoji。
+description: Strict Conventional Commits generator optimized for git-cliff, with SemVer and Emoji support.
 ---
 
 # Git Commit Generator (Cliff Optimized)
