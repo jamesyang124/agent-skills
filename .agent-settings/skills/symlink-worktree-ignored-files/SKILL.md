@@ -1,6 +1,6 @@
 ---
 name: symlink-worktree-ignored-files
-description: Symlink git-ignored files from source worktree to an existing target worktree. Intelligently handles ignored files, heavy directories (node_modules, vendor), and submodules without creating the worktree itself.
+description: Symlink git-ignored files from current worktree to an existing target worktree. Smart auto-detection suggests the most recently modified worktree as default target. Intelligently handles ignored files, heavy directories (node_modules, vendor), and submodules.
 ---
 
 # Symlink Worktree Ignored Files
@@ -9,9 +9,17 @@ Symlink git-ignored files and directories from a source worktree to an existing 
 
 ## Description
 
-This skill automates the process of symlinking git-ignored files from a source worktree to an existing target worktree through an **interactive interface**. It intelligently handles:
-- Individual git-ignored files (`.env`, config files, etc.)
-- Heavy directories separately (`node_modules`, `vendor`)
+This skill automates the process of symlinking git-ignored files from the **current worktree** to an existing target worktree through an **interactive interface with smart auto-detection**.
+
+**Starting point**: Always runs from your current branch/worktree (the source)
+
+**Smart target detection**: Automatically suggests the most recently modified worktree as the default target, making it quick to sync to your active feature branches.
+
+**Folder-first approach**: Prioritizes symlinking entire ignored directories over individual files for simplicity and efficiency.
+
+It intelligently handles:
+- Ignored directories as whole folders (`node_modules`, `vendor`, `.venv`, etc.) - ONE symlink per directory
+- Root-level ignored files (`.env`, `.env.local`, etc.) - simple, no deep traversal
 - Submodule initialization with shared git objects
 
 **Note**: This skill assumes the target worktree already exists. It does **not** create the worktree itself.
@@ -19,15 +27,20 @@ This skill automates the process of symlinking git-ignored files from a source w
 ## Quick Start
 
 ```bash
-# 1. First, create a worktree if you haven't already
+# 1. First, create a worktree if you haven't already (or use an existing one)
 git worktree add ../my-feature -b feature-branch
 
-# 2. Run the skill in interactive mode (recommended)
+# 2. Navigate to your source branch (the one with files to link FROM)
+cd /path/to/my-project  # or stay in current worktree
+
+# 3. Run the skill in interactive mode (recommended)
 /symlink-worktree-ignored-files
 
-# 3. The skill will:
-#    - Show you all available worktrees
-#    - Let you select which one to symlink files to
+# 4. The skill will:
+#    - Detect you're on [current-branch]
+#    - Show all other worktrees, sorted by most recently modified
+#    - Suggest the most recent worktree as the default target
+#    - Let you select which one to symlink files TO
 #    - Preview what will be symlinked
 #    - Ask for confirmation
 #    - Create symlinks automatically
@@ -41,44 +54,54 @@ git worktree add ../my-feature -b feature-branch
 
 **Primary Usage (Interactive Mode - Recommended):**
 ```bash
+# 1. Navigate to the source worktree (the one with files to link FROM)
+cd /path/to/my-project
+
+# 2. Run the skill
 /symlink-worktree-ignored-files
 ```
 The skill will:
-1. Display all existing git worktrees
-2. Let you select which worktree to symlink files to
-3. Show what will be symlinked before proceeding
+1. Detect your current branch (the source)
+2. Display all other worktrees sorted by most recently modified
+3. Suggest the most recent worktree as default target
+4. Let you select which worktree to symlink files TO
+5. Show what will be symlinked before proceeding
 
-**Direct Usage (Optional):**
+**Direct Usage (Optional - Skip interactive selection):**
 ```bash
+# From your current/source worktree, specify target directly
 /symlink-worktree-ignored-files ../feature-x
 /symlink-worktree-ignored-files /path/to/existing/worktree
 ```
 
 **Prerequisites:**
 - Target worktree must already exist (created via `git worktree add`)
-- Run this skill from the source worktree (the one containing files to link from)
+- **You must run this from the source worktree** (the one containing files to link FROM)
+- The current directory determines the source branch/worktree
 
 ## Interactive Workflow
 
-When you run `/symlink-worktree-ignored-files`, the skill will:
+When you run `/symlink-worktree-ignored-files` from your current branch, the skill will:
 
-1. ✅ **Display** all available git worktrees
-2. ❓ **Ask** you to select the target worktree
-3. 📋 **Preview** what will be symlinked (files, directories, submodules)
-4. ❓ **Confirm** before making any changes
-5. 🔗 **Create** symlinks for:
-   - Individual ignored files (`.env`, configs, etc.)
-   - Heavy directories (`node_modules`, `vendor`, etc.)
+1. 🔍 **Detect** your current branch/worktree (the source)
+2. ✅ **Display** all other available git worktrees
+3. 🎯 **Sort** worktrees by modification time (most recent first as default)
+4. ❓ **Ask** you to select the target worktree (with smart default suggestion)
+5. 📋 **Preview** what will be symlinked (files, directories, submodules)
+6. ❓ **Confirm** before making any changes
+7. 🔗 **Create** symlinks with folder-first priority:
+   - Ignored directories as whole folders (`node_modules`, `vendor`, `.venv`, etc.)
+   - Root-level ignored files only (`.env`, `.env.local`, etc.)
    - Submodules (with shared git objects via `--reference`)
-6. ✅ **Verify** all symlinks work correctly
-7. 📊 **Report** results with disk space savings
+8. ✅ **Verify** all symlinks work correctly
+9. 📊 **Report** results with disk space savings
 
 ## Core Script Logic
 
-This skill combines concepts from `git-worktree-full` (for ignored files) and `git-worktree-safe` (for submodules):
+This skill uses a **folder-first approach** for simplicity and efficiency:
 
 ```bash
-# Adapted logic for existing worktrees
+# Simplified logic - prefer folder symlinks over individual files
 symlink-worktree-ignored() {
     local path="$1"
     local source="$(pwd)"
@@ -86,17 +109,14 @@ symlink-worktree-ignored() {
     # NOTE: This skill does NOT create the worktree - it assumes it exists
     # User should run: git worktree add "$path" [branch-args] first
 
-    # 1. Symlink individual ignored files (skip heavy dirs)
-    git ls-files --others --ignored --exclude-standard \
-        | grep -v -E '^(node_modules|vendor|\.cache|dist)/' \
-        | while read -r file; do
-            mkdir -p "$path/$(dirname "$file")"
-            [ ! -e "$path/$file" ] && ln -s "$source/$file" "$path/$file"
-        done
-
-    # 2. Symlink heavy directories
-    for dir in node_modules vendor .cache dist build target; do
+    # 1. Symlink common ignored directories (folder-level - PRIORITY)
+    for dir in node_modules vendor .cache dist build target .venv __pycache__ .next out .nuxt; do
         [ -d "$dir" ] && [ ! -e "$path/$dir" ] && ln -s "$source/$dir" "$path/$dir"
+    done
+
+    # 2. Symlink top-level ignored files only (simple, no deep traversal)
+    git ls-files --others --ignored --exclude-standard | grep -v '/' | while read -r file; do
+        [ -f "$file" ] && [ ! -e "$path/$file" ] && ln -s "$source/$file" "$path/$file"
     done
 
     # 3. Initialize submodules with shared git objects (--reference)
@@ -110,23 +130,30 @@ symlink-worktree-ignored() {
         cd "$source"
     fi
 
-    echo "✅ Worktree at $path: ignored files symlinked, submodules share git objects."
+    echo "✅ Worktree at $path: ignored folders/files symlinked, submodules share git objects."
 }
 ```
 
-**Key Approach:**
-1. **Ignored files**: Symlinked individually (`.env`, config files, etc.)
-2. **Heavy directories**: Symlinked as whole directories (`node_modules`, `vendor`)
-3. **Submodules**: Use `--reference` to share git objects while maintaining independent checkouts
-4. **Worktree creation**: NOT handled by this skill - assumes worktree already exists
+**Simplified Approach (Folder-First):**
+1. **Priority: Folder symlinks** - Symlink entire ignored directories (one symlink = entire folder)
+2. **Fallback: Root files only** - Only symlink ignored files in root (`.env`, `.env.local`, etc.)
+3. **No deep traversal** - Don't walk nested directories for individual files (use folder symlinks)
+4. **Submodules**: Use `--reference` to share git objects while maintaining independent checkouts
+5. **Worktree creation**: NOT handled by this skill - assumes worktree already exists
+
+**Why folder-first is better:**
+- ✅ **Simpler**: One symlink covers entire directory tree instead of hundreds of individual files
+- ✅ **Faster**: No need to traverse and symlink nested files individually
+- ✅ **Easier to verify**: Just check a few directory symlinks vs many file symlinks
+- ✅ **Less error-prone**: Avoids complex directory traversal logic
 
 ## Instructions
 
 Follow these steps to symlink git-ignored files from the current (source) worktree to an existing target worktree:
 
-### 1. Verify Environment and Display Worktrees
+### 1. Verify Environment and Display Worktrees with Smart Sorting
 
-First, verify the current directory is a git repository and list all existing worktrees:
+First, verify the current directory is a git repository, get the current branch, and list all existing worktrees sorted by modification time:
 
 ```bash
 # Check if we're in a git repository
@@ -135,53 +162,133 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
-# Get current worktree path
+# Get current worktree path and branch
 current_worktree="$(pwd)"
-echo "📂 Current worktree (source): $current_worktree"
+current_branch="$(git branch --show-current)"
+echo "📂 Current worktree (SOURCE): $current_worktree"
+echo "🌿 Current branch: $current_branch"
 
-# List all worktrees with details
+# List all worktrees with details, sorted by modification time
 echo ""
-echo "📋 Available worktrees:"
-git worktree list
+echo "📋 Available worktrees (sorted by most recently modified):"
+
+# Get all worktrees with modification times
+git worktree list --porcelain | awk '
+/^worktree / { path=$2 }
+/^branch / { branch=$2; sub(/^refs\/heads\//, "", branch) }
+/^$/ {
+    if (path != "") {
+        # Get last modification time of the worktree directory
+        cmd = "stat -f %m \"" path "\" 2>/dev/null || stat -c %Y \"" path "\" 2>/dev/null"
+        cmd | getline mtime
+        close(cmd)
+
+        # Get relative path
+        cmd = "realpath --relative-to=\"" ENVIRON["PWD"] "\" \"" path "\" 2>/dev/null || perl -e \"use File::Spec; print File::Spec->abs2rel(\\\"" path "\\\", \\\"" ENVIRON["PWD"] "\\\")\" 2>/dev/null"
+        cmd | getline relpath
+        close(cmd)
+
+        print mtime "\t" path "\t" branch "\t" relpath
+        path = ""
+        branch = ""
+    }
+}
+' | sort -rn | while IFS=$'\t' read -r mtime path branch relpath; do
+    # Skip current worktree
+    if [ "$path" = "$current_worktree" ]; then
+        continue
+    fi
+
+    # Calculate time ago
+    now=$(date +%s)
+    diff=$((now - mtime))
+
+    if [ $diff -lt 3600 ]; then
+        time_ago="$((diff / 60)) minutes ago"
+    elif [ $diff -lt 86400 ]; then
+        time_ago="$((diff / 3600)) hours ago"
+    else
+        time_ago="$((diff / 86400)) days ago"
+    fi
+
+    echo "  📁 $relpath [$branch] - Modified $time_ago"
+    echo "      Full path: $path"
+done
 ```
 
 **Expected output:**
 ```
-📂 Current worktree (source): /repo/my-project
+📂 Current worktree (SOURCE): /repo/my-project
+🌿 Current branch: main
 
-📋 Available worktrees:
-/repo/my-project          abc123 [main]
-/repo/my-project-feature  def456 [feature-branch]
-/repo/my-project-hotfix   ghi789 [hotfix-123]
+📋 Available worktrees (sorted by most recently modified):
+  📁 ../my-project-feature [feature-x] - Modified 2 hours ago
+      Full path: /repo/my-project-feature
+  📁 ../my-project-hotfix [hotfix-123] - Modified 3 days ago
+      Full path: /repo/my-project-hotfix
+  📁 ../my-project-staging [staging] - Modified 1 week ago
+      Full path: /repo/my-project-staging
 ```
 
-### 2. Interactive Selection - Let User Choose Target
+**Note**: The most recently modified worktree will be suggested as the default target in the next step.
+
+### 2. Interactive Selection - Smart Auto-Detection with User Choice
 
 **ALWAYS** use `AskUserQuestion` to let the user select the target worktree interactively:
 
 ```
-Question: "Which worktree should receive the symlinked files?"
-Header: "Target Worktree"
+Question: "Which worktree should receive the symlinked files from [current-branch]?"
+Header: "Target"
 ```
 
-**Build options dynamically from git worktree list:**
+**Auto-detection logic - Build options intelligently:**
 
-1. Parse `git worktree list` output to extract worktree paths
-2. Exclude the current worktree (source) from options
-3. For each worktree, create an option with:
-   - **Label**: Path + branch name (e.g., "../my-project-feature [feature-branch]")
-   - **Description**: Full path and git status
+1. Parse `git worktree list` output to extract all worktree paths
+2. **Exclude the current worktree** (source) from options
+3. **Sort by modification time** - Most recently modified first (this becomes the default/recommended option)
+4. For each worktree, create an option with:
+   - **Label**: Relative path + branch name (e.g., "../my-project-feature [feature-branch]")
+   - **Description**: Full absolute path, last modified time, and any relevant context
+5. **Mark the first option** (most recent) as "(Recommended)" if there are multiple options
+
+**Implementation steps:**
+
+```bash
+# Get current worktree details
+current_worktree="$(pwd)"
+current_branch="$(git branch --show-current)"
+
+# Get all worktrees with their details
+# Format: path<TAB>HEAD<TAB>branch
+all_worktrees=$(git worktree list --porcelain)
+
+# For each worktree (excluding current), get:
+# - Relative path from current location
+# - Absolute path
+# - Branch name
+# - Last modification time (from .git or working tree)
+
+# Sort by modification time (newest first)
+# The most recently modified worktree becomes the default suggestion
+```
 
 **Example AskUserQuestion structure:**
 ```
-Question: "Which worktree should receive the symlinked files from the current worktree?"
+Question: "Which worktree should receive the symlinked files from main?"
 Header: "Target"
 Options:
-  - Label: "../my-project-feature (feature-branch)"
-    Description: "Full path: /repo/my-project-feature | Branch: feature-branch"
-  - Label: "../my-project-hotfix (hotfix-123)"
-    Description: "Full path: /repo/my-project-hotfix | Branch: hotfix-123"
+  - Label: "../my-project-feature [feature-x] (Recommended)"
+    Description: "Modified 2 hours ago | /repo/my-project-feature | Most recently active"
+  - Label: "../my-project-hotfix [hotfix-123]"
+    Description: "Modified 3 days ago | /repo/my-project-hotfix"
+  - Label: "../my-project-staging [staging]"
+    Description: "Modified 1 week ago | /repo/my-project-staging"
 ```
+
+**Smart defaults:**
+- First option is always the most recently modified worktree (marked as "Recommended")
+- Current worktree is clearly shown in the question ("from [branch-name]")
+- Relative paths shown in labels for clarity, absolute paths in descriptions
 
 **If user provides target path directly (non-interactive mode):**
 - Skip the question and use the provided path
@@ -221,35 +328,32 @@ echo "✅ Target worktree validated: $target_path_abs"
 ```bash
 source_worktree="$(pwd)"
 echo ""
-echo "📋 Preview - Files and directories to be symlinked:"
+echo "📋 Preview - What will be symlinked (folder-first approach):"
 echo ""
 
-# Preview individual ignored files
-echo "📄 Individual ignored files:"
-ignored_files=$(git ls-files --others --ignored --exclude-standard \
-    | grep -v -E '^(node_modules|vendor|\.cache|dist)/' | head -10)
-
-if [ -n "$ignored_files" ]; then
-    echo "$ignored_files" | while read -r file; do
-        echo "  • $file"
-    done
-
-    # Count total
-    total=$(git ls-files --others --ignored --exclude-standard \
-        | grep -v -E '^(node_modules|vendor|\.cache|dist)/' | wc -l)
-    [ "$total" -gt 10 ] && echo "  ... and $((total - 10)) more files"
-else
-    echo "  (none found)"
-fi
-
-echo ""
-echo "📦 Heavy directories (if present):"
-for dir in node_modules vendor .cache dist build target; do
+# Preview ignored directories (PRIORITY - folder symlinks)
+echo "📦 Ignored directories (will be symlinked as whole folders):"
+found_dirs=0
+for dir in node_modules vendor .cache dist build target .venv __pycache__ .next out .nuxt; do
     if [ -d "$source_worktree/$dir" ]; then
         size=$(du -sh "$source_worktree/$dir" 2>/dev/null | cut -f1)
         echo "  • $dir ($size)"
+        found_dirs=1
     fi
 done
+[ $found_dirs -eq 0 ] && echo "  (none found)"
+
+echo ""
+echo "📄 Root-level ignored files (will be symlinked individually):"
+root_files=$(git ls-files --others --ignored --exclude-standard | grep -v '/')
+
+if [ -n "$root_files" ]; then
+    echo "$root_files" | while read -r file; do
+        [ -f "$file" ] && echo "  • $file"
+    done
+else
+    echo "  (none found)"
+fi
 
 echo ""
 echo "🔧 Submodules (if present):"
@@ -269,70 +373,69 @@ echo "Target: $target_path_abs"
 **Then use `AskUserQuestion` to confirm:**
 
 ```
-Question: "Proceed with symlinking these files and directories?"
+Question: "Proceed with symlinking these folders and files?"
 Header: "Confirm"
 Options:
   - Label: "Yes, proceed"
-    Description: "Create symlinks for all ignored files, heavy directories, and initialize submodules with shared objects"
+    Description: "Create folder symlinks for ignored directories, symlink root-level files, and initialize submodules with shared objects"
   - Label: "No, cancel"
     Description: "Cancel the operation without making any changes"
 ```
 
 If user selects "No, cancel", exit gracefully without making changes.
 
-### 5. Symlink Individual Git-Ignored Files
+### 5. Symlink Ignored Directories (Folder-First Priority)
 
-Symlink git-ignored files, excluding heavy directories that will be handled separately:
-
-```bash
-# Get list of ignored files, excluding heavy directories
-ignored_files=$(git ls-files --others --ignored --exclude-standard \
-    | grep -v -E '^(node_modules|vendor|\.cache|dist)/')
-
-if [ -n "$ignored_files" ]; then
-    echo "🔗 Symlinking individual ignored files..."
-    echo "$ignored_files" | while read -r file; do
-        # Create parent directory in target if needed
-        mkdir -p "$target_path/$(dirname "$file")"
-
-        # Check if file/symlink already exists in target
-        if [ -e "$target_path/$file" ] || [ -L "$target_path/$file" ]; then
-            echo "  ⚠️  Skipping $file (already exists in target)"
-        else
-            # Create absolute symlink
-            ln -s "$source_worktree/$file" "$target_path/$file"
-            echo "  ✅ $file"
-        fi
-    done
-else
-    echo "ℹ️  No individual ignored files to symlink"
-fi
-```
-
-**Note**: Using absolute symlinks for simplicity. For relative symlinks, calculate relative path first.
-
-### 6. Symlink Heavy Directories
-
-Handle heavy directories (`node_modules`, `vendor`, etc.) separately:
+**PRIORITY**: Symlink entire ignored directories first - this is simpler and more efficient:
 
 ```bash
-echo "🔗 Symlinking heavy directories..."
+echo "🔗 Symlinking ignored directories (folder-level)..."
 
-for dir in node_modules vendor .cache dist build target; do
+# Common ignored directories across different ecosystems
+for dir in node_modules vendor .cache dist build target .venv __pycache__ .next out .nuxt; do
     if [ -d "$source_worktree/$dir" ]; then
         if [ -e "$target_path/$dir" ] || [ -L "$target_path/$dir" ]; then
             echo "  ⚠️  $dir already exists in target"
-            # Optionally ask user how to handle:
-            # - Skip
-            # - Backup and replace
-            # - Delete and replace
         else
             ln -s "$source_worktree/$dir" "$target_path/$dir"
-            echo "  ✅ $dir -> $source_worktree/$dir"
+            size=$(du -sh "$source_worktree/$dir" 2>/dev/null | cut -f1)
+            echo "  ✅ $dir ($size) -> folder symlink"
         fi
     fi
 done
 ```
+
+**Why folder-first:**
+- ✅ One symlink covers entire directory tree
+- ✅ No need to traverse nested files
+- ✅ Simpler to manage and verify
+- ✅ More efficient than hundreds of individual file symlinks
+
+### 6. Symlink Root-Level Ignored Files
+
+Only symlink ignored files in the root directory (keep it simple):
+
+```bash
+echo "🔗 Symlinking root-level ignored files..."
+
+# Only symlink files in root directory (no deep traversal)
+# This avoids complexity and keeps it simple
+git ls-files --others --ignored --exclude-standard | grep -v '/' | while read -r file; do
+    if [ -f "$source_worktree/$file" ]; then
+        if [ -e "$target_path/$file" ] || [ -L "$target_path/$file" ]; then
+            echo "  ⚠️  Skipping $file (already exists)"
+        else
+            ln -s "$source_worktree/$file" "$target_path/$file"
+            echo "  ✅ $file"
+        fi
+    fi
+done
+```
+
+**Note**:
+- Only handles root-level files (`.env`, `.env.local`, etc.)
+- Files in nested directories are ignored (their parent directory should be symlinked instead)
+- This keeps the logic simple and avoids complex directory traversal
 
 ### 7. Initialize Submodules with Shared Git Objects
 
