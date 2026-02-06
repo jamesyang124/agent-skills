@@ -73,6 +73,8 @@ This project provides a collection of specialized skills to enhance your AI agen
     [View Details](.agent-settings/skills/git-commit-conventional-strict/SKILL.md)
 *   **api-spec-to-confluence**: Creates or updates a Confluence page from an API endpoint by analyzing the router and handler code, using the documentation template in this skill folder.
     [View Details](.agent-settings/skills/api-spec-to-confluence/SKILL.md)
+*   **symlink-worktree-ignored-files**: Symlink git-ignored files from source worktree to an existing target worktree. Handles ignored files, heavy directories (node_modules, vendor), and initializes submodules with shared git objects using --reference.
+    [View Details](.agent-settings/skills/symlink-worktree-ignored-files/SKILL.md)
 
 
 ## Agent Settings Management
