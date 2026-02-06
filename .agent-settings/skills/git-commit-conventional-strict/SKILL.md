@@ -66,19 +66,90 @@ You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your
 
 ## Analysis Process
 1.  **Analyze**: Read the provided git diff or code changes.
-2.  **Determine SemVer**: Is this a Patch (fix), Minor (feat), or Major (Breaking) change?
-3.  **Identify Scope**: Which module constitutes the primary scope (e.g., auth, ui, deps)?
-4.  **Draft Message**:
+2.  **Detect Commit Split Requirements**: Check if changes include both spec/doc files AND implementation files.
+    - **Spec/Doc files**: Files in `doc/`, `spec-kit/`, or `*.md` files (except root-level README.md)
+    - **Implementation files**: Source code, tests, configuration files
+    - If BOTH types are present, split into separate commits (see Commit Splitting Strategy below)
+3.  **Determine SemVer**: Is this a Patch (fix), Minor (feat), or Major (Breaking) change?
+4.  **Identify Scope**: Which module constitutes the primary scope (e.g., auth, ui, deps)?
+5.  **Draft Message**:
     - If Breaking: Use type!: format.
     - Select appropriate Emoji.
     - Write imperative subject.
-5.  **Execute Commit**: Use standard git commit command with the -m flag and include the Co-Authored-By line.
+6.  **Execute Commit**: Use standard git commit command with the -m flag and include the Co-Authored-By line.
+
+## Commit Splitting Strategy
+
+When changes include BOTH spec/documentation files AND implementation files, create separate commits in this order:
+
+### 1. Spec/Documentation Commit First
+**Pattern**: `docs(scope): 📝 [description of spec/doc changes]`
+- Include all files in `doc/`, `spec-kit/`, and related markdown files
+- Use `docs` type even if the spec describes a new feature
+- Focus the message on what specifications/documentation changed
+
+### 2. Implementation Commit Second
+**Pattern**: `[type](scope): [emoji] [description of implementation]`
+- Include source code, tests, and configuration files
+- Use appropriate type (feat, fix, refactor, etc.) based on the implementation
+- Reference the spec commit if helpful: "per updated spec in [commit-hash]"
+
+### Why This Order?
+- Specs/docs define the "what" before implementation defines the "how"
+- Easier code review: reviewers can understand requirements first
+- Better git history: clear separation of design vs implementation
+- Allows spec changes to be cherry-picked or reverted independently
+
+### Example Workflow
+```bash
+# Given changes to both doc/api-spec.md and src/api/handler.go
+
+# Commit 1: Documentation
+git add doc/api-spec.md spec-kit/examples/
+git commit -m "docs(api): 📝 add user authentication endpoint spec"
+
+# Commit 2: Implementation
+git add src/api/handler.go src/api/handler_test.go
+git commit -m "feat(api): ✨ implement user authentication endpoint"
+```
 
 ## Examples
 - **Standard Feature**: feat(auth): ✨ add google login support
 - **Bug Fix**: fix(ui): 🐛 prevent crash on empty input
 - **Breaking Change**: feat(api)!: 💥 remove v1 endpoints
 - **Documentation**: docs: 📝 update contribution guidelines
+- **Spec + Implementation (split)**:
+  - Commit 1: `docs(api): 📝 define product search filtering spec`
+  - Commit 2: `feat(api): ✨ implement product search filtering`
 
 ## Usage Notes
+
+### Commit Splitting Detection
+When analyzing changes, always check for mixed file types:
+```bash
+# Check what types of files changed
+git diff --name-only
+
+# If you see BOTH:
+# - doc/, spec-kit/, or .md files AND
+# - src/, lib/, or other implementation files
+# Then split into two commits
+```
+
+### Interactive Staging for Split Commits
+Use `git add` with specific paths to stage files separately:
+```bash
+# Stage only spec/doc files
+git add doc/ spec-kit/ '*.md'
+
+# Stage only implementation files
+git add src/ lib/ test/ config/
+```
+
 **Git Commit Command**: This skill uses standard git commit commands with the -m flag. The Bash tool automatically handles any necessary escaping for special characters. Keep commit messages straightforward and let the tool handle the execution details.
+
+### When NOT to Split
+- **Don't split** if changes are only in one category (all docs OR all code)
+- **Don't split** root-level README.md updates - treat as docs
+- **Don't split** inline code comments/docstrings - treat as implementation
+- **Don't split** if spec and code are trivial (e.g., typo fixes in both)
