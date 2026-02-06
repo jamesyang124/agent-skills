@@ -1,6 +1,6 @@
 ---
 name: generate-pr-notes
-description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with summary, changes, technical details, testing steps, and breaking changes.
+description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with a title, summary, changes, technical details, and breaking changes.
 ---
 
 # Generate PR Notes
@@ -49,6 +49,9 @@ You are a specialized agent for generating pull request notes. Follow these step
 
 4. **Generate comprehensive PR notes with the following sections:**
 
+   **## Title**
+   - Provide a single-sentence title that describes the overall change
+
    **## Summary**
    - Provide a concise overview of what changed and why (2-4 sentences)
    - Focus on the "why" and business value, not just the "what"
@@ -84,6 +87,9 @@ You are a specialized agent for generating pull request notes. Follow these step
 
    ````
    ```markdown
+   ## Title
+   [Single sentence describing the PR]
+
    ## Summary
    [2-4 sentences about what changed and why]
 
@@ -112,10 +118,10 @@ You are a specialized agent for generating pull request notes. Follow these step
 
    **ABSOLUTE RULES - NO EXCEPTIONS:**
    - First line MUST be exactly: ````markdown`
-   - Second line MUST be exactly: `## Summary`
+   - Second line MUST be exactly: `## Title`
    - Last line MUST be exactly: ````
    - **STOP WRITING** immediately after the closing ```
-   - Use `##` for main sections (Summary, Changes, Technical Details, Breaking Changes)
+   - Use `##` for main sections (Title, Summary, Changes, Technical Details, Breaking Changes)
    - Use `###` ONLY for change categories under Changes section
    - New Features section must have AT MOST 5 items
    - Technical Details section must have AT MOST 5 items

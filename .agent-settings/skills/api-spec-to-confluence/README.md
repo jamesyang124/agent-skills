@@ -20,12 +20,12 @@ A Claude Code skill that generates comprehensive API documentation from Go handl
 
 ### Create New Page
 ```
-User: "Create a Confluence page for the /api/hubs-cms/v1/me endpoint"
+User: "Create a Confluence page for the /api/example-service/v1/users/me endpoint"
 ```
 
 ### Update by Page ID
 ```
-User: "Update page 4152098820 with latest spec for /api/hubs-cms/v1/bv/upload/init"
+User: "Update page 1234567890 with latest spec for /api/example-service/v1/uploads/init"
 ```
 
 ### Update by Search
@@ -72,11 +72,11 @@ Generated documentation includes:
 ## Common Parent Pages
 
 Pre-configured parent pages for new documentation:
-- **Technical Design** (2323644417)
-- **Data point requirement** (3010002955)
-- **Genesis Technical Documentation** (4152098820)
-- **Release Configuration Notes** (3378413578)
-- **Frameworkization Project** (3817701417)
+- **Technical Design** (1234567)
+- **Data Requirements** (2345678)
+- **Technical Documentation** (3456789)
+- **Release Notes** (4567890)
+- **Project Documentation** (5678901)
 
 ## Requirements
 
@@ -105,7 +105,7 @@ Expects standard Go project structure:
 
 ## Tips
 
-- Always provide the API path (e.g., `/api/hubs-cms/v1/endpoint`)
+- Always provide the API path (e.g., `/api/example-service/v1/endpoint`)
 - For updates, you can use either page ID or search keywords
 - The skill automatically detects middleware and authentication requirements
 - JSON response examples are generated from DTO structures

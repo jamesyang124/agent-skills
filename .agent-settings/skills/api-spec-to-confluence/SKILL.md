@@ -68,7 +68,7 @@ If the MCP server is not configured, guide the user to run:
 
 ### Example 1: Create New Page
 
-**User**: "Create a Confluence page for the `/api/hubs-cms/v1/me` endpoint."
+**User**: "Create a Confluence page for the `/api/example-service/v1/users/me` endpoint."
 
 **Agent**:
 1. Asks if user wants to create new or update existing
@@ -79,7 +79,7 @@ If the MCP server is not configured, guide the user to run:
 **User**: "1" (selects Technical Design)
 
 **Agent**:
-1. Reads `router/router.go` to find the handler for `/api/hubs-cms/v1/me`
+1. Reads `router/router.go` to find the handler for `/api/example-service/v1/users/me`
 2. Reads the handler file (e.g., `handler/user.go`)
 3. Analyzes swagger annotations and implementation code
 4. Generates comprehensive markdown documentation
@@ -88,10 +88,10 @@ If the MCP server is not configured, guide the user to run:
 
 ### Example 2: Update Existing Page by ID
 
-**User**: "Update the Confluence page 4152098820 with the latest spec for `/api/hubs-cms/v1/bv/upload/init`."
+**User**: "Update the Confluence page 1234567890 with the latest spec for `/api/example-service/v1/uploads/init`."
 
 **Agent**:
-1. Recognizes the page ID (4152098820)
+1. Recognizes the page ID (1234567890)
 2. Retrieves the existing page using `mcp__atlassian__confluence_get_page`
 3. Reads `router/router.go` to find the handler
 4. Analyzes the handler code
@@ -132,7 +132,7 @@ If the MCP server is not configured, guide the user to run:
 - If user provides text, search for matching pages using `mcp__atlassian__confluence_search`
 
 ### Code Analysis
-- Use `Grep` to quickly find the API path in router.go: `pattern: '"/api/hubs-cms/v1/me"'`
+- Use `Grep` to quickly find the API path in router.go: `pattern: '"/api/example-service/v1/users/me"'`
 - Look for handler package imports and function names in router definitions
 - Read the entire handler function to understand the full workflow
 - Check for DTO structs referenced in the handler (in `dto/` directory)
@@ -141,6 +141,8 @@ If the MCP server is not configured, guide the user to run:
 - Identify service layer calls (in `service/` directory) for implementation context
 - Include code snippets or examples where helpful
 - Use clear markdown formatting for readability
+- **CRITICAL**: All JSON payloads, response examples, and request bodies MUST be wrapped in markdown code blocks.
+- **CRITICAL**: All request parameters (path, query, header) and DTO fields MUST be listed using tables (preferred) or unordered lists. Do not use plain text paragraphs for these.
 
 ### Update Strategy
 - When updating, retrieve the existing page first to preserve the title
@@ -150,11 +152,11 @@ If the MCP server is not configured, guide the user to run:
 
 ## Common Parent Pages
 
--   [Technical Design](https://example.atlassian.net/wiki/spaces/VM/pages/2323644417/Technical+Design) (2323644417)
--   [Data point requirement](https://example.atlassian.net/wiki/spaces/VM/pages/3010002955/Data+point+requirement) (3010002955)
--   [Genesis Technical Documentation](https://example.atlassian.net/wiki/spaces/VM/pages/4152098820/Genesis+Technical+Documentation) (4152098820)
--   [Release Configuration Notes](https://example.atlassian.net/wiki/spaces/VM/pages/3378413578/Release+Configuration+Notes) (3378413578)
--   [Frameworkization Project](https://example.atlassian.net/wiki/spaces/VM/pages/3817701417/Frameworkization+Project) (3817701417)
+-   [Technical Design](https://example.atlassian.net/wiki/spaces/DEMO/pages/1234567/Technical+Design) (1234567)
+-   [Data Requirements](https://example.atlassian.net/wiki/spaces/DEMO/pages/2345678/Data+Requirements) (2345678)
+-   [Technical Documentation](https://example.atlassian.net/wiki/spaces/DEMO/pages/3456789/Technical+Documentation) (3456789)
+-   [Release Notes](https://example.atlassian.net/wiki/spaces/DEMO/pages/4567890/Release+Notes) (4567890)
+-   [Project Documentation](https://example.atlassian.net/wiki/spaces/DEMO/pages/5678901/Project+Documentation) (5678901)
 
 ## Page Search and Selection
 
@@ -167,9 +169,9 @@ When updating an existing page using a search hint:
 2. **Present Results**: Show user a numbered list of matching pages:
    ```
    Found 3 matching pages:
-   1. API Spec: /api/hubs-cms/v1/bv/upload/init (ID: 4152098820)
-   2. API Spec: /api/hubs-cms/v1/bv/upload/complete (ID: 4152098821)
-   3. API Spec: /api/hubs-cms/v1/standalone/upload (ID: 4152098822)
+   1. API Spec: /api/example-service/v1/uploads/init (ID: 1234567890)
+   2. API Spec: /api/example-service/v1/uploads/complete (ID: 1234567891)
+   3. API Spec: /api/example-service/v1/uploads/status (ID: 1234567892)
 
    Which page would you like to update? (Enter number or 'cancel')
    ```
@@ -231,7 +233,7 @@ When analyzing handler code, look for:
 - **Response Handling** (**REQUIRED**): Look for `c.JSON()`, `c.String()`, `c.Status()` calls to understand response formats
 - **Service Calls**: Identify which services/clients are used
 - **Database Operations**: Direct DB queries or through repositories
-- **External APIs**: BlendVision, Directus, NFT vendors, etc.
+- **External APIs**: Third-party services, CMS systems, payment providers, etc.
 - **Error Handling**: Common error scenarios and HTTP status codes returned
 - **Business Logic**: Key validation rules, transformations, workflows
 
@@ -239,10 +241,6 @@ When analyzing handler code, look for:
 Use the template at `references/documentation-template.md` as the base structure. Do not reorder,
 rename, or omit sections. Replace all placeholder text with endpoint-specific content based on code analysis.
 Ensure **Services Used** and **External Dependencies** are formatted as a list or table (not inline text).
-Include a mandatory **Application Flow (Mermaid)** section with a sequence diagram that captures key decision flow.
-Use the **WeWeave Mermaid Charts & Diagrams** macro for inline Mermaid (no attachments).
-Embed the diagram as inline Mermaid text inside the macro body.
-If inline Mermaid is not available, fall back to attachment-based workflow and instruct the user.
 Keep **Change Log** to at most 3 entries (most recent only).
 
 ### Response Examples Requirements

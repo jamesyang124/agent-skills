@@ -46,7 +46,7 @@ Before using this skill, ensure:
 3.  **Configure Jira Settings (Interactive)**:
     - **Brackets**: Present suggested `[TOPIC]` and `[SERVICE/COMPONENT]` values. Ask the user to confirm or provide new ones.
     - **Owner**: Ask the user for the **Assignee** email or name for the tickets.
-    - **Project/Type**: Use your default **Jira Project Key** (e.g., **PROJECT**) and **Story** as the default **Issue Type** for the root ticket. Allow the user to override.
+    - **Project/Type**: Use **EXAMPLE** as the default **Jira Project Key** and **Story** as the default **Issue Type** for the root ticket. Allow the user to override.
 
 4.  **Create Tickets**:
     - **Step 1: Create Root Ticket**: Use `mcp__atlassian__jira_create_issue`.
@@ -73,11 +73,11 @@ When analyzing the Confluence page:
 
 ### Mapping to Jira Fields
 - **Summary**: **MANDATORY**: Follow the pattern `[TOPIC][SERVICE/COMPONENT] Description`.
-  - All text within brackets MUST be UPPERCASE (e.g., `[PROJECT][MODULE]`, `[FEATURE][SERVICE]`).
-  - The `TOPIC` refers to the main title or key topic of the documentation (e.g., `MARKETPLACE`, `AUTHENTICATION`).
-  - The `SERVICE/COMPONENT` refers to the specific system or module (e.g., `API`, `WEB_UI`, `DATABASE`).
+  - All text within brackets MUST be UPPERCASE (e.g., `[PROJECT][BACKEND]`, `[FEATURE][API]`).
+  - The `TOPIC` refers to the main title or key topic of the documentation (e.g., `PROJECT`, `FEATURE`).
+  - The `SERVICE/COMPONENT` refers to the specific system or module (e.g., `API`, `FRONTEND`, `DATABASE`).
   - The `Description` must start with an uppercase letter.
-  - Example: `[MARKETPLACE][API] Implement robust search filtering for product listings`.
+  - Example: `[PROJECT][BACKEND] Dynamic URL Domain Migration - Versioned Content URLs`.
 - **Description**: **MANDATORY**: Use the structure defined in `references/jira-ticket-template.md`. Include context from the Confluence page, link back to the source, and list clear acceptance criteria.
 - **Project**: Use the provided Project Key.
 - **IssueType**: Use "Sub-task" for child issues.
@@ -86,7 +86,7 @@ When analyzing the Confluence page:
 
 ## Workflow Example
 
-**User**: "Create Jira tickets from this Confluence page: 'Service Feature Spec - User Profiles'"
+**User**: "Create Jira tickets from this Confluence page: 'CMS Feature Spec - User Profiles'"
 
 **Agent**:
 1. Uses `mcp__atlassian__confluence_search` to find the page.
@@ -94,20 +94,20 @@ When analyzing the Confluence page:
 3. Analyzes content and presents a proposal:
    ```
    Based on the spec, I propose:
-   - Root Ticket: Implement User Profile Management
+   - Root Ticket: Implement CMS User Profile Management
    - Subtasks: ...
    
    I've suggested the following brackets:
    - [TOPIC]: USER_PROFILES
-   - [SERVICE/COMPONENT]: CORE_SERVICE
+   - [SERVICE/COMPONENT]: CMS
    
    Settings:
-   - Project: PROJECT (default)
+   - Project: EXAMPLE (default)
    - Root Issue Type: Story (default)
-   
+
    Would you like to change any of these values or set an owner (assignee)?
    ```
-4. User responds: "Use [TOPIC] PROFILE and set assignee to user@example.com"
+4. User responds: "Use [TOPIC] PROFILE and set assignee to john.doe@example.com"
 5. Agent creates the root ticket and subtasks with the updated values.
 6. Agent provides the URLs for all created tickets.
 
@@ -115,5 +115,5 @@ When analyzing the Confluence page:
 
 - **Batch Creation**: If many subtasks are identified, inform the user you are creating them in sequence.
 - **Validation**: If the Confluence page is empty or doesn't contain actionable items, ask the user for clarification.
-- **Project Selection**: Use the configured default project key but allow the user to override. You can use `mcp__atlassian__jira_get_all_projects` to show a list of available projects if they wish to change.
+- **Project Selection**: Default to **EXAMPLE** but allow the user to override. You can use `mcp__atlassian__jira_get_all_projects` to show a list of available projects if they wish to change.
 - **Mapping Custom Fields**: If the project requires specific custom fields, use `mcp__atlassian__jira_search_fields` to identify them.

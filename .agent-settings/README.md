@@ -115,7 +115,7 @@ This configuration supports the following AI coding assistants:
 
 ## Project-Specific Configuration
 
-### For This Project (hubs-cms-go)
+### For This Project
 
 This project uses Claude Code as the primary AI assistant with:
 
@@ -172,9 +172,9 @@ ATLASSIAN_EMAIL=your-email@example.com
 ATLASSIAN_API_TOKEN=your-api-token
 ATLASSIAN_URL=https://your-domain.atlassian.net
 
-# BlendVision API (project-specific)
-BLENDVISION_API_KEY=your-blendvision-key
-BLENDVISION_BASE_URI=https://api.blendvision.com
+# Example API Service (project-specific)
+EXAMPLE_API_KEY=your-api-key
+EXAMPLE_BASE_URI=https://api.example.com
 
 # Other AI Assistants (if migrating)
 CURSOR_API_KEY=your-cursor-key
@@ -248,4 +248,4 @@ When adding new resources to `.agent-settings`:
 
 ## License
 
-These configurations are specific to the `hubs-cms-go` project. Adapt as needed for your use case.
+These configurations can be adapted for your specific project needs.
