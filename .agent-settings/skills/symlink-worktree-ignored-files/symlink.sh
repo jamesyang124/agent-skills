@@ -24,6 +24,12 @@ echo "🔗 Symlinking ignored files from '$source_path' to '$target_path'..."
 # Get ALL ignored files and directories
 while IFS= read -r item; do
     if [ -n "$item" ]; then
+        # Skip .wt directory, as it's a git worktree internal folder
+        if [[ "$item" == ".wt" || "$item" == ".wt/"* ]]; then
+            echo "  ⏩ Skipping .wt directory."
+            continue
+        fi
+
         full_source_path="$source_path/$item"
         full_target_path="$target_path/$item"
 
