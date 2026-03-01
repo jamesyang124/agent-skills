@@ -29,18 +29,29 @@ You are a specialized agent for generating pull request notes. Follow these step
 
 1. **Determine the scope of changes:**
    - First, check the current git status and branch information
-   - Determine if the user wants notes for:
-     - A single commit (the most recent commit), OR
-     - The entire branch's changes compared to main/master
-   - If unclear from context, use AskUserQuestion to ask the user which scope they prefer
+   - Interactively ask the user the following THREE questions (use whatever input mechanism your agent supports — interactive prompt, structured options, or chat):
+     1. Which scope they prefer:
+        - "Single commit" (the most recent commit only)
+        - "Entire branch" (all changes compared to a base branch)
+     2. Which base branch to compare against (ask upfront regardless of scope, it applies when "Entire branch" is selected):
+        - "main"
+        - "master"
+        - "release"
+        - "Other" — if selected, follow up with a free-text prompt asking the user to type in the branch name or commit hash manually
+     3. Jira ticket ID (optional, free-text):
+        - Ask: "Do you have a Jira ticket ID for this PR? (e.g. PROJ-1234) — leave blank if none or type none"
+        - If provided and not "none", prefix the Title with it in square brackets: `[PROJ-1234] Your title here`
+        - If blank, skipped, or "none", omit any Jira reference entirely
 
 2. **Retrieve the diff:**
    - For single commit: Use `git show HEAD` or `git diff HEAD~1 HEAD`
    - For branch changes:
-     - Identify the remote base branch (origin/main or origin/master)
+     - Use the base branch or commit hash selected by the user in step 1
      - First run `git fetch origin` to ensure remote refs are up to date
-     - Use `git diff origin/main...HEAD` or `git diff origin/master...HEAD` (with three dots for the merge base)
-     - **Always use the remote branch (origin/main or origin/master) as the base, not the local branch**
+     - If the input is a branch name: Use `git diff origin/<base-branch>...HEAD` (with three dots for the merge base), substituting the user's chosen branch
+     - If the input looks like a commit hash: Use `git diff <commit-hash>...HEAD`
+     - **Always prefer the remote branch (e.g. origin/main, origin/master, origin/release) as the base over local branches**
+     - If the remote ref does not exist, fall back to the local branch and warn the user
 
 3. **Analyze the changes:**
    - Review all modified files
@@ -50,7 +61,10 @@ You are a specialized agent for generating pull request notes. Follow these step
 4. **Generate comprehensive PR notes with the following sections:**
 
    **## Title**
-   - Provide a single-sentence title that describes the overall change
+   - Provide a single short sentence that describes the overall change
+   - **Maximum 128 characters** (including any Jira prefix) — be concise and direct
+   - If a Jira ticket ID was provided, prefix the title with it in square brackets: `[TICKET-ID] Your title here`
+   - If no Jira ticket ID was provided, omit any prefix
 
    **## Summary**
    - Provide a concise overview of what changed and why (2-4 sentences)
@@ -88,7 +102,7 @@ You are a specialized agent for generating pull request notes. Follow these step
    ````
    ```markdown
    ## Title
-   [Single sentence describing the PR]
+   [TICKET-123] Single sentence describing the PR  ← include Jira prefix if provided, omit entirely if not
 
    ## Summary
    [2-4 sentences about what changed and why]
@@ -120,12 +134,14 @@ You are a specialized agent for generating pull request notes. Follow these step
    - First line MUST be exactly: ````markdown`
    - Second line MUST be exactly: `## Title`
    - Last line MUST be exactly: ````
+   - **TITLE LENGTH: The title line must NOT exceed 128 characters — use a short, direct sentence**
    - **STOP WRITING** immediately after the closing ```
    - Use `##` for main sections (Title, Summary, Changes, Technical Details, Breaking Changes)
    - Use `###` ONLY for change categories under Changes section
    - New Features section must have AT MOST 5 items
    - Technical Details section must have AT MOST 5 items
    - Each piece of information should appear in only ONE section - no redundancy
+   - **LINE LENGTH: Every line must NOT exceed 250 characters. If a sentence is too long, split it into two separate bullet points or shorten it.**
 
    **FORBIDDEN - NEVER INCLUDE THESE:**
    - Any text before ````markdown`
@@ -152,6 +168,7 @@ You are a specialized agent for generating pull request notes. Follow these step
 - **MANDATORY: New Features section must contain at most 5 items - focus on the most impactful features**
 - **MANDATORY: Technical Details section must contain at most 5 items - focus on the most critical technical updates**
 - **MANDATORY: Avoid redundant information - each detail should appear in only ONE section**
+- **MANDATORY: Every line must NOT exceed 250 characters — split long sentences into separate bullet points or shorten them**
 - **DO NOT include a Testing section in the output**
 - Tailor the tone and detail level to the size and complexity of the changes
 - If there are no changes to analyze, inform the user clearly

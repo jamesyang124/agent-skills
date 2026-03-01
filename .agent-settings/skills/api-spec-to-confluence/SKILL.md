@@ -35,7 +35,7 @@ If the MCP server is not configured, guide the user to run:
 
 ## Process
 
-1.  **Identify the API endpoint**: The user must provide the API path (e.g., `/api/hubs-cms/v1/me`).
+1.  **Identify the API endpoint**: The user must provide the API path (e.g., `/api/example-service/v1/users/me`).
 2.  **Choose Operation Mode**: Ask the user if they want to:
     - **Create a new page**: Generate a new Confluence page
     - **Update an existing page**: Update an existing page by providing a page ID or search hint
@@ -61,7 +61,7 @@ If the MCP server is not configured, guide the user to run:
     - **Error Handling**: Common error scenarios and status codes
     - **Dependencies**: Services, clients, or repositories used
 5.  **Create or Update Confluence Page**:
-    - **For new pages**: Use `mcp__atlassian__confluence_create_page` to create a new page under the specified parent. Title format: `API Spec: {path}` (e.g., "API Spec: /api/hubs-cms/v1/me").
+    - **For new pages**: Use `mcp__atlassian__confluence_create_page` to create a new page under the specified parent. Title format: `API Spec: {path}` (e.g., "API Spec: /api/example-service/v1/users/me").
     - **For existing pages**: Use `mcp__atlassian__confluence_update_page` to update the content while preserving the existing title (unless user wants to change it).
 
 ## Example Usage
@@ -127,7 +127,7 @@ If the MCP server is not configured, guide the user to run:
 
 ### Page ID vs Search Hint
 - **Page ID**: A numeric value (e.g., "4152098820" or just "4152098820")
-- **Search Hint**: Text keywords (e.g., "upload API spec", "BlendVision upload")
+- **Search Hint**: Text keywords (e.g., "upload API spec", "product upload")
 - If user provides numeric value, treat it as page ID and use directly
 - If user provides text, search for matching pages using `mcp__atlassian__confluence_search`
 

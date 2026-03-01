@@ -95,7 +95,7 @@ This configuration supports the following AI coding assistants:
 | **Claude Code** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Codex CLI** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Cursor** | ✅ Via symlinks | ⚠️ Limited | ✅ To Claude |
-| **GitHub Copilot** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
+| **GitHub Copilot** | ✅ Full Support | ✅ Full Support | ✅ To Claude |
 | **Google AI Studio** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
 
 ## Antigravity Configuration
@@ -112,6 +112,22 @@ This configuration supports the following AI coding assistants:
 
 **Global:** `~/.codex/config.toml` - User settings (managed by Codex CLI)
 **Project:** `.codex/config.toml` - MCP servers (commit to Git if desired)
+
+## GitHub Copilot Configuration
+
+**Skills:** `.github/agents/agent-settings.*.agent.md` - Agent instruction files (flat, commit to Git)
+**Instructions:** `.github/copilot-instructions.md` - Skills table with `@@skill-name` convention
+**MCP:** `.vscode/mcp.json` - VS Code MCP servers (uses `servers` key, commit to Git)
+
+```bash
+# Import all skills for Copilot
+.agent-settings/skills/import-skills.sh copilot
+
+# Install Atlassian MCP for Copilot
+.agent-settings/mcps/install-atlassian-mcp.sh --agent copilot --jira-url https://myteam.atlassian.net
+```
+
+In Copilot Chat: type `@@` to browse skills or `@@agent-settings.skill-name` to invoke directly.
 
 ## Project-Specific Configuration
 

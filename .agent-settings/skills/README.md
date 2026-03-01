@@ -114,6 +114,29 @@ mkdir -p .gemini/skills
 ln -s ../../.agent-settings/skills/generate-pr-notes .gemini/skills/generate-pr-notes
 ```
 
+##### For GitHub Copilot
+
+Copilot uses a different mechanism — flat agent files in `.github/agents/` instead of symlinks:
+
+```bash
+# Generate agent files and copilot-instructions.md
+.agent-settings/skills/import-skills.sh copilot
+
+# Import specific skills only
+.agent-settings/skills/import-skills.sh copilot generate-pr-notes
+
+# Verify generated agent files
+.agent-settings/skills/import-skills.sh --verify copilot
+```
+
+This creates:
+- `.github/agents/agent-settings.<skill>.agent.md` — VS Code-compatible agent instruction files
+- `.github/copilot-instructions.md` — skills table with `@@skill-name` invocation syntax
+
+**Invocation:** In Copilot Chat, type `@@` to browse available skills or `@@agent-settings.generate-pr-notes` to run one directly.
+
+**Sharing:** Commit `.github/agents/` and `.github/copilot-instructions.md` to Git for team sharing.
+
 ##### For Other Agents
 
 ```bash
