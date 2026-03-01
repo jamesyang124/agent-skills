@@ -7,7 +7,7 @@ set -e
 
 VERSION="1.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 ATLASSIAN_MCP_IMAGE="${ATLASSIAN_MCP_IMAGE:-ghcr.io/sooperset/mcp-atlassian:latest}"
 
 # Colors
@@ -35,7 +35,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show help\n"
     printf "    -o, --output FILE       Output file (overrides interactive selection)\n"
-    printf "    --agent AGENT           Specify agent non-interactively: 'gemini', 'claude', or 'codex'.\n"
+    printf "    --agent AGENT           Specify agent non-interactively: 'gemini', 'claude', 'codex', or 'copilot'.\n"
     printf "    --jira-url URL          Jira URL\n"
     printf "    --confluence-url URL    Confluence URL (default: same as Jira)\n\n"
     printf "${YELLOW}Examples:${NC}\n"
@@ -70,26 +70,35 @@ if [[ -z "$AGENT" ]]; then
     printf "  1) Gemini\n"
     printf "  2) Claude\n"
     printf "  3) Codex\n"
-    printf "Enter choice [1-3]: "
+    printf "  4) GitHub Copilot\n"
+    printf "Enter choice [1-4]: "
     read -n 1 -r AGENT_CHOICE
     echo ""
     case $AGENT_CHOICE in
         1) AGENT="gemini" ;;
         2) AGENT="claude" ;;
         3) AGENT="codex" ;;
+        4) AGENT="copilot" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
 
 if [[ -z "$OUTPUT_FILE" ]]; then
     if [[ "$AGENT" == "gemini" ]]; then
-        OUTPUT_FILE="${PROJECT_ROOT}/.gemini/settings.json"
+        # Check for Antigravity configuration file first
+        if [[ -f "$HOME/.gemini/antigravity/mcp_config.json" ]]; then
+            OUTPUT_FILE="$HOME/.gemini/antigravity/mcp_config.json"
+        else
+            OUTPUT_FILE="${PROJECT_ROOT}/.gemini/settings.json"
+        fi
     elif [[ "$AGENT" == "claude" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.mcp.json"
     elif [[ "$AGENT" == "codex" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.codex/config.toml"
+    elif [[ "$AGENT" == "copilot" ]]; then
+        OUTPUT_FILE="${PROJECT_ROOT}/.vscode/mcp.json"
     else
-        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', or 'codex'."
+        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', 'codex', or 'copilot'."
         exit 1
     fi
 fi
@@ -187,6 +196,36 @@ args = [
   "${ATLASSIAN_MCP_IMAGE}"
 ]
 EOFCONFIG
+elif [[ "$AGENT" == "copilot" ]]; then
+    # VS Code format uses "servers" key instead of "mcpServers"
+    MCP_CONFIG=$(cat <<EOFCONFIG
+{
+  "servers": {
+    "atlassian": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--env-file",
+        "${ENV_FILE_PATH}",
+        "${ATLASSIAN_MCP_IMAGE}"
+      ],
+      "env": {}
+    }
+  }
+}
+EOFCONFIG
+)
+
+    # Merge with existing JSON config
+    if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
+        log_info "Merging with existing configuration..."
+        MERGED=$(jq --argjson newConfig "$MCP_CONFIG" '.servers.atlassian = $newConfig.servers.atlassian' "$OUTPUT_FILE")
+        echo "$MERGED" | jq '.' > "$OUTPUT_FILE"
+    else
+        echo "$MCP_CONFIG" | jq '.' > "$OUTPUT_FILE"
+    fi
 else
     # Create the agent-specific config that uses the env file
     MCP_CONFIG=$(cat <<EOFCONFIG
@@ -227,4 +266,10 @@ echo "  1. Make sure you have Docker installed and running."
 echo "  2. Pull the image: docker pull ${ATLASSIAN_MCP_IMAGE}"
 echo "  3. Review the generated configuration in ${OUTPUT_FILE}."
 echo "  4. Review the environment file at ${PROJECT_ROOT}/.env.mcp-atlassian."
-echo "  5. Restart your development environment to apply the changes."
+if [[ "$AGENT" == "copilot" ]]; then
+    echo "  5. Reload VS Code window (Ctrl+Shift+P → \"Developer: Reload Window\")"
+    echo ""
+    log_info "Note: .vscode/mcp.json may need 'git add -f' if .vscode/ is gitignored in your project."
+else
+    echo "  5. Restart your development environment to apply the changes."
+fi
