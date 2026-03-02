@@ -69,7 +69,7 @@ A quick visual guide showing how your agent skills integrate with GitHub Spec-Ki
 │      - Phased implementation plan                              │
 │                                                                 │
 │  🛠️  Skills:                                                    │
-│    • spec-to-tech-design                                       │
+│    • confluence-prd-to-spec                                       │
 │      └─> Read spec → Generate TDD → Publish to Confluence      │
 │                                                                 │
 │  🔌 MCP:                                                        │
@@ -87,7 +87,7 @@ A quick visual guide showing how your agent skills integrate with GitHub Spec-Ki
 │    • Implementation strategy ready for tasking                 │
 │                                                                 │
 │  🛠️  Skills:                                                    │
-│    • spec-to-tech-design (re-run if spec changes)              │
+│    • confluence-prd-to-spec (re-run if spec changes)              │
 │                                                                 │
 │  🔌 MCP:                                                        │
 │    • Atlassian (Update Confluence with plans)                  │
@@ -103,7 +103,7 @@ A quick visual guide showing how your agent skills integrate with GitHub Spec-Ki
 │    └─> Confluence TDD → Jira Tickets                           │
 │                                                                 │
 │  🛠️  Skills:                                                    │
-│    • confluence-to-jira-tickets                                │
+│    • confluence-tech-plan-to-jira-tickets                                │
 │      └─> Convert TDD to actionable tickets                     │
 │                                                                 │
 │  🔌 MCP:                                                        │
@@ -178,9 +178,9 @@ A quick visual guide showing how your agent skills integrate with GitHub Spec-Ki
 | Phase | Command | Purpose |
 |-------|---------|---------|
 | **Constitution** | `/symlink-worktree-ignored-files` | Set up development environment with worktrees |
-| **Specify → Plan** | `/spec-to-tech-design` | Generate Tech Design Document from spec page |
-| **Plan** | `/spec-to-tech-design` | Re-generate TDD if the spec changes |
-| **Tasks** | `/confluence-to-jira-tickets` | Create Jira tickets from Confluence TDD |
+| **Specify → Plan** | `/confluence-prd-to-spec` | Generate Tech Design Document from spec page |
+| **Plan** | `/confluence-prd-to-spec` | Re-generate TDD if the spec changes |
+| **Tasks** | `/confluence-tech-plan-to-jira-tickets` | Create Jira tickets from Confluence TDD |
 | **Tasks** | `/git-commit-conventional-strict` | Create semantic version commits |
 | **Tasks** | `/api-spec-to-confluence` | Generate API docs from committed code |
 | **Tasks** | `/generate-pr-notes` | Generate comprehensive PR documentation |
@@ -236,7 +236,7 @@ Step 2: SPECIFY
 
 Step 2→3: SPECIFY → PLAN
 ├─> Generate Tech Design Document
-├─> Use: /spec-to-tech-design skill
+├─> Use: /confluence-prd-to-spec skill
 │   Input: Confluence spec page "User Management API v2 - Create User"
 │   • Architecture: REST handler + validation middleware
 │   • Component: UserService (new), ValidationMiddleware (extend)
@@ -254,7 +254,7 @@ Step 3: PLAN
 
 Step 4: TASKS (Part 1 - Task Creation)
 ├─> Create actionable tasks
-├─> Use: /confluence-to-jira-tickets skill
+├─> Use: /confluence-tech-plan-to-jira-tickets skill
 │   Input: TDD Confluence page
 │   Output: Jira tickets
 │   • PROJ-123: Implement POST /api/v2/users endpoint
@@ -325,7 +325,7 @@ New feedback: "Add rate limiting"
 - **Single source of truth**: All downstream artifacts trace back to specs
 
 ### 2️⃣ Automated Task Management
-- **From specs to tickets**: confluence-to-jira-tickets skill
+- **From specs to tickets**: confluence-tech-plan-to-jira-tickets skill
 - **Structured commits**: git-commit-conventional-strict skill
 - **PR documentation**: generate-pr-notes skill
 
@@ -357,8 +357,8 @@ specify init
 # 4. Start your first cycle
 # In your AI agent:
 # → Write spec in Confluence (MCP: Atlassian)
-# → /spec-to-tech-design (generate TDD from spec)
-# → /confluence-to-jira-tickets (create Jira tickets from TDD)
+# → /confluence-prd-to-spec (generate TDD from spec)
+# → /confluence-tech-plan-to-jira-tickets (create Jira tickets from TDD)
 # → Implement code
 # → /git-commit-conventional-strict
 # → /api-spec-to-confluence (document the committed API)
@@ -369,7 +369,7 @@ specify init
 
 ## 📚 Resources
 
-- [Full Integration Guide](./sdd-workflow-integration.md)
+- [Full Workflow Guide](./sdd-workflow-spec-kit-native.md)
 - [GitHub Spec-Kit](https://github.com/github/spec-kit)
 - [Agent Skills README](../README.md)
 - [MCP Setup Guide](../.agent-settings/mcps/README.md)

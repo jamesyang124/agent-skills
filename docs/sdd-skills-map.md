@@ -22,29 +22,43 @@ Visual reference showing exactly which skills and MCP tools to use at each SDD p
                           │
                           ↓
     ┌─────────────────────────────────────────────────────┐
-    │                   2. SPECIFY                        │
-    │              (Define Requirements)                  │
+    │          0→2. PRE-SPECIFY  (optional)               │
+    │         PO hands off PRD from Confluence            │
     │                                                     │
-    │  MCP:     • Atlassian → Confluence                 │
-    │           • claude-mem → Remember patterns         │
+    │  Skills:  • confluence-prd-to-spec                     │
+    │               Confluence PRD → prd-source.md       │
+    │  MCP:     • Atlassian → Fetch PRD page             │
     └─────────────────────┬───────────────────────────────┘
                           │
                           ↓
     ┌─────────────────────────────────────────────────────┐
-    │              2→3. SPECIFY → PLAN                    │
-    │          (Generate Tech Design Document)            │
+    │                   2. SPECIFY                        │
+    │              (Define Requirements)                  │
     │                                                     │
-    │  Skills:  • spec-to-tech-design                    │
-    │               Spec page → TDD in Confluence        │
-    │  MCP:     • Atlassian → Create/update TDD page     │
+    │  spec-kit specify  (ref. prd-source.md if fetched) │
+    │  MCP:     • claude-mem → Remember patterns         │
+    └──────────────────────┬──────────────────────────────┘
+                           │
+                           │  [spec-kit native path]
+                           ↓
+    ┌─────────────────────────────────────────────────────┐
+    │              2→3. SPECIFY → PLAN                    │
+    │         (spec-kit plan → publish for review)        │
+    │                                                     │
+    │  spec-kit plan                                     │
+    │  → plan.md + requirements.md (local)               │
+    │  Skill:  • sdd-tech-plan-to-confluence             │
+    │              Local files →                         │
+    │              Design Review page + Review Loop      │
+    │  MCP:    • Atlassian → Create/update review page   │
     └─────────────────────┬───────────────────────────────┘
                           │
                           ↓
     ┌─────────────────────────────────────────────────────┐
     │                    3. PLAN                          │
-    │              (Technical Design)                     │
+    │              (Review & Refine)                      │
     │                                                     │
-    │  Skills:  • spec-to-tech-design (re-run on update) │
+    │  Skills:  • sdd-tech-plan-to-confluence (re-pub)   │
     │  MCP:     • Atlassian → Confluence                 │
     │           • claude-mem → Track decisions           │
     └─────────────────────┬───────────────────────────────┘
@@ -55,7 +69,7 @@ Visual reference showing exactly which skills and MCP tools to use at each SDD p
     │             (Execute & Deliver)                     │
     │                                                     │
     │  4a. Create Tasks:                                 │
-    │      Skills:  • confluence-to-jira-tickets         │
+    │      Skills:  • confluence-tech-plan-to-jira-tickets         │
     │      MCP:     • Atlassian → Jira                   │
     │                                                     │
     │  4b. Implement:                                    │
@@ -101,25 +115,36 @@ Visual reference showing exactly which skills and MCP tools to use at each SDD p
 # Use: MCP Atlassian to create Confluence pages
 ```
 
+### Pre-Specify Phase (PO handoff)
+```bash
+# Import PO's Confluence PRD as a local source file for spec-kit
+/confluence-prd-to-spec
+
+# Fetches PRD from Confluence → Saves as prd-source.md
+# RD then references prd-source.md when running spec-kit specify
+```
+
 ### Specify Phase
 ```bash
-# Write spec directly in Confluence
+# Run spec-kit with prd-source.md as context (spec-kit native)
+spec-kit specify
+
+# Or write spec directly in Confluence (Confluence-centric path)
 # Use: MCP Atlassian → Create Confluence page
 ```
 
 ### Specify → Plan Transition
 ```bash
-# Generate Tech Design Document from the spec page
-/spec-to-tech-design
+# Publish local spec-kit artifacts to Confluence for team review
+/sdd-tech-plan-to-confluence
 
-# Reads spec from Confluence → Produces TDD → Publishes to Confluence
-# Use: MCP Atlassian → Create/update TDD page
+# Use: MCP Atlassian → Create/update Design Review page
 ```
 
 ### Plan Phase
 ```bash
-# Re-generate TDD if spec changes
-/spec-to-tech-design
+# Re-publish if spec-kit files updated after team feedback
+/sdd-tech-plan-to-confluence [page-id]
 
 # Document architecture decisions
 # Use: MCP Atlassian → Confluence
@@ -129,7 +154,7 @@ Visual reference showing exactly which skills and MCP tools to use at each SDD p
 ### Tasks Phase
 ```bash
 # Step 1: Create Jira tickets
-/confluence-to-jira-tickets
+/confluence-tech-plan-to-jira-tickets
 
 # Step 2: Implement code
 
@@ -160,12 +185,12 @@ Visual reference showing exactly which skills and MCP tools to use at each SDD p
 |-----------|-------------|---------|---------|
 | **Constitution** | `symlink-worktree-ignored-files` | Environment setup | Dev environment ready |
 | **Constitution** | Atlassian MCP | Document standards | Confluence pages |
+| **Pre-Specify (PO handoff)** | `confluence-prd-to-spec` | Fetch PO's Confluence PRD → local `prd-source.md` for spec-kit | `prd-source.md` (local) |
 | **Specify** | Atlassian MCP + claude-mem | Write spec & remember | Confluence pages + Context |
-| **Specify → Plan** | `spec-to-tech-design` | Generate Tech Design Doc | TDD page in Confluence |
-| **Plan** | `spec-to-tech-design` | Update TDD on spec changes | Updated TDD in Confluence |
+| **Specify → Plan (spec-kit native)** | `sdd-tech-plan-to-confluence` | Publish local spec-kit files to Confluence for team review | Design Review page in Confluence |
 | **Plan** | Atlassian MCP + claude-mem | Document & track | Plans + Decisions |
 | **Tasks** | `api-spec-to-confluence` | Document implemented API | API docs in Confluence |
-| **Tasks** | `confluence-to-jira-tickets` | Task creation | Jira tickets |
+| **Tasks** | `confluence-tech-plan-to-jira-tickets` | Task creation | Jira tickets |
 | **Tasks** | `git-commit-conventional-strict` | Version control | Semantic commits |
 | **Tasks** | `generate-pr-notes` | PR documentation | Pull request notes |
 | **Iterate** | Atlassian MCP | Sync status | Updated tickets/docs |
@@ -181,11 +206,14 @@ Need to... ?
 ├─> Set up development environment?
 │   └─> Use: /symlink-worktree-ignored-files
 │
-├─> Turn a spec into a Tech Design Document?
-│   └─> Use: /spec-to-tech-design
+├─> Import a PO's Confluence PRD as a local spec-kit source file?
+│   └─> Use: /confluence-prd-to-spec
+│
+├─> Publish spec-kit local artifacts to Confluence for team review?
+│   └─> Use: /sdd-tech-plan-to-confluence
 │
 ├─> Create work tickets from specs?
-│   └─> Use: /confluence-to-jira-tickets
+│   └─> Use: /confluence-tech-plan-to-jira-tickets
 │
 ├─> Document API from implemented code?
 │   └─> Use: /api-spec-to-confluence
@@ -239,7 +267,7 @@ Need to... ?
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
   Action: Generate Tech Design Document from the spec
-  Tool:   /spec-to-tech-design
+  Tool:   /confluence-prd-to-spec
   Input:  Confluence page "Auth Specification v1" (ID: 123456789)
   Result: Tech Design Document in Confluence
           • Architecture: JWT + refresh token strategy
@@ -262,7 +290,7 @@ Need to... ?
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
   Step 4a: Create Tasks
-    Tool:   /confluence-to-jira-tickets
+    Tool:   /confluence-tech-plan-to-jira-tickets
     Input:  Confluence page ID: 123456789
     Result: Created Jira tickets
             • AUTH-101: Implement JWT generation
@@ -337,7 +365,7 @@ Use these to track your progress through the SDD cycle:
   └─> Plans in Confluence: api-spec-to-confluence, Atlassian MCP
 
 □ Tasks: Work broken down and assigned
-  └─> Tickets created: confluence-to-jira-tickets, Atlassian MCP
+  └─> Tickets created: confluence-tech-plan-to-jira-tickets, Atlassian MCP
 
 □ Implement: Code written and committed
   └─> Commits made: git-commit-conventional-strict
@@ -362,19 +390,24 @@ Use these to track your progress through the SDD cycle:
 ║     /symlink-worktree-ignored-files                        ║
 ║     MCP: Atlassian (Confluence)                            ║
 ║                                                            ║
+║  PRE-SPECIFY (PO handoff — optional)                       ║
+║     /confluence-prd-to-spec                                    ║
+║     Confluence PRD → local prd-source.md                  ║
+║                                                            ║
 ║  2. SPECIFY                                                ║
+║     spec-kit specify  (reference prd-source.md)           ║
 ║     MCP: Atlassian (Confluence) + claude-mem               ║
 ║                                                            ║
-║  2→3. SPECIFY → PLAN                                       ║
-║     /spec-to-tech-design                                   ║
+║  2→3. SPECIFY → PLAN (spec-kit native)                     ║
+║     /sdd-tech-plan-to-confluence                           ║
 ║     MCP: Atlassian (Confluence)                            ║
 ║                                                            ║
 ║  3. PLAN                                                   ║
-║     /spec-to-tech-design  (on spec update)                 ║
+║     /sdd-tech-plan-to-confluence [page-id]  (re-publish)  ║
 ║     MCP: Atlassian (Confluence) + claude-mem               ║
 ║                                                            ║
 ║  4. TASKS                                                  ║
-║     /confluence-to-jira-tickets                            ║
+║     /confluence-tech-plan-to-jira-tickets                            ║
 ║     → implement code                                       ║
 ║     /git-commit-conventional-strict                        ║
 ║     /api-spec-to-confluence  (after commit)                ║
@@ -392,7 +425,7 @@ Use these to track your progress through the SDD cycle:
 
 ## 🔗 Related Documentation
 
-- [Detailed Integration Guide](./sdd-workflow-integration.md)
+- [Detailed Workflow Guide](./sdd-workflow-spec-kit-native.md)
 - [Quick Reference with Examples](./sdd-quick-reference.md)
 - [Agent Skills README](../README.md)
 - [MCP Setup](../.agent-settings/mcps/README.md)

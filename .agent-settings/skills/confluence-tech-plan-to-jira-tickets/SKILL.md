@@ -1,5 +1,5 @@
 ---
-name: confluence-to-jira-tickets
+name: confluence-tech-plan-to-jira-tickets
 description: Analyzes a Confluence page and automatically creates a Jira root ticket with associated subtasks.
 ---
 
@@ -10,7 +10,7 @@ This skill automates the process of turning documentation (like PRDs, tech specs
 ## Jira Ticket Template (MANDATORY)
 
 All generated Jira ticket descriptions **must be based on** the template at:
-`references/jira-ticket-template.md` (relative to this skill folder: `.agent-settings/skills/confluence-to-jira-tickets`).
+`references/jira-ticket-template.md` (relative to this skill folder: `.agent-settings/skills/confluence-tech-plan-to-jira-tickets`).
 
 Use the template as a structural guide. Populate the sections based on the analysis of the Confluence page. If a section is not applicable, you may omit it, but keep the core structure (Summary, Context, Requirements).
 

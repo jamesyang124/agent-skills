@@ -6,7 +6,7 @@ This directory contains comprehensive guides for integrating agent skills and MC
 
 ## 📚 Available Guides
 
-### [SDD Workflow Integration Guide](./sdd-workflow-integration.md)
+### [SDD Workflow Guide](./sdd-workflow-spec-kit-native.md)
 **Comprehensive overview with detailed architecture**
 
 The complete guide to understanding how your agent skills and MCP tools integrate with GitHub's Spec-Kit. Includes:
@@ -60,7 +60,7 @@ The simplest guide showing exactly which skills and MCP tools to use at each pha
 │  I want to...                                               │
 ├─────────────────────────────────────────────────────────────┤
 │  □ Understand the overall architecture                      │
-│    → Read: SDD Workflow Integration Guide                   │
+│    → Read: SDD Workflow Guide                   │
 │                                                             │
 │  □ See practical examples with visuals                      │
 │    → Read: SDD Quick Reference                              │
@@ -85,7 +85,7 @@ The simplest guide showing exactly which skills and MCP tools to use at each pha
 2. **[SDD Quick Reference](./sdd-quick-reference.md)** (10 min)
    - See practical examples and data flow
 
-3. **[SDD Workflow Integration Guide](./sdd-workflow-integration.md)** (20 min)
+3. **[SDD Workflow Guide](./sdd-workflow-spec-kit-native.md)** (20 min)
    - Understand the complete architecture
 
 ---
@@ -122,7 +122,7 @@ Create technical implementation strategy.
 Break down work, implement, and deliver.
 
 **Skills:**
-- `confluence-to-jira-tickets` (task creation)
+- `confluence-tech-plan-to-jira-tickets` (task creation)
 - `git-commit-conventional-strict` (commits)
 - `generate-pr-notes` (PRs)
 
@@ -145,7 +145,7 @@ Review, learn, and improve for the next cycle.
 |-------|---------|---------------|
 | `symlink-worktree-ignored-files` | Setup dev environment | Constitution |
 | `api-spec-to-confluence` | Generate API docs from code | Specify, Plan |
-| `confluence-to-jira-tickets` | Create Jira tickets from docs | Tasks |
+| `confluence-tech-plan-to-jira-tickets` | Create Jira tickets from docs | Tasks |
 | `git-commit-conventional-strict` | Semantic version commits | Tasks |
 | `generate-pr-notes` | PR documentation | Tasks |
 

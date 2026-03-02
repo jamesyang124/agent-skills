@@ -73,8 +73,8 @@ This project provides a collection of specialized skills to enhance your AI agen
     [View Details](.agent-settings/skills/git-commit-conventional-strict/SKILL.md)
 *   **api-spec-to-confluence**: Creates or updates a Confluence page from an API endpoint by analyzing the router and handler code, using the documentation template in this skill folder.
     [View Details](.agent-settings/skills/api-spec-to-confluence/SKILL.md)
-*   **spec-to-tech-design**: Reads a feature specification from Confluence and generates a full Technical Design Document (TDD), publishing it back as a Confluence page. Use this at the Specify→Plan transition in the SDD workflow.
-    [View Details](.agent-settings/skills/spec-to-tech-design/SKILL.md)
+*   **confluence-prd-to-spec**: Fetches an external PRD from Confluence (written by PO/PM) and transforms it into a structured local source file (`prd-source.md`) for the RD to reference when running `spec-kit specify`.
+    [View Details](.agent-settings/skills/confluence-prd-to-spec/SKILL.md)
 *   **symlink-worktree-ignored-files**: Symlink git-ignored files from source worktree to an existing target worktree. Handles ignored files, heavy directories (node_modules, vendor), and initializes submodules with shared git objects using --reference.
     [View Details](.agent-settings/skills/symlink-worktree-ignored-files/SKILL.md)
 
@@ -92,8 +92,8 @@ The `.agent-settings` directory centralizes configurations, utilities, and resou
 
 Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit for a complete Spec-Driven Development workflow.
 
-*   **Complete Integration Guide**: Detailed workflow diagrams and integration architecture.
-    [View SDD Integration Guide](docs/sdd-workflow-integration.md)
+*   **Complete Workflow Guide**: Detailed workflow diagrams and integration architecture.
+    [View SDD Workflow Guide](docs/sdd-workflow-spec-kit-native.md)
 *   **Quick Reference**: Visual guide with examples and quick start commands.
     [View Quick Reference](docs/sdd-quick-reference.md)
 *   **Skills Mapping**: Simple reference showing which skills to use at each SDD phase.
