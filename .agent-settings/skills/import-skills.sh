@@ -420,6 +420,133 @@ verify_copilot_agents() {
     print_info "Total: $total | Valid: $valid"
 }
 
+# Function to prune orphaned skills for a symlink-based agent
+prune_agent_skills() {
+    local agent_name=$1
+    local force=${2:-false}
+    if [ "$agent_name" = "antigravity" ]; then
+        agent_name="agent"
+    fi
+    local skills_dir="$PROJECT_ROOT/.$agent_name/skills"
+
+    if [ ! -d "$skills_dir" ]; then
+        print_warning "No skills directory found for .$agent_name"
+        return
+    fi
+
+    echo ""
+    print_info "Scanning for orphaned skills in .$agent_name/skills/..."
+    echo ""
+
+    local pruned=0
+    local skipped=0
+
+    for link in "$skills_dir"/*; do
+        [ -e "$link" ] || [ -L "$link" ] || continue
+        local skill_name
+        skill_name=$(basename "$link")
+
+        if [ ! -d "$SKILLS_SOURCE/$skill_name" ]; then
+            if [ -L "$link" ]; then
+                print_warning "Orphaned symlink: $skill_name (source no longer exists)"
+            else
+                print_warning "Orphaned entry: $skill_name (source no longer exists)"
+            fi
+
+            if [ "$force" = true ]; then
+                rm -rf "$link"
+                print_success "Removed: $skill_name"
+                pruned=$((pruned + 1))
+            else
+                printf "  Remove? [y/N] "
+                read -r answer
+                if [[ "$answer" =~ ^[Yy]$ ]]; then
+                    rm -rf "$link"
+                    print_success "Removed: $skill_name"
+                    pruned=$((pruned + 1))
+                else
+                    print_info "Skipped: $skill_name"
+                    skipped=$((skipped + 1))
+                fi
+            fi
+        fi
+    done
+
+    echo ""
+    if [ $pruned -eq 0 ] && [ $skipped -eq 0 ]; then
+        print_success "No orphaned skills found for .$agent_name"
+    else
+        print_info "Pruned: $pruned | Skipped: $skipped"
+    fi
+}
+
+# Function to prune orphaned Copilot agent files
+prune_copilot_agents() {
+    local force=${1:-false}
+    local agents_dir="$PROJECT_ROOT/.github/agents"
+
+    if [ ! -d "$agents_dir" ]; then
+        print_warning "No .github/agents/ directory found"
+        return
+    fi
+
+    echo ""
+    print_info "Scanning for orphaned Copilot agent files in .github/agents/..."
+    echo ""
+
+    local pruned=0
+    local skipped=0
+    local remaining_skills=()
+
+    # Collect all current skills first
+    mapfile -t all_skills < <(get_available_skills)
+
+    for f in "$agents_dir"/agent-settings.*.agent.md; do
+        [ -e "$f" ] || continue
+        local filename
+        filename=$(basename "$f")
+        # Extract skill name from agent-settings.<skill>.agent.md
+        local skill_name="${filename#agent-settings.}"
+        skill_name="${skill_name%.agent.md}"
+
+        if [ ! -d "$SKILLS_SOURCE/$skill_name" ]; then
+            print_warning "Orphaned agent file: $filename (skill '$skill_name' no longer exists)"
+
+            if [ "$force" = true ]; then
+                rm -f "$f"
+                print_success "Removed: $filename"
+                pruned=$((pruned + 1))
+            else
+                printf "  Remove? [y/N] "
+                read -r answer
+                if [[ "$answer" =~ ^[Yy]$ ]]; then
+                    rm -f "$f"
+                    print_success "Removed: $filename"
+                    pruned=$((pruned + 1))
+                else
+                    print_info "Skipped: $filename"
+                    skipped=$((skipped + 1))
+                    remaining_skills+=("$skill_name")
+                fi
+            fi
+        else
+            remaining_skills+=("$skill_name")
+        fi
+    done
+
+    echo ""
+    if [ $pruned -eq 0 ] && [ $skipped -eq 0 ]; then
+        print_success "No orphaned Copilot agent files found"
+    else
+        print_info "Pruned: $pruned | Skipped: $skipped"
+        if [ $pruned -gt 0 ]; then
+            echo ""
+            print_info "Regenerating .github/copilot-instructions.md with remaining skills..."
+            generate_copilot_instructions "${remaining_skills[@]}"
+        fi
+    fi
+}
+
 # Function to show usage
 show_usage() {
     cat << EOF
@@ -436,6 +563,8 @@ Options:
   -a, --all          Import all available skills (default if no skills specified)
   -l, --list         List all available skills
   -v, --verify       Verify existing symlinks/files for the specified agent
+  -p, --prune        Remove orphaned skills (interactively prompts per entry)
+  -y, --yes          Auto-confirm removals when used with --prune
   -h, --help         Show this help message
 
 Examples:
@@ -471,6 +600,15 @@ Examples:
   # Verify Copilot Agent files
   $0 --verify copilot
 
+  # Prune orphaned skills from Claude (interactive prompts)
+  $0 --prune claude
+
+  # Prune orphaned Copilot agent files (interactive prompts)
+  $0 --prune copilot
+
+  # Prune without prompting (auto-remove all orphans)
+  $0 --prune --yes claude
+
 EOF
 }
 
@@ -478,6 +616,7 @@ EOF
 main() {
     local mode="import"
     local import_all=false
+    local force=false
     local agent_name=""
     local skills=()
 
@@ -498,6 +637,14 @@ main() {
                 ;;
             -a|--all)
                 import_all=true
+                shift
+                ;;
+            -p|--prune)
+                mode="prune"
+                shift
+                ;;
+            -y|--yes)
+                force=true
                 shift
                 ;;
             -*)
@@ -533,6 +680,19 @@ main() {
                 verify_copilot_agents
             else
                 verify_agent_links "$agent_name"
+            fi
+            ;;
+        prune)
+            if [ -z "$agent_name" ]; then
+                print_error "Agent name required for prune mode"
+                echo ""
+                show_usage
+                exit 1
+            fi
+            if [ "$agent_name" = "copilot" ]; then
+                prune_copilot_agents "$force"
+            else
+                prune_agent_skills "$agent_name" "$force"
             fi
             ;;
         import)
