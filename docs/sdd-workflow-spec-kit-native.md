@@ -46,11 +46,12 @@ based on feedback"]
     end
 
     subgraph "🤖 Claude Code Agent"
-        PRDIMPORT["/confluence-prd-to-spec skill"]
+        PRDIMPORT["/confluence-prd-to-sdd-spec skill"]
         P2W["/sdd-tech-plan-to-confluence skill"]
-        C2J["/confluence-tech-plan-to-jira-tickets skill"]
+        C2J["/confluence-tech-plan-to-jira skill"]
         IMPL["Implementation Skills
 (commit, PR, API docs)"]
+        QAGATE["/sdd-qa-to-jira skill"]
     end
 
     subgraph "👥 Technical Staff (Reviewers)"
@@ -63,6 +64,14 @@ Status: Approved (v1)"]
 
     subgraph "🎫 Jira"
         TICKETS["Root ticket + subtasks"]
+        QATKT["QA sub-tickets
+(BDD scenarios)"]
+    end
+
+    subgraph "🧪 SDET"
+        SDETEXEC["Verify scenarios
+(owns method & order)"]
+        RELEASE["✅ Release ready"]
     end
 
     PRD --> PRDIMPORT
@@ -89,6 +98,13 @@ Status: Approved (v1)"]
     APPROVED --> C2J
     C2J --> TICKETS
     TICKETS --> IMPL
+    IMPL --> PR["PR created
+(/generate-pr-notes)"]
+    PR --> QAGATE
+    QAGATE --> QATKT
+    QATKT --> SDETEXEC
+    SDETEXEC -->|"all pass"| RELEASE
+    SDETEXEC -->|"bug found"| TICKETS
 ```
 
 ---
@@ -103,6 +119,7 @@ sequenceDiagram
     participant Agent as Claude Code Agent
     participant CF as Confluence
     participant Jira as Jira
+    actor SDET as SDET
 
     rect rgb(225, 245, 255)
         Note over PO,Jira: 1. CONSTITUTION
@@ -159,8 +176,8 @@ sequenceDiagram
     end
 
     rect rgb(225, 255, 225)
-        Note over PO,Jira: 7. TASKS — /confluence-tech-plan-to-jira-tickets
-        RD->>Agent: /confluence-tech-plan-to-jira-tickets [page-id]
+        Note over PO,Jira: 7. TASKS — /confluence-tech-plan-to-jira
+        RD->>Agent: /confluence-tech-plan-to-jira [page-id]
         Agent->>CF: Fetch approved design review page
         CF-->>Agent: Page content
         Agent->>Jira: Create root ticket + subtasks
@@ -169,9 +186,25 @@ sequenceDiagram
     end
 
     rect rgb(200, 245, 215)
-        Note over PO,Jira: 8. IMPLEMENT
-        RD->>Agent: Implement, commit, PR
-        Note over Agent: git-commit-conventional-strict<br/>api-spec-to-confluence<br/>generate-pr-notes
+        Note over PO,Jira: 8. IMPLEMENT & PR
+        RD->>Agent: Implement, commit, API docs
+        Note over Agent: git-commit-conventional-strict<br/>api-spec-to-confluence
+        RD->>Agent: /generate-pr-notes
+        Agent-->>RD: PR created (PR URL)
+    end
+
+    rect rgb(255, 225, 245)
+        Note over PO,SDET: 9. QA GATE — /sdd-qa-to-jira
+        RD->>RD: Confirm PR is open and implementation is ready
+        RD->>Agent: /sdd-qa-to-jira [root-ticket-key]
+        Agent->>Agent: Read all *.md files in spec-kit folder
+        Agent->>Agent: Derive BDD scenarios (happy paths, edge cases, error paths)
+        Agent-->>RD: Present proposed scenarios for review
+        RD-->>Agent: Confirm (or adjust) scenarios
+        Agent->>Jira: Add QA sub-tickets to existing root ticket
+        Jira-->>Agent: Sub-ticket keys
+        Agent-->>RD: Ticket keys + QA hand-off summary
+        RD->>SDET: Share QA sub-tickets for execution
     end
 ```
 
@@ -288,12 +321,12 @@ Once `Approved (v1)`, the plan is locked as v1. The local `plan.md` and `require
 
 ---
 
-### Phase 7: Tasks — `/confluence-tech-plan-to-jira-tickets`
+### Phase 7: Tasks — `/confluence-tech-plan-to-jira`
 
 With the design review page approved, create Jira tickets from it:
 
 ```bash
-/confluence-tech-plan-to-jira-tickets [page-id]
+/confluence-tech-plan-to-jira [page-id]
 ```
 
 **Input:** Approved Confluence design review page
@@ -301,9 +334,9 @@ With the design review page approved, create Jira tickets from it:
 
 ---
 
-### Phase 8: Implement
+### Phase 8: Implement & PR
 
-Same as the standard SDD workflow:
+Same as the standard SDD workflow. The PR creation is the **explicit exit condition** for this phase — it signals that implementation is committed and reviewable.
 
 ```bash
 # Commit code
@@ -312,9 +345,57 @@ Same as the standard SDD workflow:
 # Document implemented API
 /api-spec-to-confluence
 
-# Create pull request
+# Create pull request (phase exit condition)
 /generate-pr-notes
 ```
+
+---
+
+### Phase 9: QA Gate — `/sdd-qa-to-jira`
+
+With the PR open, the RD makes a **conscious hand-off decision** to signal the implementation is ready for QA. This is not automatic — the RD decides when the implementation is stable enough, even if the PR already exists.
+
+```bash
+/sdd-qa-to-jira [root-ticket-key]
+```
+
+**Trigger:** PR is open (after `/generate-pr-notes`), RD explicitly initiates hand-off.
+**Input:** All `*.md` files in the spec-kit feature folder + existing root Jira ticket key (from Phase 7).
+**Output:** QA sub-tickets added to the existing root ticket (BDD scenario format).
+
+The skill derives end-to-end BDD scenarios from spec-kit files, presents them to the RD for review, then creates sub-tickets under the same root ticket created in Phase 7:
+
+```
+[PROJ-101] [PROJECT][SERVICE] Feature Name    ← existing root from Phase 7
+  ├── [PROJ-102] [RD] Implement X             ← existing impl sub-tickets
+  ├── [PROJ-103] [RD] Implement Y
+  ├── [PROJ-104] [QA] [SCENARIO] Happy path   ← NEW: BDD QA sub-tickets
+  ├── [PROJ-105] [QA] [SCENARIO] Edge case
+  └── [PROJ-106] [QA] [SCENARIO] Error path
+```
+
+**Sub-ticket format (BDD — non-prescriptive):**
+Sub-tickets describe *what* to verify, not *how*. SDET owns the testing method, order, and approach.
+
+```
+Title: [QA][SERVICE] [Short scenario name]
+Type: Sub-task
+Parent: Root ticket
+
+## Scenario: [Human-readable name]
+
+**Given** [precondition / system state]
+**When** [action or trigger]
+**Then** [expected observable outcome]
+
+## Context
+[One-liner from spec.md or requirements.md]
+
+## Notes
+[Optional: known edge cases, data setup hints]
+```
+
+**Key design principle:** Scenarios are derived from `prd-source.md`, `spec.md`, `requirements.md`, `plan.md`, and any other `*.md` files in the feature folder (implementation notes, ADRs, discovery notes). The broader the input, the richer the edge cases.
 
 ---
 
@@ -328,10 +409,11 @@ Same as the standard SDD workflow:
 | **Plan → Review** | — | `sdd-tech-plan-to-confluence` | Atlassian | Design review page in Confluence |
 | **Review Loop** | `spec-kit plan` (refine) | `sdd-tech-plan-to-confluence` (re-publish) | Atlassian | Updated page + Revision History |
 | **Plan Finalized** | — | `sdd-tech-plan-to-confluence` (status update) | Atlassian | Page: Approved (v1) |
-| **Tasks** | — | `confluence-tech-plan-to-jira-tickets` | Atlassian | Jira tickets |
+| **Tasks** | — | `confluence-tech-plan-to-jira` | Atlassian | Jira tickets |
 | **Implement** | — | `git-commit-conventional-strict` | — | Semantic commits |
 | **Implement** | — | `api-spec-to-confluence` | Atlassian | API docs in Confluence |
 | **Implement** | — | `generate-pr-notes` | — | Pull request |
+| **QA Gate** | — | `sdd-qa-to-jira` | Atlassian | QA sub-tickets (BDD scenarios) in Jira |
 
 ---
 
@@ -417,7 +499,7 @@ Page status: `Approved (v1)`. Plan locked.
 
 ### Step 8: Create Jira Tickets
 ```bash
-/confluence-tech-plan-to-jira-tickets 987654321
+/confluence-tech-plan-to-jira 987654321
 ```
 Agent creates:
 - NOTIF-101: Set up SQS queue and IAM roles
@@ -439,6 +521,49 @@ Agent creates:
 # → PR #456 "Add notification producer"
 ```
 
+### Step 10: QA Gate
+RD reviews PR #456, confirms the implementation is ready for QA, then explicitly triggers the hand-off:
+```bash
+/sdd-qa-to-jira NOTIF-101
+```
+Agent output:
+```
+Proposed QA scenarios (derived from spec.md, requirements.md, plan.md, impl-notes.md):
+
+1. [SCENARIO] Successful notification delivery
+   Given a valid user with a confirmed email
+   When a notification event is triggered
+   Then the notification is delivered within 5 seconds and marked as sent
+
+2. [SCENARIO] Retry on transient failure
+   Given SQS delivery fails on first attempt
+   When the consumer retries up to 5 times
+   Then the notification is eventually delivered and retry count is logged
+
+3. [SCENARIO] Dead-letter queue on exhausted retries
+   Given all 5 retry attempts fail
+   When the message is moved to the DLQ
+   Then an alert is fired and the event is logged with failure reason
+
+4. [SCENARIO] Duplicate prevention
+   Given a notification event is received twice (at-least-once delivery)
+   When the consumer processes the second delivery
+   Then the notification is not sent twice (idempotency check)
+
+Shall I create these as Jira sub-tickets under NOTIF-101? (You can edit before confirming.)
+```
+RD confirms. Agent creates:
+```
+✅ QA sub-tickets created under NOTIF-101:
+- NOTIF-106: [QA][NOTIFICATIONS] Successful notification delivery
+- NOTIF-107: [QA][NOTIFICATIONS] Retry on transient failure
+- NOTIF-108: [QA][NOTIFICATIONS] Dead-letter queue on exhausted retries
+- NOTIF-109: [QA][NOTIFICATIONS] Duplicate prevention
+
+Root ticket NOTIF-101 updated with QA hand-off note.
+SDET can now claim and execute in any order.
+```
+
 ---
 
 ## Comparison: Confluence-Centric vs Spec-Kit Native
@@ -450,8 +575,8 @@ Agent creates:
 | **Source of truth** | Confluence page | Local spec-kit files |
 | **Confluence role** | Primary workspace | Shared review surface |
 | **Team edits page?** | Yes (collaborative editing) | No (comment-only) |
-| **Skill at Specify→Plan** | `/confluence-prd-to-spec` | `/sdd-tech-plan-to-confluence` |
-| **Re-publishing** | Re-run `/confluence-prd-to-spec` | Re-run `/sdd-tech-plan-to-confluence [page-id]` |
+| **Skill at Specify→Plan** | `/confluence-prd-to-sdd-spec` | `/sdd-tech-plan-to-confluence` |
+| **Re-publishing** | Re-run `/confluence-prd-to-sdd-spec` | Re-run `/sdd-tech-plan-to-confluence [page-id]` |
 
 ---
 

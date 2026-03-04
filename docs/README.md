@@ -55,22 +55,23 @@ The simplest guide showing exactly which skills and MCP tools to use at each pha
 
 ## 🎯 Which Guide Should I Use?
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  I want to...                                               │
-├─────────────────────────────────────────────────────────────┤
-│  □ Understand the overall architecture                      │
-│    → Read: SDD Workflow Guide                   │
-│                                                             │
-│  □ See practical examples with visuals                      │
-│    → Read: SDD Quick Reference                              │
-│                                                             │
-│  □ Know which skill/tool to use right now                   │
-│    → Read: SDD Skills Map                                   │
-│                                                             │
-│  □ Get started quickly                                      │
-│    → Read: All three (start with Skills Map)               │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    Q["I want to..."]
+    A["Understand the overall architecture"]
+    B["See practical examples with visuals"]
+    C["Know which skill/tool to use right now"]
+    D["Get started quickly"]
+
+    WF["SDD Workflow Guide"]
+    QR["SDD Quick Reference"]
+    SM["SDD Skills Map"]
+    ALL["All three (start with Skills Map)"]
+
+    Q --> A --> WF
+    Q --> B --> QR
+    Q --> C --> SM
+    Q --> D --> ALL
 ```
 
 ---
@@ -92,9 +93,9 @@ The simplest guide showing exactly which skills and MCP tools to use at each pha
 
 ## 📖 SDD Phases Overview
 
-All three guides cover these five phases of Spec-Driven Development:
+All three guides cover these nine phases of Spec-Driven Development (spec-kit native workflow):
 
-### 1. 🏛️ Constitution
+### 1. Constitution
 Define project standards, architecture, and conventions.
 
 **Skills:** `symlink-worktree-ignored-files`
@@ -102,36 +103,74 @@ Define project standards, architecture, and conventions.
 
 ---
 
-### 2. 📋 Specify
-Write specifications for features and APIs.
+### 0. Pre-Specify (optional)
+PO hands off a Confluence PRD. RD imports it as a local source file for spec-kit.
 
-**Skills:** `api-spec-to-confluence`
-**MCP:** Atlassian (Confluence), claude-mem
-
----
-
-### 3. 🎯 Plan
-Create technical implementation strategy.
-
-**Skills:** `api-spec-to-confluence`
-**MCP:** Atlassian (Confluence), claude-mem
+**Skills:** `confluence-prd-to-sdd-spec`
+**MCP:** Atlassian (Confluence)
 
 ---
 
-### 4. ✅ Tasks
-Break down work, implement, and deliver.
+### 2. Specify
+RD runs `spec-kit specify` for an AI-assisted discussion. Produces `spec.md` locally.
+
+**CLI:** `spec-kit specify`
+
+---
+
+### 3. Plan
+RD runs `spec-kit plan` for AI-assisted technical planning. Produces `plan.md` and `requirements.md` locally.
+
+**CLI:** `spec-kit plan`
+
+---
+
+### 4. Review Loop
+Publish local spec-kit files to Confluence as a design review page. Team comments; RD refines locally and re-publishes. Repeats until consensus.
+
+**Skills:** `sdd-tech-plan-to-confluence`
+**MCP:** Atlassian (Confluence)
+
+---
+
+### 5. Plan Finalized
+RD marks the Confluence design review page as Approved (v1). Plan is locked.
+
+**Skills:** `sdd-tech-plan-to-confluence` (status update)
+**MCP:** Atlassian (Confluence)
+
+---
+
+### 6. Tasks
+Create Jira root ticket + subtasks from the approved Confluence page.
+
+**Skills:** `confluence-tech-plan-to-jira`
+**MCP:** Atlassian (Jira)
+
+---
+
+### 7. Implement & PR
+Implement code, commit semantically, document the API, and open a pull request. The open PR is the explicit exit condition for this phase.
 
 **Skills:**
-- `confluence-tech-plan-to-jira-tickets` (task creation)
-- `git-commit-conventional-strict` (commits)
-- `generate-pr-notes` (PRs)
+- `git-commit-conventional-strict` (semantic commits)
+- `api-spec-to-confluence` (API docs in Confluence)
+- `generate-pr-notes` (pull request)
 
-**MCP:** Atlassian (Jira), claude-mem
+**MCP:** Atlassian (Confluence)
 
 ---
 
-### 5. 🔄 Iterate
-Review, learn, and improve for the next cycle.
+### 8. QA Gate
+RD makes a conscious hand-off decision after the PR is open. Agent derives BDD scenarios from all spec-kit `*.md` files and creates QA sub-tickets under the existing root Jira ticket. SDET owns execution method and order.
+
+**Skills:** `sdd-qa-to-jira`
+**MCP:** Atlassian (Jira)
+
+---
+
+### 9. Iterate
+New requirements or bugs loop back to the appropriate phase (Specify, Plan, or Tasks).
 
 **MCP:** Atlassian (Jira + Confluence sync), claude-mem
 
@@ -143,11 +182,14 @@ Review, learn, and improve for the next cycle.
 
 | Skill | Purpose | Used In Phases |
 |-------|---------|---------------|
-| `symlink-worktree-ignored-files` | Setup dev environment | Constitution |
-| `api-spec-to-confluence` | Generate API docs from code | Specify, Plan |
-| `confluence-tech-plan-to-jira-tickets` | Create Jira tickets from docs | Tasks |
-| `git-commit-conventional-strict` | Semantic version commits | Tasks |
-| `generate-pr-notes` | PR documentation | Tasks |
+| `symlink-worktree-ignored-files` | Setup dev environment with worktrees | Constitution |
+| `confluence-prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` | Pre-Specify |
+| `sdd-tech-plan-to-confluence` | Publish local spec-kit files to Confluence design review page | Review Loop, Plan Finalized |
+| `confluence-tech-plan-to-jira` | Create Jira root ticket + subtasks from approved Confluence page | Tasks |
+| `git-commit-conventional-strict` | Semantic version commits | Implement & PR |
+| `api-spec-to-confluence` | Generate API docs from committed code | Implement & PR |
+| `generate-pr-notes` | Create pull request (phase exit condition) | Implement & PR |
+| `sdd-qa-to-jira` | RD hand-off: derive BDD scenarios → Jira QA sub-tickets for SDET | QA Gate |
 
 ### MCP Tools
 

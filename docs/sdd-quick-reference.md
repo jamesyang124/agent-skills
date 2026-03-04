@@ -1,347 +1,293 @@
 # SDD Quick Reference: Agent Skills Integration
 
-A quick visual guide showing how your agent skills integrate with GitHub Spec-Kit's SDD workflow.
+A quick visual guide showing how your agent skills integrate with GitHub Spec-Kit's spec-kit native SDD workflow.
 
 ---
 
-## 🔄 The SDD Cycle
+## The SDD Cycle
 
-```
-     ┌─────────────────────────────────────────────────────────┐
-     │                                                         │
-     │    Constitution → Specify → Plan → Tasks → Iterate     │
-     │                      ↑                         ↓        │
-     │                      └─────────────────────────┘        │
-     │                                                         │
-     └─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🎯 Integration Map
-
-```
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃                    GITHUB SPEC-KIT SDD WORKFLOW                 ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-┌─────────────────────────────────────────────────────────────────┐
-│  🏛️  CONSTITUTION PHASE                                         │
-│  ━━━━━━━━━━━━━━━━━━━━━━━━                                       │
-│  Define project standards, architecture, and conventions        │
-│                                                                 │
-│  📂 Outputs:                                                    │
-│    • Coding standards                                          │
-│    • API conventions                                           │
-│    • Architecture guidelines                                   │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • symlink-worktree-ignored-files                            │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Store in Confluence)                           │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  📋 SPECIFY PHASE                                               │
-│  ━━━━━━━━━━━━━━━━━                                              │
-│  Write specifications for features and APIs                     │
-│                                                                 │
-│  📂 Outputs:                                                    │
-│    • Feature specifications                                    │
-│    • Requirements docs                                         │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Create/update Confluence pages)                │
-│    • claude-mem (Remember specification patterns)              │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  📐 SPECIFY → PLAN TRANSITION                                   │
-│  ━━━━━━━━━━━━━━━━━━━━━━━━━━━                                    │
-│  Generate Technical Design Document before planning begins      │
-│                                                                 │
-│  📂 Outputs:                                                    │
-│    • Tech Design Document (TDD) in Confluence                  │
-│      - Architecture design                                     │
-│      - Component design & API contracts                        │
-│      - Data models & security considerations                   │
-│      - Phased implementation plan                              │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • confluence-prd-to-spec                                       │
-│      └─> Read spec → Generate TDD → Publish to Confluence      │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Create/update TDD page in Confluence)          │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  🎯 PLAN PHASE                                                  │
-│  ━━━━━━━━━━━━━                                                  │
-│  Refine and finalize the technical plan                         │
-│                                                                 │
-│  📂 Outputs:                                                    │
-│    • Refined TDD                                               │
-│    • Architecture design finalized                             │
-│    • Implementation strategy ready for tasking                 │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • confluence-prd-to-spec (re-run if spec changes)              │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Update Confluence with plans)                  │
-│    • claude-mem (Track architectural decisions)                │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  ✅ TASKS PHASE                                                 │
-│  ━━━━━━━━━━━━━                                                  │
-│  Break down work and implement                                  │
-│                                                                 │
-│  📂 Step 1: Create Tasks                                        │
-│    └─> Confluence TDD → Jira Tickets                           │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • confluence-tech-plan-to-jira-tickets                                │
-│      └─> Convert TDD to actionable tickets                     │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Create Jira tickets)                           │
-│                                                                 │
-│  ────────────────────────────────────────────────              │
-│                                                                 │
-│  📂 Step 2: Implement                                           │
-│    └─> Write code                                              │
-│                                                                 │
-│  ────────────────────────────────────────────────              │
-│                                                                 │
-│  📂 Step 3: Commit                                              │
-│    └─> Commit changes                                          │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • git-commit-conventional-strict                            │
-│      └─> Semantic commits with SemVer                          │
-│                                                                 │
-│  ────────────────────────────────────────────────              │
-│                                                                 │
-│  📂 Step 4: Document committed API                              │
-│    └─> Analyze committed code → Publish API docs to Confluence │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • api-spec-to-confluence                                    │
-│      └─> Generate API docs from committed code                 │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Publish API docs to Confluence)                │
-│                                                                 │
-│  ────────────────────────────────────────────────              │
-│                                                                 │
-│  📂 Step 5: Create PR                                           │
-│                                                                 │
-│  🛠️  Skills:                                                    │
-│    • generate-pr-notes                                         │
-│      └─> Comprehensive PR documentation                        │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • claude-mem (Track implementation patterns)                │
-└─────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────┐
-│  🔄 ITERATE PHASE                                               │
-│  ━━━━━━━━━━━━━━━                                                │
-│  Review, learn, and improve                                     │
-│                                                                 │
-│  📂 Outputs:                                                    │
-│    • Updated Jira status                                       │
-│    • Documented learnings                                      │
-│    • New requirements → back to SPECIFY                        │
-│                                                                 │
-│  🔌 MCP:                                                        │
-│    • Atlassian (Sync Jira & Confluence)                        │
-│    • claude-mem (Store learnings for future cycles)            │
-└─────────────────────────────────────────────────────────────────┘
-                    ↓                    ↓                    ↓
-              ┌──────────┐        ┌──────────┐        ┌──────────┐
-              │  New     │        │ Technical│        │   Bug    │
-              │  Specs   │        │  Changes │        │   Fixes  │
-              └────┬─────┘        └────┬─────┘        └────┬─────┘
-                   │                   │                    │
-                   ↓                   ↓                    ↓
-              SPECIFY              PLAN                TASKS
+```mermaid
+graph LR
+    Constitution --> Specify
+    Specify --> Plan
+    Plan --> ReviewLoop["Review Loop"]
+    ReviewLoop -->|feedback| Plan
+    ReviewLoop --> Tasks
+    Tasks --> ImplementPR["Implement & PR"]
+    ImplementPR --> QAGate["QA Gate"]
+    QAGate -->|bug found| Tasks
+    QAGate --> Release
+    Release --> Iterate
+    Iterate --> Specify
 ```
 
 ---
 
-## 🚀 Skill Usage by Phase
+## Workflow Phases & Skills
+
+```mermaid
+graph TD
+    P1["Phase 1: Constitution
+    skill: symlink-worktree-ignored-files"]
+
+    P0["Phase 0 (Pre-Specify, optional)
+    skill: confluence-prd-to-sdd-spec
+    Confluence PRD → prd-source.md"]
+
+    P2["Phase 2: Specify
+    spec-kit specify
+    → spec.md"]
+
+    P3["Phase 3: Plan
+    spec-kit plan
+    → plan.md + requirements.md"]
+
+    P4["Phase 4: Review Loop
+    skill: sdd-tech-plan-to-confluence
+    → Design Review page (Confluence)"]
+
+    P5["Phase 5: Plan Finalized
+    skill: sdd-tech-plan-to-confluence
+    → Status: Approved (v1)"]
+
+    P6["Phase 6: Tasks
+    skill: confluence-tech-plan-to-jira
+    → Jira root ticket + subtasks"]
+
+    P7["Phase 7: Implement & PR
+    skills: git-commit-conventional-strict
+    api-spec-to-confluence
+    generate-pr-notes"]
+
+    P8["Phase 8: QA Gate
+    skill: sdd-qa-to-jira
+    → BDD sub-tickets for SDET"]
+
+    P9["Phase 9: Iterate
+    → back to Specify"]
+
+    P1 --> P0
+    P0 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 -->|"feedback: refine plan.md"| P3
+    P4 --> P5
+    P5 --> P6
+    P6 --> P7
+    P7 --> P8
+    P8 -->|"bug found"| P6
+    P8 --> P9
+    P9 --> P2
+```
+
+---
+
+## Skill Usage by Phase
 
 | Phase | Command | Purpose |
 |-------|---------|---------|
-| **Constitution** | `/symlink-worktree-ignored-files` | Set up development environment with worktrees |
-| **Specify → Plan** | `/confluence-prd-to-spec` | Generate Tech Design Document from spec page |
-| **Plan** | `/confluence-prd-to-spec` | Re-generate TDD if the spec changes |
-| **Tasks** | `/confluence-tech-plan-to-jira-tickets` | Create Jira tickets from Confluence TDD |
-| **Tasks** | `/git-commit-conventional-strict` | Create semantic version commits |
-| **Tasks** | `/api-spec-to-confluence` | Generate API docs from committed code |
-| **Tasks** | `/generate-pr-notes` | Generate comprehensive PR documentation |
+| **Constitution** | `/symlink-worktree-ignored-files` | Set up dev environment with worktrees |
+| **Pre-Specify (optional)** | `/confluence-prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` |
+| **Specify** | `spec-kit specify` | AI-assisted discussion → `spec.md` |
+| **Plan** | `spec-kit plan` | AI technical planning → `plan.md` + `requirements.md` |
+| **Review Loop (first publish)** | `/sdd-tech-plan-to-confluence` | Publish local files to Confluence design review page |
+| **Review Loop (re-publish)** | `/sdd-tech-plan-to-confluence [page-id]` | Update page after refining plan based on feedback |
+| **Plan Finalized** | `/sdd-tech-plan-to-confluence [page-id]` | Set status to Approved (v1) |
+| **Tasks** | `/confluence-tech-plan-to-jira [page-id]` | Create Jira root ticket + subtasks from approved page |
+| **Implement & PR** | `/git-commit-conventional-strict` | Semantic version commits |
+| **Implement & PR** | `/api-spec-to-confluence` | Document committed API in Confluence |
+| **Implement & PR** | `/generate-pr-notes` | Create pull request (phase exit condition) |
+| **QA Gate** | `/sdd-qa-to-jira [root-ticket-key]` | RD explicit hand-off → BDD QA sub-tickets in Jira |
 
 ---
 
-## 📊 Data Flow Diagram
+## Data Flow
 
-```
-                           ┌─────────────┐
-                           │  CONFLUENCE │
-                           │   (Specs)   │
-                           └──────┬──────┘
-                                  │
-                 ┌────────────────┼────────────────┐
-                 │                │                │
-                 ↓                ↓                ↓
-         ┌────────────┐   ┌────────────┐  ┌────────────┐
-         │   JIRA     │   │   GitHub   │  │ claude-mem │
-         │  (Tasks)   │   │  (Code)    │  │ (Context)  │
-         └─────┬──────┘   └─────┬──────┘  └─────┬──────┘
-               │                │               │
-               │                │               │
-       ┌───────┴────────┬───────┴────────┬──────┴───────┐
-       │                │                │              │
-       ↓                ↓                ↓              ↓
-  Update Status   Git Commits      Pull Request    Learning
-  via MCP         via Skill        via Skill        via MCP
-       │                │                │              │
-       └────────────────┴────────────────┴──────────────┘
-                              ↓
-                      ┌───────────────┐
-                      │   ITERATION   │
-                      │   (Feedback)  │
-                      └───────────────┘
-```
+```mermaid
+graph LR
+    LocalFiles["Local spec-kit files
+    spec.md / plan.md / requirements.md"]
 
----
+    Confluence["Confluence
+    Design Review Page"]
 
-## 🎬 Example: "Add New User API Endpoint"
+    Jira["Jira
+    Root ticket + impl subtasks"]
 
-```
-Step 1: CONSTITUTION
-├─> Review API standards in Confluence (MCP: Atlassian)
-└─> Status: ✅ Standards retrieved
+    PR["Pull Request"]
 
-Step 2: SPECIFY
-├─> Write endpoint specification in Confluence
-├─> Use: MCP Atlassian to create Confluence page
-│   Title: "User Management API v2 - Create User"
-│   Content: Requirements, validation rules, acceptance criteria
-└─> Status: ✅ Specification documented
+    JiraQA["Jira
+    QA sub-tickets (BDD)"]
 
-Step 2→3: SPECIFY → PLAN
-├─> Generate Tech Design Document
-├─> Use: /confluence-prd-to-spec skill
-│   Input: Confluence spec page "User Management API v2 - Create User"
-│   • Architecture: REST handler + validation middleware
-│   • Component: UserService (new), ValidationMiddleware (extend)
-│   • DB change: add email_verified column to users
-│   • Implementation plan: 3 phases
-│   Output: TDD page "TDD: User Management API v2 - Create User"
-└─> Status: ✅ Tech Design Document published
+    SDET["SDET
+    Owns execution method"]
 
-Step 3: PLAN
-├─> Review and refine TDD
-├─> Use: MCP Atlassian + claude-mem
-│   • Finalize architecture decisions
-│   • Record key decisions in memory
-└─> Status: ✅ Technical plan ready
+    JiraBug["Jira
+    Bug ticket → back to Tasks"]
 
-Step 4: TASKS (Part 1 - Task Creation)
-├─> Create actionable tasks
-├─> Use: /confluence-tech-plan-to-jira-tickets skill
-│   Input: TDD Confluence page
-│   Output: Jira tickets
-│   • PROJ-123: Implement POST /api/v2/users endpoint
-│   • PROJ-124: Add input validation
-│   • PROJ-125: Write unit tests
-└─> Status: ✅ 3 Jira tickets created
-
-Step 4: TASKS (Part 2 - Implementation)
-├─> Implement the endpoint
-│   1. Write handler code
-│   2. Add validation middleware
-│   3. Write tests
-│
-├─> Commit changes
-│   Use: /git-commit-conventional-strict skill
-│   Output: feat(api): ✨ add POST /api/v2/users endpoint
-│
-├─> Generate API documentation from committed code
-│   Use: /api-spec-to-confluence skill
-│   Input: src/routes/users.js (committed handler)
-│   Output: API docs in Confluence
-│   • POST /api/v2/users endpoint contract
-│   • Request/response schemas
-│   • Error handling reference
-│
-│   Implements user creation with validation and error handling.
-│
-│   BREAKING CHANGE: Deprecates legacy /api/users endpoint
-│
-│   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-│
-├─> Create Pull Request
-│   Use: /generate-pr-notes skill
-│   Output: Comprehensive PR with:
-│   • Summary of changes
-│   • Breaking changes highlighted
-│   • Test plan
-│   • Links to Jira tickets (PROJ-123, PROJ-124, PROJ-125)
-│
-└─> Status: ✅ PR #456 created
-
-Step 5: ITERATE
-├─> Update Jira ticket status (MCP: Atlassian)
-│   PROJ-123: In Review → Merged
-│   PROJ-124: In Review → Merged
-│   PROJ-125: In Review → Merged
-│
-├─> Document learnings in Confluence (MCP: Atlassian)
-│   "Lessons learned: input validation patterns"
-│
-├─> Store context (MCP: claude-mem)
-│   Decision: Use Joi for validation
-│   Pattern: Validation middleware approach
-│
-└─> Status: ✅ Iteration complete
-
-New feedback: "Add rate limiting"
-└─> Cycle back to SPECIFY phase with new requirement
+    LocalFiles -->|"sdd-tech-plan-to-confluence"| Confluence
+    Confluence -->|"confluence-tech-plan-to-jira"| Jira
+    Jira -->|"implement & PR"| PR
+    PR -->|"sdd-qa-to-jira"| JiraQA
+    JiraQA --> SDET
+    SDET -->|"bug found"| JiraBug
+    JiraBug --> Jira
 ```
 
 ---
 
-## 💡 Key Integration Points
+## Example: Notification Service Refactor
 
-### 1️⃣ Confluence as Specification Hub
-- **Write once**: Specifications live in Confluence
-- **Generate many**: API docs, Jira tickets, technical plans
-- **Single source of truth**: All downstream artifacts trace back to specs
+### Phase 1: Constitution
 
-### 2️⃣ Automated Task Management
-- **From specs to tickets**: confluence-tech-plan-to-jira-tickets skill
-- **Structured commits**: git-commit-conventional-strict skill
-- **PR documentation**: generate-pr-notes skill
+Review architecture standards in Confluence. Set up dev environment.
 
-### 3️⃣ Continuous Learning
-- **claude-mem MCP**: Remembers decisions, patterns, learnings
-- **Improves over time**: Better specs, plans, and implementations
-- **Context retention**: No lost knowledge between iterations
+```bash
+/symlink-worktree-ignored-files
+```
 
-### 4️⃣ Bidirectional Sync
-- **Confluence ↔ Jira**: MCP Atlassian keeps docs and tickets in sync
-- **GitHub → Confluence**: Skills update docs based on code changes
-- **Jira → Confluence**: Status updates reflected in documentation
+### Phase 0 (Pre-Specify, optional)
+
+PO hands off PRD from Confluence. RD imports it locally.
+
+```bash
+/confluence-prd-to-sdd-spec
+# Fetches Confluence PRD → saves as prd-source.md
+```
+
+### Phase 2: Specify
+
+```bash
+spec-kit specify
+# AI discussion with RD about notification system requirements
+# Output: spec.md
+# Contains: problem statement (legacy push service is unreliable, no retry logic),
+#           goals, constraints
+```
+
+### Phase 3: Plan
+
+```bash
+spec-kit plan
+# AI technical planning session
+# Output: plan.md + requirements.md
+# plan.md proposes: event-driven architecture with SQS, retry strategy, DLQ
+# requirements.md lists: delivery guarantees, retry count, observability
+```
+
+### Phase 4 (First Publish — Review Loop)
+
+```bash
+/sdd-tech-plan-to-confluence
+# Agent publishes spec.md + plan.md + requirements.md to Confluence
+# Output: Design Review page (Status: Draft)
+# Save the returned page ID: 987654321
+```
+
+Team reviews and adds three comments:
+1. "Why not use an existing queue service instead of rolling our own?"
+2. "What's the max retry count? Not specified."
+3. "The dead-letter queue handling is unclear."
+
+### Phase 4 (Review Iteration 1)
+
+```bash
+spec-kit plan
+# RD incorporates feedback: queue options comparison, max retry=5, DLQ clarification
+
+/sdd-tech-plan-to-confluence 987654321
+# Agent updates page + appends revision history row
+# v2 | 2026-03-04 | RD | Added queue options comparison, max retry=5, DLQ clarification
+```
+
+Team reviews v2. One comment remains: "Can we see the SQS cost estimate?"
+
+### Phase 4 (Review Iteration 2)
+
+```bash
+spec-kit plan
+# RD adds cost analysis note to plan.md
+
+/sdd-tech-plan-to-confluence 987654321
+# v3 | 2026-03-05 | RD | Added cost analysis reference for SQS option
+# Team reaches consensus: go with SQS
+```
+
+### Phase 5: Plan Finalized
+
+```bash
+/sdd-tech-plan-to-confluence 987654321
+# Ask agent: "Update the status to Approved (v1)"
+# Page status: Approved (v1) — plan locked
+```
+
+### Phase 6: Tasks
+
+```bash
+/confluence-tech-plan-to-jira 987654321
+# Creates:
+# NOTIF-101: [PROJECT][NOTIFICATIONS] Notification Service Refactor (root)
+# NOTIF-102: [RD] Set up SQS queue and IAM roles
+# NOTIF-103: [RD] Implement notification producer
+# NOTIF-104: [RD] Implement consumer with retry logic
+# NOTIF-105: [RD] Implement DLQ handler and alerts
+```
+
+### Phase 7: Implement & PR
+
+```bash
+# Implement NOTIF-103
+/git-commit-conventional-strict
+# → feat(notifications): add notification producer with SQS
+
+/api-spec-to-confluence
+# → Documents the notification API endpoint in Confluence
+
+/generate-pr-notes
+# → PR #456 "Add notification producer"
+# Phase exit condition: PR is open
+```
+
+### Phase 8: QA Gate
+
+RD reviews PR #456, confirms implementation is ready for QA, then explicitly triggers the hand-off:
+
+```bash
+/sdd-qa-to-jira NOTIF-101
+```
+
+Agent derives BDD scenarios from all `*.md` files in the spec-kit folder, presents them for RD review, then creates:
+
+```
+NOTIF-101 (root)
+  ├── NOTIF-102 ... NOTIF-105  (existing impl sub-tickets)
+  ├── NOTIF-106: [QA][NOTIFICATIONS] Successful notification delivery
+  ├── NOTIF-107: [QA][NOTIFICATIONS] Retry on transient failure
+  ├── NOTIF-108: [QA][NOTIFICATIONS] Dead-letter queue on exhausted retries
+  └── NOTIF-109: [QA][NOTIFICATIONS] Duplicate prevention
+```
+
+SDET claims sub-tickets and owns execution method and order.
+
+### Phase 9: Iterate
+
+New requirement arrives. Cycle back to Specify.
 
 ---
 
-## 🎯 Quick Start Commands
+## Key Points
+
+| Concern | Detail |
+|---------|--------|
+| **Source of truth** | Local spec-kit files (`spec.md`, `plan.md`, `requirements.md`) |
+| **Confluence role** | Shared review surface — team comments, does not edit |
+| **Jira structure** | Root ticket + impl sub-tickets (Phase 6) + QA sub-tickets (Phase 8) |
+| **QA hand-off** | RD explicit decision after PR is open — not automatic |
+| **SDET owns** | Execution method, test order, and approach for BDD scenarios |
+
+---
+
+## Quick Start
 
 ```bash
 # 1. Set up Atlassian MCP
@@ -350,26 +296,49 @@ New feedback: "Add rate limiting"
 # 2. Import skills
 ./.agent-settings/skills/import-skills.sh claude
 
-# 3. Initialize GitHub Spec-Kit
-npm install -g @github/specify-cli
-specify init
+# 3. Set up dev environment
+/symlink-worktree-ignored-files
 
-# 4. Start your first cycle
-# In your AI agent:
-# → Write spec in Confluence (MCP: Atlassian)
-# → /confluence-prd-to-spec (generate TDD from spec)
-# → /confluence-tech-plan-to-jira-tickets (create Jira tickets from TDD)
-# → Implement code
-# → /git-commit-conventional-strict
-# → /api-spec-to-confluence (document the committed API)
-# → /generate-pr-notes
+# 4. (Optional) Import PRD from Confluence
+/confluence-prd-to-sdd-spec
+
+# 5. Specify
+spec-kit specify
+
+# 6. Plan
+spec-kit plan
+
+# 7. Publish for review
+/sdd-tech-plan-to-confluence
+
+# 8. After team feedback — re-publish with page ID
+/sdd-tech-plan-to-confluence [page-id]
+
+# 9. Finalize plan
+# /sdd-tech-plan-to-confluence [page-id]  (ask: "Update status to Approved (v1)")
+
+# 10. Create Jira tickets
+/confluence-tech-plan-to-jira [page-id]
+
+# 11. Implement & commit
+/git-commit-conventional-strict
+
+# 12. Document API
+/api-spec-to-confluence
+
+# 13. Create PR (phase exit condition)
+/generate-pr-notes
+
+# 14. QA hand-off (after PR is open — RD explicit decision)
+/sdd-qa-to-jira [root-ticket-key]
 ```
 
 ---
 
-## 📚 Resources
+## Resources
 
 - [Full Workflow Guide](./sdd-workflow-spec-kit-native.md)
+- [SDD Skills Map](./sdd-skills-map.md)
 - [GitHub Spec-Kit](https://github.com/github/spec-kit)
 - [Agent Skills README](../README.md)
 - [MCP Setup Guide](../.agent-settings/mcps/README.md)

@@ -159,7 +159,7 @@ Draft  →  Under Review  →  Approved (v1)
 - **Draft**: Set automatically on first publish.
 - **Under Review**: Update manually (or ask user) when team review begins.
 - **Approved (v1)**: Update when team reaches consensus and plan is finalized.
-  - After `Approved (v1)`, the plan is ready for `/confluence-tech-plan-to-jira-tickets`.
+  - After `Approved (v1)`, the plan is ready for `/confluence-tech-plan-to-jira`.
 
 ## Handling Missing Files
 
@@ -190,7 +190,7 @@ This skill sits at the **Plan → Review** boundary in the spec-kit native workf
 [Plan Finalized — Approved (v1)]
          │
          ▼
-[confluence-tech-plan-to-jira-tickets]
+[confluence-tech-plan-to-jira]
     Design review page → Jira root ticket + subtasks
 ```
 
