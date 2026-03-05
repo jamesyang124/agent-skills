@@ -18,6 +18,8 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
 ├── tools/                          # Atomic, single-purpose skills
+│   ├── setup-project-config/
+│   │   └── SKILL.md
 │   ├── generate-pr-notes/
 │   │   └── SKILL.md
 │   ├── git-commit-conventional-strict/
@@ -228,6 +230,7 @@ file .claude/skills/skill-name
 Current skills in `.agent-settings/skills/`:
 
 **Tools** (atomic, single-purpose):
+- **setup-project-config** - One-time setup that scans the codebase and generates `.agent-settings/project-config.md` — the shared config read by all Atlassian skills
 - **generate-pr-notes** - Interactively generates comprehensive pull request descriptions from git changes
 - **git-commit-conventional-strict** - Strict Conventional Commits generator with gitmoji, optimized for `git-cliff`
 - **api-spec-to-confluence** - Reads a Go API handler and creates/updates a structured Confluence documentation page
