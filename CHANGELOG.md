@@ -12,6 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `CHANGELOG.md` — this file
 - `git-commit-conventional-strict`: optional Jira ticket prompt — agent now asks for a ticket
   number to append as `Refs: #TICKET` in the commit footer; skippable with `n`
+- `setup-project-config` — new skill that scans the codebase and prompts for Confluence/Jira
+  details, then writes `.agent-settings/project-config.md`; all Atlassian skills read from this
+  shared config instead of relying on hardcoded placeholder values
+- `.gitignore`: added `project-config.md` entry (generated per project, not committed to template repo)
+
+### Updated
+- `api-spec-to-confluence`: reads `project-config.md` at Step 0 (halts with setup reminder if
+  missing); all hardcoded router paths, parent page IDs, and `example.atlassian.net` URLs removed
 
 ### Changed
 
