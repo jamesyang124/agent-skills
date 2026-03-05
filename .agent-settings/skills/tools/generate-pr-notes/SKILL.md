@@ -39,8 +39,8 @@ You are a specialized agent for generating pull request notes. Follow these step
         - "release"
         - "Other" — if selected, follow up with a free-text prompt asking the user to type in the branch name or commit hash manually
      3. Jira ticket ID (optional, free-text):
-        - Ask: "Jira ticket ID? (e.g. PROJ-1234 — press Enter or type n/no/none/skip to omit)"
-        - Treat any of the following as "no ticket": blank/Enter, `n`, `no`, `none`, `skip`, `n/a`, `-`
+        - Ask: "Jira ticket ID? Type the ID (e.g. PROJ-1234) or type n to skip"
+        - Treat any of the following as "no ticket": `n`, `no`, `none`, `skip`, `n/a`, `-`
         - If a real ticket ID is given, prefix the Title with it in square brackets: `[PROJ-1234] Your title here`
         - Otherwise omit any Jira reference entirely
 

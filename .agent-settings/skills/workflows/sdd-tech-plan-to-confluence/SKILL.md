@@ -105,7 +105,7 @@ Target Confluence location:
   - Parent page: [parent page title or ID]
   - Page title: "Technical Plan: [Feature Name]"
 
-Shall I publish? (You can ask me to adjust any section first.)
+Shall I publish? (Type y to proceed, n/skip to cancel, or describe any adjustments to make first.)
 ```
 
 ### Step 6: Publish to Confluence

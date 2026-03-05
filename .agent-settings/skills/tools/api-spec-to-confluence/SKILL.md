@@ -173,7 +173,7 @@ When updating an existing page using a search hint:
    2. API Spec: /api/example-service/v1/uploads/complete (ID: 1234567891)
    3. API Spec: /api/example-service/v1/uploads/status (ID: 1234567892)
 
-   Which page would you like to update? (Enter number or 'cancel')
+   Which page would you like to update? (Type a number to select, or type n to cancel.)
    ```
 
 3. **Handle Selection**: Wait for user to select a page number or cancel

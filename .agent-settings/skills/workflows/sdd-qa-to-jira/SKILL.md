@@ -124,7 +124,7 @@ Error Paths:
 Root ticket: [PROJ-101]
 Sub-tickets will be created as: [QA][SERVICE] [Scenario name]
 
-Shall I create these as Jira sub-tickets? (You can ask me to add, remove, or edit scenarios before confirming.)
+Shall I create these as Jira sub-tickets? (Type y to proceed, n/skip to cancel, or describe any changes to make first.)
 ```
 
 ### Step 6: Create QA Sub-Tickets in Jira

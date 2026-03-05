@@ -102,8 +102,8 @@ Target structure for `prd-source.md`:
 ### Step 3: Confirm Output Location
 
 Ask the user where to save the file:
-- Default: `./prd-source.md` in the current working directory
-- Or let user specify a path (e.g., inside their spec-kit project directory)
+- Ask: `"Save path? Type a path or type n to use the default: ./prd-source.md"`
+- Treat `n`, `default`, or blank-like responses as "use default"
 
 ### Step 4: Write the Local File
 

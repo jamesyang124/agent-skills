@@ -105,7 +105,7 @@ When analyzing the Confluence page:
    - Project: EXAMPLE (default)
    - Root Issue Type: Story (default)
 
-   Would you like to change any of these values or set an owner (assignee)?
+   Would you like to change any of these values or set an owner? (Type y to proceed, or describe what to change — e.g. "use project KEY-2" or "set assignee to john@example.com".)
    ```
 4. User responds: "Use [TOPIC] PROFILE and set assignee to john.doe@example.com"
 5. Agent creates the root ticket and subtasks with the updated values.
