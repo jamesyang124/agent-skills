@@ -93,7 +93,6 @@ This configuration supports the following AI coding assistants:
 |-----------|--------|-------------|-----------|
 | **Antigravity** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Claude Code** | ✅ Native | ✅ Full Support | ✅ From others |
-| **Codex CLI** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Cursor** | ✅ Via symlinks | ⚠️ Limited | ✅ To Claude |
 | **GitHub Copilot** | ✅ Full Support | ✅ Full Support | ✅ To Claude |
 | **Google AI Studio** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
@@ -107,11 +106,6 @@ This configuration supports the following AI coding assistants:
 **Global:** `~/.claude.json` - User settings (managed by Claude Code)
 **Project:** `.claude/mcp.json` - MCP servers (commit to Git)
 **Skills:** `.claude/skills/` - Project skills (symlinks, commit to Git)
-
-## Codex CLI Configuration
-
-**Global:** `~/.codex/config.toml` - User settings (managed by Codex CLI)
-**Project:** `.codex/config.toml` - MCP servers (commit to Git if desired)
 
 ## GitHub Copilot Configuration
 

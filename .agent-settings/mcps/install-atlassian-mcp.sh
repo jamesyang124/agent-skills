@@ -35,7 +35,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show help\n"
     printf "    -o, --output FILE       Output file (overrides interactive selection)\n"
-    printf "    --agent AGENT           Specify agent non-interactively: 'gemini', 'claude', 'codex', or 'copilot'.\n"
+    printf "    --agent AGENT           Specify agent non-interactively: 'gemini', 'claude', or 'copilot'.\n"
     printf "    --jira-url URL          Jira URL\n"
     printf "    --confluence-url URL    Confluence URL (default: same as Jira)\n\n"
     printf "${YELLOW}Examples:${NC}\n"
@@ -69,16 +69,14 @@ if [[ -z "$AGENT" ]]; then
     printf "\n${YELLOW}Select the target agent:${NC}\n"
     printf "  1) Gemini\n"
     printf "  2) Claude\n"
-    printf "  3) Codex\n"
-    printf "  4) GitHub Copilot\n"
-    printf "Enter choice [1-4]: "
+    printf "  3) GitHub Copilot\n"
+    printf "Enter choice [1-3]: "
     read -n 1 -r AGENT_CHOICE
     echo ""
     case $AGENT_CHOICE in
         1) AGENT="gemini" ;;
         2) AGENT="claude" ;;
-        3) AGENT="codex" ;;
-        4) AGENT="copilot" ;;
+        3) AGENT="copilot" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
@@ -93,12 +91,10 @@ if [[ -z "$OUTPUT_FILE" ]]; then
         fi
     elif [[ "$AGENT" == "claude" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.mcp.json"
-    elif [[ "$AGENT" == "codex" ]]; then
-        OUTPUT_FILE="${PROJECT_ROOT}/.codex/config.toml"
     elif [[ "$AGENT" == "copilot" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.vscode/mcp.json"
     else
-        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', 'codex', or 'copilot'."
+        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', or 'copilot'."
         exit 1
     fi
 fi
@@ -167,36 +163,7 @@ log_success "Created ${ENV_FILE_PATH}"
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"
 
-if [[ "$AGENT" == "codex" ]]; then
-    if [[ -f "$OUTPUT_FILE" ]] && [[ -s "$OUTPUT_FILE" ]]; then
-        log_info "Merging with existing configuration..."
-        TMP_FILE="$(mktemp)"
-        awk '
-        BEGIN { skip = 0 }
-        /^\[mcp_servers\.atlassian(\.env)?\]/ { skip = 1; next }
-        skip == 1 && /^\[mcp_servers\.[^]]+\]/ { skip = 0 }
-        skip == 0 { print }
-        ' "$OUTPUT_FILE" > "$TMP_FILE"
-        cat "$TMP_FILE" > "$OUTPUT_FILE"
-        rm -f "$TMP_FILE"
-        if [[ -s "$OUTPUT_FILE" ]]; then
-            printf "\n" >> "$OUTPUT_FILE"
-        fi
-    fi
-
-    cat <<EOFCONFIG >> "$OUTPUT_FILE"
-[mcp_servers.atlassian]
-command = "docker"
-args = [
-  "run",
-  "-i",
-  "--rm",
-  "--env-file",
-  "${ENV_FILE_PATH}",
-  "${ATLASSIAN_MCP_IMAGE}"
-]
-EOFCONFIG
-elif [[ "$AGENT" == "copilot" ]]; then
+if [[ "$AGENT" == "copilot" ]]; then
     # VS Code format uses "servers" key instead of "mcpServers"
     MCP_CONFIG=$(cat <<EOFCONFIG
 {

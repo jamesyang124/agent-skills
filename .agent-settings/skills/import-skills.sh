@@ -70,6 +70,14 @@ get_relative_path() {
     fi
 }
 
+# Resolve a skill name to its full path (under tools/ or workflows/)
+find_skill_path() {
+    local skill_name=$1
+    local result
+    result=$(find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d -name "$skill_name" | head -1)
+    echo "$result"
+}
+
 # Function to get all available skills
 get_available_skills() {
     if [ ! -d "$SKILLS_SOURCE" ]; then
@@ -77,7 +85,7 @@ get_available_skills() {
         exit 1
     fi
 
-    find "$SKILLS_SOURCE" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;
+    find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d -exec basename {} \;
 }
 
 # Function to create symlink
@@ -92,9 +100,18 @@ create_skill_link() {
     local skills_dir="$agent_dir/skills"
     local link_path="$skills_dir/$skill_name"
 
-    # Calculate relative path from skills_dir to SKILLS_SOURCE
-    local rel_path=$(get_relative_path "$SKILLS_SOURCE" "$skills_dir")
-    local target_path="$rel_path/$skill_name"
+    # Resolve skill to its category subdir (tools/ or workflows/)
+    local skill_abs_path
+    skill_abs_path=$(find_skill_path "$skill_name")
+    if [ -z "$skill_abs_path" ]; then
+        print_error "Skill not found: $skill_name"
+        return 1
+    fi
+
+    # Calculate relative path from skills_dir to the skill's actual location
+    local rel_path
+    rel_path=$(get_relative_path "$skill_abs_path" "$skills_dir")
+    local target_path="$rel_path"
 
     # Create skills directory if it doesn't exist
     if [ ! -d "$skills_dir" ]; then
@@ -157,7 +174,7 @@ import_specific_skills() {
     echo ""
 
     for skill in "${skills[@]}"; do
-        if [ ! -d "$SKILLS_SOURCE/$skill" ]; then
+        if [ -z "$(find_skill_path "$skill")" ]; then
             print_error "Skill not found: $skill"
             continue
         fi
@@ -235,7 +252,9 @@ verify_agent_links() {
 # Function to generate a GitHub Agent file from a SKILL.md (Spec-kit style)
 generate_copilot_agent_file() {
     local skill_name=$1
-    local skill_md="$SKILLS_SOURCE/$skill_name/SKILL.md"
+    local skill_path
+    skill_path=$(find_skill_path "$skill_name")
+    local skill_md="$skill_path/SKILL.md"
     local agents_dir="$PROJECT_ROOT/.github/agents"
     local output_file="$agents_dir/agent-settings.$skill_name.agent.md"
 
@@ -322,7 +341,8 @@ generate_copilot_instructions() {
     printf '|-------|-------------|------------------------|\n' >> "$tmp_block"
 
     for skill in "${skills[@]}"; do
-        local skill_md="$SKILLS_SOURCE/$skill/SKILL.md"
+        local skill_md
+        skill_md="$(find_skill_path "$skill")/SKILL.md"
         local desc=""
         if [ -f "$skill_md" ]; then
             desc=$(awk '
@@ -446,7 +466,7 @@ prune_agent_skills() {
         local skill_name
         skill_name=$(basename "$link")
 
-        if [ ! -d "$SKILLS_SOURCE/$skill_name" ]; then
+        if [ -z "$(find_skill_path "$skill_name")" ]; then
             if [ -L "$link" ]; then
                 print_warning "Orphaned symlink: $skill_name (source no longer exists)"
             else
@@ -509,7 +529,7 @@ prune_copilot_agents() {
         local skill_name="${filename#agent-settings.}"
         skill_name="${skill_name%.agent.md}"
 
-        if [ ! -d "$SKILLS_SOURCE/$skill_name" ]; then
+        if [ -z "$(find_skill_path "$skill_name")" ]; then
             print_warning "Orphaned agent file: $filename (skill '$skill_name' no longer exists)"
 
             if [ "$force" = true ]; then
@@ -703,6 +723,11 @@ main() {
                 exit 1
             fi
 
+            if [ "$agent_name" = "codex" ]; then
+                print_error "Codex is no longer supported. Use antigravity, claude, gemini, or copilot."
+                exit 1
+            fi
+
             if [ "$agent_name" = "copilot" ]; then
                 local copilot_skills
                 if [ ${#skills[@]} -eq 0 ] || [ "$import_all" = true ]; then
@@ -716,7 +741,7 @@ main() {
                 echo ""
 
                 for skill in "${copilot_skills[@]}"; do
-                    if [ ! -d "$SKILLS_SOURCE/$skill" ]; then
+                    if [ -z "$(find_skill_path "$skill")" ]; then
                         print_error "Skill not found: $skill"
                         continue
                     fi
