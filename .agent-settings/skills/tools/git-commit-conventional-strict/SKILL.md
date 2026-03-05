@@ -42,6 +42,8 @@ You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your
 
 4.  **Body & Footer (Optional)**:
     - Use the body to explain "why" and "what", not "how".
+    - When the body contains multiple distinct points, **use a bullet list** (- item) instead of a run-on paragraph.
+    - A single-sentence body may stay as prose; two or more separate changes should be listed.
     - For breaking changes, you MAY also add a footer: BREAKING CHANGE: followed by description.
     - For references, use: Refs: #123.
 
@@ -118,6 +120,15 @@ git commit -m "feat(api): ✨ implement user authentication endpoint"
 - **Bug Fix**: fix(ui): 🐛 prevent crash on empty input
 - **Breaking Change**: feat(api)!: 💥 remove v1 endpoints
 - **Documentation**: docs: 📝 update contribution guidelines
+- **Multi-point body (use bullets)**:
+  ```
+  chore(codex): 🔧 remove codex support
+
+  - remove interactive menu option and --agent flag value
+  - remove TOML config block from install-atlassian-mcp.sh
+  - add explicit rejection in import-skills.sh
+  - drop codex references from .agent-settings docs
+  ```
 - **Spec + Implementation (split)**:
   - Commit 1: `docs(api): 📝 define product search filtering spec`
   - Commit 2: `feat(api): ✨ implement product search filtering`
