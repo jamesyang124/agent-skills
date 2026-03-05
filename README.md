@@ -59,9 +59,9 @@ For detailed instructions, refer to the [MCP Setup Guide](.agent-settings/mcps/R
 
 The `SKILL.md` format is compatible with:
 - **Claude Code** ✓
-- **Codex CLI** ✓
 - **Gemini CLI** ✓
 - **ChatGPT CLI tools** ✓
+- **Antigravity** ✓ (maps to `.agent/skills/`)
 
 ## Available Skills
 
@@ -70,15 +70,15 @@ This project provides a collection of specialized skills to enhance your AI agen
 ### Git Workflow
 
 *   **generate-pr-notes** — Interactively generates comprehensive pull request descriptions from git changes. Asks for scope (single commit vs. full branch), base branch, and optional Jira ticket ID, then produces a ready-to-paste markdown PR description with title, summary, categorized changes, technical details, and breaking changes.
-    [View Details](.agent-settings/skills/generate-pr-notes/SKILL.md)
+    [View Details](.agent-settings/skills/tools/generate-pr-notes/SKILL.md)
 
 *   **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for `git-cliff` changelog automation. Analyzes staged changes, selects the correct type (`feat`, `fix`, `refactor`, etc.) with SemVer mapping, adds gitmoji, and writes the commit. Automatically detects when spec/doc changes and implementation changes are mixed and splits them into two commits (docs first, implementation second).
-    [View Details](.agent-settings/skills/git-commit-conventional-strict/SKILL.md)
+    [View Details](.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md)
 
 ### API Documentation
 
 *   **api-spec-to-confluence** — Reads a Go API handler (router + handler code + Swagger annotations) for a given endpoint path and creates or updates a structured Confluence page following a standard documentation template. Covers HTTP method, auth, request/response params, JSON examples, error codes, and implementation details. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/api-spec-to-confluence/SKILL.md)
+    [View Details](.agent-settings/skills/tools/api-spec-to-confluence/SKILL.md)
 
 ### Spec-Driven Development (SDD) Workflow
 
@@ -107,21 +107,21 @@ These skills integrate with [spec-kit](https://github.com/github/spec-kit) to au
 ```
 
 *   **confluence-prd-to-sdd-spec** — Fetches a PRD written by a PO/PM from Confluence and transforms it into a clean local `prd-source.md` file structured for `spec-kit specify`. Faithfully maps PRD sections (Problem Statement, Goals, User Stories, Functional/Non-Functional Requirements, Constraints) without adding opinions, marking any gaps as `[TBD]` for the RD to resolve during the specify session. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/confluence-prd-to-sdd-spec/SKILL.md)
+    [View Details](.agent-settings/skills/workflows/confluence-prd-to-sdd-spec/SKILL.md)
 
 *   **sdd-tech-plan-to-confluence** — Reads local spec-kit artifacts (`spec.md`, `plan.md`, `requirements.md`) and publishes a structured design review page to Confluence. The Confluence page is a read-only shared view for team feedback — source files remain the source of truth. Supports first-publish (Draft) and re-publish (appends revision history row). Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/sdd-tech-plan-to-confluence/SKILL.md)
+    [View Details](.agent-settings/skills/workflows/sdd-tech-plan-to-confluence/SKILL.md)
 
 *   **confluence-tech-plan-to-jira** — Fetches a Confluence design review or tech spec page and automatically creates a structured Jira root ticket (Story) with associated sub-tasks. Proposes topic/component brackets, confirms settings interactively, then bulk-creates the ticket hierarchy. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/confluence-tech-plan-to-jira/SKILL.md)
+    [View Details](.agent-settings/skills/workflows/confluence-tech-plan-to-jira/SKILL.md)
 
 *   **sdd-qa-to-jira** — Reads all spec-kit artifacts in a feature folder (`spec.md`, `plan.md`, `requirements.md`, `prd-source.md`, and any other `*.md` files) and derives BDD QA scenarios (happy paths, edge cases, error paths, non-functional). Presents proposed scenarios to the RD for review, then creates QA sub-tickets under the existing root Jira ticket — no new root ticket is created. Posts a QA hand-off comment on the root ticket. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/sdd-qa-to-jira/SKILL.md)
+    [View Details](.agent-settings/skills/workflows/sdd-qa-to-jira/SKILL.md)
 
 ### Utilities
 
 *   **symlink-worktree-ignored-files** — Interactively guides you to select a target git worktree, then symlinks all git-ignored files and directories (`.env`, `node_modules`, build artifacts, etc.) from the current worktree to the target. Useful for spinning up a new worktree without re-downloading heavy dependencies.
-    [View Details](.agent-settings/skills/symlink-worktree-ignored-files/SKILL.md)
+    [View Details](.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md)
 
 
 ## Agent Settings Management
@@ -148,14 +148,25 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 
 ```
 .
-├── .agent-settings/               # Centralized agent configurations and resources
-│   ├── skills/                  # Definitions for reusable AI agent skills
-│   └── mcps/                    # Model Context Protocol (MCP) server configurations
-└── (AI Agent config folders)      # e.g., .gemini/, .claude/, .codex/
-    └── skills/                  # Symlinked skills for specific agents
+├── .agent-settings/
+│   ├── skills/
+│   │   ├── tools/               # Atomic, single-purpose skills
+│   │   │   ├── git-commit-conventional-strict/
+│   │   │   ├── generate-pr-notes/
+│   │   │   ├── api-spec-to-confluence/
+│   │   │   └── symlink-worktree-ignored-files/
+│   │   ├── workflows/           # Multi-step, orchestrated pipeline skills
+│   │   │   ├── confluence-prd-to-sdd-spec/
+│   │   │   ├── sdd-tech-plan-to-confluence/
+│   │   │   ├── confluence-tech-plan-to-jira/
+│   │   │   └── sdd-qa-to-jira/
+│   │   └── import-skills.sh     # Scans tools/ + workflows/, installs flat
+│   └── mcps/                    # MCP server configurations
+└── (AI Agent config folders)    # e.g., .gemini/, .claude/, .agent/
+    └── skills/                  # Symlinked skills (flat, by skill name)
 ```
 
-Agent-specific skill directories (e.g., `~/.gemini/skills/`) contain symlinks to skills defined in `.agent-settings/skills/`.
+Skills are organized into `tools/` (atomic actions) and `workflows/` (orchestrated pipelines) in the source, but the installation output is always flat — agent-specific directories (e.g., `.claude/skills/`) contain symlinks directly by skill name.
 
 ## Resources
 
@@ -168,9 +179,12 @@ Agent-specific skill directories (e.g., `~/.gemini/skills/`) contain symlinks to
 
 To contribute a new skill:
 
-1.  Create a skill directory with a `SKILL.md` file in `.agent-settings/skills/`.
-2.  Use `import-skills.sh` to symlink and test your skill.
-3.  Commit and push your changes.
+1.  Determine the appropriate category for your skill:
+    - **`tools/`** — atomic, single-purpose actions (e.g., generate a commit message, create a PR description)
+    - **`workflows/`** — multi-step, orchestrated pipelines (e.g., fetch PRD → transform → publish to Confluence)
+2.  Create a skill directory with a `SKILL.md` file in the correct category under `.agent-settings/skills/tools/` or `.agent-settings/skills/workflows/`.
+3.  Use `import-skills.sh` to symlink and test your skill.
+4.  Commit and push your changes.
 
 ## License
 

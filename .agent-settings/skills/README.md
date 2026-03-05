@@ -17,31 +17,33 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 .agent-settings/skills/
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
-├── generate-pr-notes/
-│   └── SKILL.md
-├── git-commit-conventional-strict/
-│   └── SKILL.md
-├── code-review/
-│   └── SKILL.md
-├── frontend-design/
-│   └── SKILL.md
-└── keybindings-help/
-    └── SKILL.md
+├── tools/                          # Atomic, single-purpose skills
+│   ├── generate-pr-notes/
+│   │   └── SKILL.md
+│   ├── git-commit-conventional-strict/
+│   │   └── SKILL.md
+│   ├── api-spec-to-confluence/
+│   │   └── SKILL.md
+│   └── symlink-worktree-ignored-files/
+│       └── SKILL.md
+└── workflows/                      # Multi-step, orchestrated pipeline skills
+    ├── confluence-prd-to-sdd-spec/
+    │   └── SKILL.md
+    ├── sdd-tech-plan-to-confluence/
+    │   └── SKILL.md
+    ├── confluence-tech-plan-to-jira/
+    │   └── SKILL.md
+    └── sdd-qa-to-jira/
+        └── SKILL.md
 
+# Installation output is always flat (by skill name, not category):
 .agent/skills/
-├── generate-pr-notes -> ../../.agent-settings/skills/generate-pr-notes
-└── git-commit-conventional-strict -> ../../.agent-settings/skills/git-commit-conventional-strict
+├── generate-pr-notes -> ../../.agent-settings/skills/tools/generate-pr-notes
+└── sdd-qa-to-jira -> ../../.agent-settings/skills/workflows/sdd-qa-to-jira
 
 .claude/skills/
-├── generate-pr-notes -> ../../.agent-settings/skills/generate-pr-notes
-├── git-commit-conventional-strict -> ../../.agent-settings/skills/git-commit-conventional-strict
-└── code-review -> ../../.agent-settings/skills/code-review
-
-.cursor/skills/
-└── generate-pr-notes -> ../../.agent-settings/skills/generate-pr-notes
-
-.gemini/skills/
-└── frontend-design -> ../../.agent-settings/skills/frontend-design
+├── generate-pr-notes -> ../../.agent-settings/skills/tools/generate-pr-notes
+└── confluence-tech-plan-to-jira -> ../../.agent-settings/skills/workflows/confluence-tech-plan-to-jira
 ```
 
 ### Creating Skill Symlinks
@@ -89,8 +91,8 @@ If you prefer to create symlinks manually:
 mkdir -p .agent/skills
 
 # Link a skill from .agent-settings to .agent
-ln -s ../../.agent-settings/skills/generate-pr-notes .agent/skills/generate-pr-notes
-ln -s ../../.agent-settings/skills/git-commit-conventional-strict .agent/skills/git-commit-conventional-strict
+ln -s ../../.agent-settings/skills/tools/generate-pr-notes .agent/skills/generate-pr-notes
+ln -s ../../.agent-settings/skills/tools/git-commit-conventional-strict .agent/skills/git-commit-conventional-strict
 ```
 
 ##### For Claude Agent
@@ -100,8 +102,8 @@ ln -s ../../.agent-settings/skills/git-commit-conventional-strict .agent/skills/
 mkdir -p .claude/skills
 
 # Link a skill from .agent-settings to .claude
-ln -s ../../.agent-settings/skills/generate-pr-notes .claude/skills/generate-pr-notes
-ln -s ../../.agent-settings/skills/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
+ln -s ../../.agent-settings/skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
+ln -s ../../.agent-settings/skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
 ```
 
 ##### For Gemini Agent
@@ -111,7 +113,7 @@ ln -s ../../.agent-settings/skills/git-commit-conventional-strict .claude/skills
 mkdir -p .gemini/skills
 
 # Link a skill from .agent-settings to .gemini
-ln -s ../../.agent-settings/skills/generate-pr-notes .gemini/skills/generate-pr-notes
+ln -s ../../.agent-settings/skills/tools/generate-pr-notes .gemini/skills/generate-pr-notes
 ```
 
 ##### For GitHub Copilot
@@ -140,17 +142,20 @@ This creates:
 ##### For Other Agents
 
 ```bash
-# Generic pattern for any agent folder
+# Generic pattern for any agent folder (replace {category} with tools or workflows)
 mkdir -p .{agent-name}/skills
-ln -s ../../.agent-settings/skills/{skill-name} .{agent-name}/skills/{skill-name}
+ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/{skill-name}
 ```
 
 ### Adding New Skills
 
-1. Create the skill in `.agent-settings/skills/`:
+1. Create the skill in the appropriate category:
    ```bash
-   mkdir -p .agent-settings/skills/my-new-skill
-   # Create SKILL.md or other skill files
+   # For a single-purpose action:
+   mkdir -p .agent-settings/skills/tools/my-new-skill
+   # For an orchestrated pipeline:
+   mkdir -p .agent-settings/skills/workflows/my-new-skill
+   # Then create SKILL.md inside it
    ```
 
 2. Import it to the desired agent configurations:
@@ -167,8 +172,8 @@ ln -s ../../.agent-settings/skills/{skill-name} .{agent-name}/skills/{skill-name
 
    **Or manually create symlinks:**
    ```bash
-   ln -s ../../.agent-settings/skills/my-new-skill .claude/skills/my-new-skill
-   ln -s ../../.agent-settings/skills/my-new-skill .gemini/skills/my-new-skill
+   ln -s ../../.agent-settings/skills/tools/my-new-skill .claude/skills/my-new-skill
+   ln -s ../../.agent-settings/skills/tools/my-new-skill .gemini/skills/my-new-skill
    ```
 
 ### Verifying Symlinks
@@ -188,7 +193,7 @@ ls -la .claude/skills
 
 # Verify a specific symlink target
 readlink .claude/skills/generate-pr-notes
-# Should output: ../../.agent-settings/skills/generate-pr-notes
+# Should output: ../../.agent-settings/skills/tools/generate-pr-notes
 ```
 
 ### Best Practices
@@ -222,8 +227,17 @@ file .claude/skills/skill-name
 
 Current skills in `.agent-settings/skills/`:
 
-- **generate-pr-notes** - Automates generation of pull request notes from commit history
-- **git-commit-conventional-strict** - Enforces strict conventional commit message formatting
+**Tools** (atomic, single-purpose):
+- **generate-pr-notes** - Interactively generates comprehensive pull request descriptions from git changes
+- **git-commit-conventional-strict** - Strict Conventional Commits generator with gitmoji, optimized for `git-cliff`
+- **api-spec-to-confluence** - Reads a Go API handler and creates/updates a structured Confluence documentation page
+- **symlink-worktree-ignored-files** - Symlinks git-ignored files/directories from the current worktree to a target worktree
+
+**Workflows** (multi-step, orchestrated pipelines):
+- **confluence-prd-to-sdd-spec** - Fetches a PRD from Confluence and transforms it into a local `prd-source.md` for spec-kit
+- **sdd-tech-plan-to-confluence** - Reads local spec-kit artifacts and publishes a structured design review page to Confluence
+- **confluence-tech-plan-to-jira** - Fetches a Confluence design review page and creates a Jira root ticket with sub-tasks
+- **sdd-qa-to-jira** - Derives BDD QA scenarios from spec-kit artifacts and creates QA sub-tickets in Jira
 
 ---
 

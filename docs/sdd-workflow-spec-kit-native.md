@@ -583,6 +583,6 @@ SDET can now claim and execute in any order.
 ## References
 
 - [SDD Skills Map](./sdd-skills-map.md)
-- [sdd-tech-plan-to-confluence Skill](./../.agent-settings/skills/sdd-tech-plan-to-confluence/SKILL.md)
+- [sdd-tech-plan-to-confluence Skill](./../.agent-settings/skills/workflows/sdd-tech-plan-to-confluence/SKILL.md)
 - [GitHub Spec-Kit Repository](https://github.com/github/spec-kit)
 - [Spec-Driven Development Guide](https://github.com/github/spec-kit/blob/main/spec-driven.md)
