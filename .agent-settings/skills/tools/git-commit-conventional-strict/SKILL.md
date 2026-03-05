@@ -74,11 +74,15 @@ You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your
     - If BOTH types are present, split into separate commits (see Commit Splitting Strategy below)
 3.  **Determine SemVer**: Is this a Patch (fix), Minor (feat), or Major (Breaking) change?
 4.  **Identify Scope**: Which module constitutes the primary scope (e.g., auth, ui, deps)?
-5.  **Draft Message**:
+5.  **Ask for Jira ticket (optional)**:
+    - Ask: "Jira ticket ID? Type the ID (e.g. PROJ-1234) or type n to skip"
+    - Treat `n`, `no`, `none`, `skip`, `n/a`, `-` as "no ticket" — omit the footer entirely
+    - If a real ticket ID is given, append to the commit footer: `Refs: PROJ-1234`
+6.  **Draft Message**:
     - If Breaking: Use type!: format.
     - Select appropriate Emoji.
     - Write imperative subject.
-6.  **Execute Commit**: Use standard git commit command with the -m flag and include the Co-Authored-By line.
+7.  **Execute Commit**: Use standard git commit command with the -m flag and include the Co-Authored-By line.
 
 ## Commit Splitting Strategy
 
