@@ -35,18 +35,22 @@ If the MCP server is not configured, guide the user to run:
 
 ## Process
 
+0.  **Load project configuration**: Read `.agent-settings/project-config.md`.
+    - If the file is missing: tell the user to run the `setup-project-config` skill first (`"set up project config"`), then stop.
+    - Use all values from the config throughout this skill — Confluence space, parent pages, code structure paths, framework details, and documentation format. Do not rely on hardcoded values.
+
 1.  **Identify the API endpoint**: The user must provide the API path (e.g., `/api/example-service/v1/users/me`).
 2.  **Choose Operation Mode**: Ask the user if they want to:
     - **Create a new page**: Generate a new Confluence page
     - **Update an existing page**: Update an existing page by providing a page ID or search hint
 3.  **Get Target Page**:
-    - **For new pages**: Present a list of common parent pages (see below) for the user to choose from. The user can also enter a different page ID.
+    - **For new pages**: Present the list of common parent pages loaded from `.agent-settings/project-config.md` as a numbered list. The user can also enter a different page ID.
     - **For existing pages**:
       - If user provides a page ID (numeric), use it directly
       - If user provides a search hint (title/keywords), use `mcp__atlassian__confluence_search` to find matching pages and let user select
       - Retrieve the current page using `mcp__atlassian__confluence_get_page` to preserve the title
 4.  **Analyze Router and Handler**:
-    a.  Read `router/router.go` and search for the API path to identify the handler function.
+    a.  Read the router file specified in project config (e.g., `router/router.go`) and search for the API path to identify the handler function.
     b.  Read the handler file and analyze both swagger annotations and implementation code.
 4.  **Generate Comprehensive Documentation** based on the template in
     `references/documentation-template.md` and populating its sections:
@@ -132,13 +136,14 @@ If the MCP server is not configured, guide the user to run:
 - If user provides text, search for matching pages using `mcp__atlassian__confluence_search`
 
 ### Code Analysis
-- Use `Grep` to quickly find the API path in router.go: `pattern: '"/api/example-service/v1/users/me"'`
+- Use the router file, handler directory, DTO directory, and service directory from project config
+- Use `Grep` to quickly find the API path in the router file
 - Look for handler package imports and function names in router definitions
 - Read the entire handler function to understand the full workflow
-- Check for DTO structs referenced in the handler (in `dto/` directory)
-- **CRITICAL**: Search for `c.JSON()` and `c.String()` calls to understand response formats
+- Check for DTO structs referenced in the handler (in the DTO directory from config)
+- **CRITICAL**: Search for the response calls specified in the Documentation Format section of config (e.g., `c.JSON()`, `c.String()` for Gin) to understand response formats
 - Read response DTO files to generate accurate JSON examples (this is mandatory)
-- Identify service layer calls (in `service/` directory) for implementation context
+- Identify service layer calls (in the service directory from config) for implementation context
 - Include code snippets or examples where helpful
 - Use clear markdown formatting for readability
 - **CRITICAL**: All JSON payloads, response examples, and request bodies MUST be wrapped in markdown code blocks.
@@ -152,11 +157,8 @@ If the MCP server is not configured, guide the user to run:
 
 ## Common Parent Pages
 
--   [Technical Design](https://example.atlassian.net/wiki/spaces/DEMO/pages/1234567/Technical+Design) (1234567)
--   [Data Requirements](https://example.atlassian.net/wiki/spaces/DEMO/pages/2345678/Data+Requirements) (2345678)
--   [Technical Documentation](https://example.atlassian.net/wiki/spaces/DEMO/pages/3456789/Technical+Documentation) (3456789)
--   [Release Notes](https://example.atlassian.net/wiki/spaces/DEMO/pages/4567890/Release+Notes) (4567890)
--   [Project Documentation](https://example.atlassian.net/wiki/spaces/DEMO/pages/5678901/Project+Documentation) (5678901)
+Loaded from `.agent-settings/project-config.md` — the `### Common Parent Pages` table under `## Confluence`.
+Present them as a numbered list when asking the user where to create a new page.
 
 ## Page Search and Selection
 

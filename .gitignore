@@ -7,6 +7,9 @@
 # Atlassian MCP credentials
 .env.mcp-atlassian
 
+# Project-specific skill configuration (generated per project, not committed to template repo)
+.agent-settings/project-config.md
+
 # IDE settings
 .idea/
 .vscode/

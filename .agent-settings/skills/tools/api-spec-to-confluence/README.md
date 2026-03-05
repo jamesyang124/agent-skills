@@ -71,12 +71,23 @@ Generated documentation includes:
 
 ## Common Parent Pages
 
-Pre-configured parent pages for new documentation:
-- **Technical Design** (1234567)
-- **Data Requirements** (2345678)
-- **Technical Documentation** (3456789)
-- **Release Notes** (4567890)
-- **Project Documentation** (5678901)
+Loaded from `.agent-settings/project-config.md`. Run the `setup-project-config` skill to
+populate these with your actual Confluence page IDs.
+
+## Setup
+
+Before first use, generate the shared project config by running:
+
+```
+"set up project config"
+```
+
+This runs the `setup-project-config` skill, which scans your codebase and writes
+`.agent-settings/project-config.md` with your Confluence space, parent page IDs, and
+code directory layout. All Atlassian skills read from this same file — you only need
+to run it once per project.
+
+If the config file is missing when you invoke this skill, the agent will remind you to run setup.
 
 ## Requirements
 
@@ -86,13 +97,6 @@ Requires the Atlassian MCP server to be configured:
 - `mcp__atlassian__confluence_update_page`
 - `mcp__atlassian__confluence_search`
 - `mcp__atlassian__confluence_get_page`
-
-### Code Structure
-Expects standard Go project structure:
-- `router/router.go` - API route definitions
-- `handler/*.go` - Handler implementations with swagger annotations
-- `dto/*.go` - Request/Response data structures
-- `service/*.go` - Business logic layer
 
 ## Version History
 
