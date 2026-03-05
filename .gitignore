@@ -30,6 +30,11 @@ Thumbs.db
 .gemini
 .claude
 .codex
+.github
+
+# Submodules (local use only, not committed to template repo)
+.gitmodules
+submodules/
 
 GEMINI.md
 AGENTS.md
