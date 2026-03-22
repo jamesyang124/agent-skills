@@ -1,6 +1,6 @@
 ---
 name: confluence-prd-to-sdd-spec
-description: Fetches an external PRD from Confluence (written by PO/PM) and transforms it into a structured local source file that the RD can reference when running spec-kit specify. Bridges the PO handoff into the spec-kit native SDD workflow.
+description: Fetches a PRD from Confluence and transforms it into a structured local prd-source.md for spec-kit. Use when importing a product requirements document, starting the SDD workflow from a Confluence PRD, or asked to pull a PRD from Confluence before running spec-kit specify.
 ---
 
 # PRD to Spec-Kit Source

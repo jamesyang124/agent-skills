@@ -1,6 +1,7 @@
 ---
-name: git-commit-conventional-cliff-optimized
-description: Strict Conventional Commits generator optimized for git-cliff, with SemVer and Emoji support.
+name: git-commit-conventional-strict
+description: Strict Conventional Commits generator optimized for git-cliff, with SemVer and Emoji support. Use when committing code changes, writing commit messages, or when asked to commit with conventional format, semantic versioning, emoji commits, or gitmoji.
+allowed-tools: Bash(git *)
 ---
 
 # Git Commit Generator (Cliff Optimized)
