@@ -1,16 +1,27 @@
 # API Spec to Confluence Skill
 
-A Claude Code skill that generates comprehensive API documentation from Go handler code and publishes it to Confluence.
+A Claude Code skill that generates comprehensive API documentation from code or an OpenAPI/Swagger spec and publishes it to Confluence.
+
+## Supported Frameworks
+
+| Language | Frameworks | Annotation Style |
+|----------|-----------|-----------------|
+| Go | Gin, Echo, Chi | Swaggo (`@Summary`, `@Param`, etc.) |
+| Ruby | Rails | rswag, apipie, or inferred from code |
+| Node.js | Express, Fastify, Koa | JSDoc `@swagger`, tsoa, routing-controllers |
+| Python | FastAPI | Decorators + Pydantic models (no annotations needed) |
+| Python | Flask | flasgger, flask-restx, or inferred |
+| Any | — | Direct `swagger.json` / `openapi.yaml` input |
 
 ## Features
 
-### 🆕 Create New Documentation
-- Analyzes router and handler code
-- Extracts swagger annotations
+### Create New Documentation
+- Analyzes router/controller/handler code using framework-appropriate patterns
+- Parses OpenAPI/Swagger spec files directly (alternative to code analysis)
 - Generates comprehensive markdown documentation
 - Creates new Confluence page under specified parent
 
-### 🔄 Update Existing Documentation
+### Update Existing Documentation
 - Update by page ID: Provide numeric page ID directly
 - Update by search: Search by keywords/title and select from results
 - Preserves existing page title and structure
@@ -18,36 +29,42 @@ A Claude Code skill that generates comprehensive API documentation from Go handl
 
 ## Usage Examples
 
-### Create New Page
+### From Code (any framework)
 ```
-User: "Create a Confluence page for the /api/example-service/v1/users/me endpoint"
-```
-
-### Update by Page ID
-```
-User: "Update page 1234567890 with latest spec for /api/example-service/v1/uploads/init"
+User: "Create a Confluence page for the /api/v1/users/me endpoint"
+User: "Document the POST /products controller action"
 ```
 
-### Update by Search
+### From OpenAPI/Swagger Spec
 ```
+User: "Create a Confluence page from swagger.json for the /users/{id} endpoint"
+User: "Document the /orders endpoint using docs/openapi.yaml"
+```
+
+### Update Existing
+```
+User: "Update page 1234567890 with latest spec for /api/v1/uploads/init"
 User: "Update the API spec page for the upload endpoint"
 ```
 
 ## How It Works
 
-### Operation Mode Detection
-The skill automatically detects the operation mode based on user input:
+### API Source Detection
+The skill automatically detects the input type:
+- **OpenAPI/Swagger spec file** (`.json`/`.yaml`): Parses the spec directly, resolves `$ref` schemas
+- **API path + framework code**: Reads from project-config.md to apply the right analysis strategy
 
-- **CREATE MODE**: Default mode, or when user says "create" or "new"
+### Operation Mode Detection
+- **CREATE MODE**: Default, or when user says "create" or "new"
 - **UPDATE MODE (by ID)**: When user provides a numeric page ID
 - **UPDATE MODE (by search)**: When user says "update" with keywords
 
 ### Documentation Generation
 The skill performs deep analysis of:
-1. Router definitions in `router/router.go`
-2. Handler functions and swagger annotations
-3. Request/Response DTOs in `dto/` directory
-4. Service layer dependencies in `service/` directory
+1. Framework-appropriate router/routes/controller file
+2. Handler/action function and its annotations or decorators
+3. Request/Response DTOs, Pydantic models, or schema objects
+4. Service layer dependencies
 5. Middleware and authentication requirements
 
 ### Confluence Integration

@@ -6,6 +6,27 @@ This directory contains comprehensive guides for integrating agent skills and MC
 
 ## 📚 Available Guides
 
+### Setup & Configuration
+
+| Guide | Description |
+|-------|-------------|
+| [Agent Settings](./agent-settings.md) | Central config guide: skills, MCPs, supported AI assistants |
+| [Skills Management](./skills.md) | Import, symlink, and manage skills across agents |
+| [MCP Setup](./mcps.md) | Atlassian MCP (Jira/Confluence) integration via Docker |
+
+### Skills Reference
+
+**Tools** (atomic, single-purpose):
+- [setup-project-config](./tools/setup-project-config.md) — One-time codebase scan + Atlassian config
+- [api-spec-to-confluence](./tools/api-spec-to-confluence.md) — Generate API docs from Go handlers
+
+**Workflows** (multi-step, orchestrated pipelines):
+- [confluence-tech-plan-to-jira](./workflows/confluence-tech-plan-to-jira.md) — Create Jira tickets from a Confluence design review
+
+---
+
+### SDD Guides
+
 ### [SDD Workflow Guide](./sdd-workflow-spec-kit-native.md)
 **Comprehensive overview with detailed architecture**
 
@@ -214,8 +235,9 @@ New requirements or bugs loop back to the appropriate phase (Specify, Plan, or T
 
 ### Project Resources
 - [Agent Skills Main README](../README.md)
-- [Skills Management Guide](../.agent-settings/skills/README.md)
-- [MCP Setup Guide](../.agent-settings/mcps/README.md)
+- [Skills Management Guide](./skills.md)
+- [MCP Setup Guide](./mcps.md)
+- [Agent Settings Guide](./agent-settings.md)
 
 ---
 

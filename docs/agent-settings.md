@@ -15,10 +15,7 @@ The `.agent-settings` directory serves as a shared repository for:
 
 ```
 .agent-settings/
-├── README.md                              # This file
-│
 ├── skills/                                # Skills for AI agents
-│   ├── README.md                          # Skills documentation
 │   ├── import-skills.sh                   # Skill management script
 │   ├── generate-pr-notes/                 # Auto-generate PR descriptions
 │   │   └── SKILL.md
@@ -26,7 +23,6 @@ The `.agent-settings` directory serves as a shared repository for:
 │       └── SKILL.md
 │
 └── mcps/                                  # MCP server configurations
-    ├── README.md                          # MCP setup guide
     └── install-atlassian-mcp.sh           # Atlassian MCP installer
 
 Project Root (after configuration):
@@ -66,7 +62,7 @@ Skills extend AI agent capabilities with specialized workflows and prompts.
 .agent-settings/skills/import-skills.sh --verify claude
 ```
 
-See [`skills/README.md`](skills/README.md) for detailed documentation.
+See [`docs/skills.md`](./skills.md) for detailed documentation.
 
 ### Setting Up MCP Servers
 
@@ -83,7 +79,7 @@ Install Atlassian MCP (Jira/Confluence integration):
 .agent-settings/mcps/install-atlassian-mcp.sh --help
 ```
 
-See [`mcps/README.md`](mcps/README.md) for detailed setup.
+See [`docs/mcps.md`](./mcps.md) for detailed setup.
 
 ## Supported AI Assistants
 
@@ -139,7 +135,7 @@ This project uses Claude Code as the primary AI assistant with:
 
 **MCP Servers:**
 - Not yet configured (example configurations available in `mcps/examples/`)
-- See `mcps/README.md` for setup instructions
+- See `docs/mcps.md` for setup instructions
 
 **Configuration Locations:**
 - Antigravity Skills: `.agent/skills/` (symlinked from `.agent-settings/skills/`)
@@ -244,7 +240,7 @@ which jq || brew install jq
 When adding new resources to `.agent-settings`:
 
 1. **Skills** - Add to `skills/` directory with a `SKILL.md` file
-2. **MCP Servers** - Document setup in `mcps/README.md`
+2. **MCP Servers** - Document setup in `docs/mcps.md`
 3. **Migration Support** - Update `install-atlassian-mcp.sh` for new assistant types
 4. **Update Documentation** - Add examples and usage instructions
 5. **Test Thoroughly** - Verify across different agents before committing
