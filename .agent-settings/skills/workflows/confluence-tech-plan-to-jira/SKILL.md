@@ -1,6 +1,6 @@
 ---
 name: confluence-tech-plan-to-jira
-description: Analyzes a Confluence page and automatically creates a Jira root ticket with associated subtasks.
+description: Fetches a Confluence design review or tech spec page and creates a Jira root ticket with associated subtasks. Use when turning a Confluence page into Jira tickets, creating tasks from a tech plan, breaking down a design review into Jira issues, or at the Tasks phase of the SDD workflow.
 ---
 
 # Confluence to Jira Tickets

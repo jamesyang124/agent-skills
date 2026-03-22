@@ -1,6 +1,8 @@
 ---
 name: generate-pr-notes
-description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with a title, summary, changes, technical details, and breaking changes.
+description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with a title, summary, changes, technical details, and breaking changes. Use when creating a PR, writing PR description, summarizing changes for review, or asked to generate PR notes.
+argument-hint: "[base-branch]"
+allowed-tools: Bash(git *)
 ---
 
 # Generate PR Notes

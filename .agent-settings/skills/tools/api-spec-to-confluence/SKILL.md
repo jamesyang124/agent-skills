@@ -1,11 +1,12 @@
 ---
 name: api-spec-to-confluence
-description: Creates or updates a Confluence page from an API endpoint by analyzing the router and handler code, using the documentation template in this skill folder.
+description: Creates or updates a Confluence API documentation page from code or an OpenAPI/Swagger spec. Supports Go (Gin, Echo, Chi), Ruby on Rails, Node.js (Express, Fastify), Python (FastAPI, Flask), and direct swagger.json/openapi.yaml input. Use when documenting an API endpoint, publishing API specs to Confluence, updating API docs, or at the Implement & PR phase of the SDD workflow.
+allowed-tools: Read, Glob, Grep
 ---
 
 # API Spec to Confluence
 
-This skill automates the creation or update of a Confluence page for a specific API endpoint. It analyzes the router and handler code to generate a comprehensive API document.
+This skill automates the creation or update of a Confluence page for a specific API endpoint. It supports multiple input sources — framework code analysis or a direct OpenAPI/Swagger spec file — and adapts its analysis strategy to the project's framework as detected from `project-config.md`.
 
 ## Documentation Template (MANDATORY)
 
@@ -39,7 +40,9 @@ If the MCP server is not configured, guide the user to run:
     - If the file is missing: tell the user to run the `setup-project-config` skill first (`"set up project config"`), then stop.
     - Use all values from the config throughout this skill — Confluence space, parent pages, code structure paths, framework details, and documentation format. Do not rely on hardcoded values.
 
-1.  **Identify the API endpoint**: The user must provide the API path (e.g., `/api/example-service/v1/users/me`).
+1.  **Identify the API endpoint**: The user must provide either:
+    - An API path (e.g., `/api/v1/users/me`), OR
+    - A path to an OpenAPI/Swagger spec file (e.g., `swagger.json`, `openapi.yaml`, `docs/swagger.yaml`)
 2.  **Choose Operation Mode**: Ask the user if they want to:
     - **Create a new page**: Generate a new Confluence page
     - **Update an existing page**: Update an existing page by providing a page ID or search hint
@@ -49,10 +52,12 @@ If the MCP server is not configured, guide the user to run:
       - If user provides a page ID (numeric), use it directly
       - If user provides a search hint (title/keywords), use `mcp__atlassian__confluence_search` to find matching pages and let user select
       - Retrieve the current page using `mcp__atlassian__confluence_get_page` to preserve the title
-4.  **Analyze Router and Handler**:
-    a.  Read the router file specified in project config (e.g., `router/router.go`) and search for the API path to identify the handler function.
-    b.  Read the handler file and analyze both swagger annotations and implementation code.
-4.  **Generate Comprehensive Documentation** based on the template in
+4.  **Detect API Source and Analyze**:
+    - **If the user provided a Swagger/OpenAPI spec file**: Read `.agent-settings/skills/tools/api-spec-to-confluence/references/openapi-parsing.md` for parsing instructions. Skip code analysis.
+    - **If the user provided an API path**: Read `.agent-settings/skills/tools/api-spec-to-confluence/references/framework-patterns.md` and apply the section matching the framework from `project-config.md`.
+    - **If `project-config.md` is missing**: Tell the user to run `setup-project-config` first, then stop.
+    - **If no framework is detected in config**: Read `.agent-settings/skills/tools/api-spec-to-confluence/references/framework-patterns.md` → Auto-Detection section, then confirm with user.
+5.  **Generate Comprehensive Documentation** based on the template in
     `references/documentation-template.md` and populating its sections:
     - **HTTP Method and Path**: From the router definition
     - **Summary and Description**: From swagger `@Summary` and `@Description` annotations
@@ -67,51 +72,6 @@ If the MCP server is not configured, guide the user to run:
 5.  **Create or Update Confluence Page**:
     - **For new pages**: Use `mcp__atlassian__confluence_create_page` to create a new page under the specified parent. Title format: `API Spec: {path}` (e.g., "API Spec: /api/example-service/v1/users/me").
     - **For existing pages**: Use `mcp__atlassian__confluence_update_page` to update the content while preserving the existing title (unless user wants to change it).
-
-## Example Usage
-
-### Example 1: Create New Page
-
-**User**: "Create a Confluence page for the `/api/example-service/v1/users/me` endpoint."
-
-**Agent**:
-1. Asks if user wants to create new or update existing
-2. User chooses "create new"
-3. Presents the list of common parent pages
-4. Waits for user selection
-
-**User**: "1" (selects Technical Design)
-
-**Agent**:
-1. Reads `router/router.go` to find the handler for `/api/example-service/v1/users/me`
-2. Reads the handler file (e.g., `handler/user.go`)
-3. Analyzes swagger annotations and implementation code
-4. Generates comprehensive markdown documentation
-5. Creates Confluence page using `mcp__atlassian__confluence_create_page`
-6. Returns the page URL to the user
-
-### Example 2: Update Existing Page by ID
-
-**User**: "Update the Confluence page 1234567890 with the latest spec for `/api/example-service/v1/uploads/init`."
-
-**Agent**:
-1. Recognizes the page ID (1234567890)
-2. Retrieves the existing page using `mcp__atlassian__confluence_get_page`
-3. Reads `router/router.go` to find the handler
-4. Analyzes the handler code
-5. Generates updated markdown documentation
-6. Updates the page using `mcp__atlassian__confluence_update_page` (preserves existing title)
-7. Returns confirmation and page URL
-
-### Example 3: Update Existing Page by Search
-
-**User**: "Update the API spec page for the upload endpoint."
-
-**Agent**:
-1. Uses `mcp__atlassian__confluence_search` with query: "API Spec upload"
-2. Presents matching pages to user
-3. User selects the correct page
-4. Proceeds with analysis and update as in Example 2
 
 ## Tips for the Agent
 
@@ -136,18 +96,16 @@ If the MCP server is not configured, guide the user to run:
 - If user provides text, search for matching pages using `mcp__atlassian__confluence_search`
 
 ### Code Analysis
-- Use the router file, handler directory, DTO directory, and service directory from project config
-- Use `Grep` to quickly find the API path in the router file
-- Look for handler package imports and function names in router definitions
-- Read the entire handler function to understand the full workflow
-- Check for DTO structs referenced in the handler (in the DTO directory from config)
-- **CRITICAL**: Search for the response calls specified in the Documentation Format section of config (e.g., `c.JSON()`, `c.String()` for Gin) to understand response formats
-- Read response DTO files to generate accurate JSON examples (this is mandatory)
-- Identify service layer calls (in the service directory from config) for implementation context
-- Include code snippets or examples where helpful
+- Use the router file, handler/controller directory, DTO/model directory, and service directory from project config
+- Use `Grep` to quickly find the API path in the router/routes file
+- Read the full handler/action/view function to understand the complete workflow
+- Check for DTO/model/schema definitions referenced in the handler (in the model/DTO directory from config)
+- **CRITICAL**: Search for the response call patterns for the detected framework (see `.agent-settings/skills/tools/api-spec-to-confluence/references/framework-patterns.md`) to understand response formats
+- Read response DTO/model/schema files to generate accurate JSON examples (this is mandatory)
+- Identify service layer calls for implementation context
 - Use clear markdown formatting for readability
 - **CRITICAL**: All JSON payloads, response examples, and request bodies MUST be wrapped in markdown code blocks.
-- **CRITICAL**: All request parameters (path, query, header) and DTO fields MUST be listed using tables (preferred) or unordered lists. Do not use plain text paragraphs for these.
+- **CRITICAL**: All request parameters (path, query, header) and DTO/model fields MUST be listed using tables (preferred) or unordered lists. Do not use plain text paragraphs for these.
 
 ### Update Strategy
 - When updating, retrieve the existing page first to preserve the title
@@ -159,85 +117,9 @@ If the MCP server is not configured, guide the user to run:
 
 Loaded from `.agent-settings/project-config.md` — the `### Common Parent Pages` table under `## Confluence`.
 Present them as a numbered list when asking the user where to create a new page.
-
-## Page Search and Selection
-
-When updating an existing page using a search hint:
-
-1. **Construct Search Query**: Use `mcp__atlassian__confluence_search` with a CQL query:
-   - For API specs: `type=page AND title~"API Spec" AND text~"{keywords}"`
-   - Example: `type=page AND title~"API Spec" AND text~"upload"`
-
-2. **Present Results**: Show user a numbered list of matching pages:
-   ```
-   Found 3 matching pages:
-   1. API Spec: /api/example-service/v1/uploads/init (ID: 1234567890)
-   2. API Spec: /api/example-service/v1/uploads/complete (ID: 1234567891)
-   3. API Spec: /api/example-service/v1/uploads/status (ID: 1234567892)
-
-   Which page would you like to update? (Type a number to select, or type n to cancel.)
-   ```
-
-3. **Handle Selection**: Wait for user to select a page number or cancel
-
-4. **Retrieve Page**: Once selected, use `mcp__atlassian__confluence_get_page` with the page_id to get current content and metadata
-
-## Workflow Decision Tree
-
-Follow this decision tree when handling user requests:
-
-```
-User Request
-    |
-    └─> Check Prerequisites
-        |
-        ├─> MCP Atlassian tools available? ──NO──> Guide user to install MCP server
-        |                                           (.agent-settings/mcps/install-atlassian-mcp.sh)
-        |
-        └─> YES
-            |
-            ├─> Contains page ID (numeric)? ──YES─> UPDATE MODE
-    │                                       - Retrieve page with mcp__atlassian__confluence_get_page
-    │                                       - Analyze API endpoint
-    │                                       - Update page with mcp__atlassian__confluence_update_page
-    │
-    ├─> Contains "update" keyword? ──YES─> SEARCH MODE
-    │                                      - Extract search hint from request
-    │                                      - Search with mcp__atlassian__confluence_search
-    │                                      - Present options to user
-    │                                      - Proceed with UPDATE MODE
-    │
-    └─> Otherwise ──> CREATE MODE
-                      - Present parent page options
-                      - User selects parent
-                      - Analyze API endpoint
-                      - Create page with mcp__atlassian__confluence_create_page
-```
+For page search/selection details and workflow decision tree, see `.agent-settings/skills/tools/api-spec-to-confluence/references/usage-examples.md`.
 
 ## Analysis Guidelines
-
-When analyzing handler code, look for:
-
-### Swagger Annotations
-- `@Summary`: Brief description
-- `@Description`: Detailed explanation
-- `@Router`: Path and HTTP method
-- `@Param`: Query params, path params, headers
-- `@Accept`: Request content type
-- `@Produce`: Response content type
-- `@Success`: Successful response structure
-- `@Failure`: Error response structures
-- `@Security`: Authentication requirements
-
-### Implementation Patterns
-- **Middleware**: JWT validation, admin checks, rate limiting
-- **Request Binding**: `c.ShouldBindJSON()`, `c.ShouldBindQuery()`, context parameter extraction
-- **Response Handling** (**REQUIRED**): Look for `c.JSON()`, `c.String()`, `c.Status()` calls to understand response formats
-- **Service Calls**: Identify which services/clients are used
-- **Database Operations**: Direct DB queries or through repositories
-- **External APIs**: Third-party services, CMS systems, payment providers, etc.
-- **Error Handling**: Common error scenarios and HTTP status codes returned
-- **Business Logic**: Key validation rules, transformations, workflows
 
 ### Documentation Structure
 Use the template at `references/documentation-template.md` as the base structure. Do not reorder,
@@ -292,7 +174,8 @@ Keep **Change Log** to at most 3 entries (most recent only).
    ```
 
 4. **How to Generate Examples**:
-   - Look for `c.JSON()` calls in the handler code to see actual response structures
-   - Read the response DTO files referenced in `@Success` annotations
+   - Use the response patterns for your framework (see Framework-Specific Analysis) to find actual response structures
+   - Read the response DTO/model/schema files referenced in annotations or function signatures
    - Check service layer return values for response shapes
-   - For simple string responses (`c.String()`), show as plain text examples
+   - For OpenAPI/Swagger spec input: use the `example` fields in the spec if present, otherwise generate from the schema
+   - For simple string/text responses, show as plain text examples

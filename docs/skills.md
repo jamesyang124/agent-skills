@@ -15,7 +15,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 
 ```
 .agent-settings/skills/
-├── README.md (this file)
 ├── import-skills.sh (skill management script)
 ├── tools/                          # Atomic, single-purpose skills
 │   ├── setup-project-config/

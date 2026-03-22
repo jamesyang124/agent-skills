@@ -1,6 +1,8 @@
 ---
 name: symlink-worktree-ignored-files
-description: The agent will interactively guide the user to select a target worktree from a list of available git worktrees. Once selected, the skill will symlink all git-ignored files and directories from the current (source) worktree to the chosen target worktree.
+description: Interactively guides the user to select a target git worktree, then symlinks all git-ignored files and directories from the current worktree to the target. Use when setting up a new worktree, sharing .env files across worktrees, or asked to symlink ignored files to another worktree.
+argument-hint: "[target-worktree-path]"
+allowed-tools: Bash(*)
 ---
 
 # Symlink Worktree Ignored Files (Agent-Driven Interactive Selection)
@@ -20,7 +22,7 @@ To use this skill, navigate to your source worktree (the one with files to link 
 cd /path/to/my-project
 
 # 2. Run the skill
-/run_skill.sh
+scripts/run_skill.sh
 ```
 
 The agent will then display a numbered list of available worktrees and prompt you to choose one by entering its number.
@@ -33,7 +35,7 @@ You can also provide the target worktree path directly as an argument to bypass 
 
 ```bash
 
-/run_skill.sh /path/to/target/worktree
+scripts/run_skill.sh /path/to/target/worktree
 
 ```
 
@@ -45,9 +47,9 @@ You can also provide the target worktree path directly as an argument to bypass 
 
 This skill is implemented using two shell scripts:
 
-- `run_skill.sh`: This is the main interactive script that guides the user to select the target worktree.
+- `scripts/run_skill.sh`: This is the main interactive script that guides the user to select the target worktree.
 
-- `symlink.sh`: This script performs the actual symlinking of ignored files and directories. `run_skill.sh` calls this script after determining the target path.
+- `scripts/symlink.sh`: This script performs the actual symlinking of ignored files and directories. `run_skill.sh` calls this script after determining the target path.
 
 
 
