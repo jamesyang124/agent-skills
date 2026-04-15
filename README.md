@@ -45,9 +45,25 @@ To install all available skills for Gemini CLI using the automated script:
 
 This will create necessary symlinks (e.g., `~/.gemini/skills/skill-name`) and ensure skills are hot-reloaded without restarting your agent.
 
+### One-Command Setup (Skills + MCP)
+
+To import skills and configure the Atlassian MCP server in a single step, use `setup.sh`:
+
+```bash
+./.agent-settings/setup.sh --agent claude --jira-url https://myteam.atlassian.net
+```
+
+| Option | Description |
+|---|---|
+| `--agent claude\|copilot\|gemini` | Agent to configure (default: interactive prompt) |
+| `--jira-url URL` | Pre-fills the Atlassian base URL, skipping the MCP interactive prompt |
+| `--skip-mcp` | Import skills only; skip MCP setup entirely |
+
+This is the recommended path when setting up a fresh clone. It chains `import-skills.sh` and `install-atlassian-mcp.sh` automatically.
+
 ### Quick Start with Atlassian MCP
 
-To set up Atlassian Jira and Confluence integration via the MCP server:
+To set up Atlassian Jira and Confluence integration via the MCP server standalone:
 
 ```bash
 ./.agent-settings/mcps/install-atlassian-mcp.sh
