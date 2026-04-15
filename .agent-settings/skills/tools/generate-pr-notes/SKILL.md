@@ -2,7 +2,7 @@
 name: generate-pr-notes
 description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with a title, summary, changes, technical details, and breaking changes. Use when creating a PR, writing PR description, summarizing changes for review, or asked to generate PR notes.
 argument-hint: "[base-branch]"
-allowed-tools: Bash(git *)
+allowed-tools: Bash(git *), Bash(uname *), Bash(pbcopy *), Bash(xclip *), Bash(xsel *), Bash(clip *), Write
 ---
 
 # Generate PR Notes
@@ -23,7 +23,27 @@ This skill analyzes git changes and generates comprehensive pull request notes. 
 
 Use the Task tool with subagent_type="general-purpose" to spawn an agent that will generate pull request notes. Pass the following instructions to the agent.
 
-**CRITICAL: After the agent completes, you MUST output the generated PR notes directly in the terminal by displaying the agent's response verbatim. Do NOT summarize or modify the output. The user needs the full markdown content in the terminal for copy/paste.**
+**CRITICAL: After the agent completes, follow these steps IN ORDER:**
+
+1. **Output verbatim** — display the agent's full response exactly as returned in the terminal. Do NOT summarize or modify it.
+
+2. **Extract content** — strip the outer ` ```markdown ` opening fence and the closing ` ``` ` fence from the agent output to get the raw markdown text only.
+
+3. **Determine output path** — before writing, run these two commands via Bash:
+   - Repo name: `basename $(git rev-parse --show-toplevel)`
+   - Short hash: `git rev-parse --short HEAD`
+   Construct the output path as `/tmp/pr-notes-<repo-name>-<short-hash>.md` (e.g. `/tmp/pr-notes-agent-skills-a1b2c3d.md`).
+   Use the Write tool to save the extracted markdown to that path.
+
+4. **Copy to clipboard** — detect the OS by running `uname -s` via Bash, then use the appropriate command (substitute the computed path from step 3):
+   - macOS (`Darwin`): `pbcopy < <output-path>`
+   - Linux (`Linux`): try `xclip -selection clipboard < <output-path>`; if that fails, try `xsel --clipboard --input < <output-path>`
+   - Windows / PowerShell (`Windows_NT`): try `clip < <output-path>`
+   - If all commands fail or the platform is unrecognized, skip silently.
+
+5. **Confirm to user** — print exactly ONE line after the code block output (use the actual computed path from step 3):
+   - If clipboard copy succeeded: `PR notes saved to <output-path> and copied to clipboard.`
+   - If clipboard copy failed or unavailable: `PR notes saved to <output-path> (clipboard unavailable — paste manually from the file).`
 
 ---
 
@@ -159,8 +179,7 @@ You are a specialized agent for generating pull request notes. Follow these step
 
 6. **OUTPUT TO TERMINAL - MANDATORY:**
    - After you generate the PR notes, they MUST be displayed in the terminal
-   - The calling assistant will output your response verbatim to the user
-   - This ensures the user can directly copy/paste the notes from their terminal
+   - The calling assistant will output your response verbatim to the user, then also write the content to a `/tmp/pr-notes-<repo-name>-<short-hash>.md` file and attempt to copy it to the clipboard
    - Do NOT add any additional commentary after generating the notes
 
 ## Important Notes
