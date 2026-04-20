@@ -43,8 +43,37 @@ show_help() {
     printf "    ./install-atlassian-mcp.sh --agent gemini --jira-url https://myteam.atlassian.net\n\n"
 }
 
-# Always show help first
-show_help
+# Check for --help flag first (before Docker checks)
+for arg in "$@"; do
+    if [[ "$arg" == "-h" ]] || [[ "$arg" == "--help" ]]; then
+        show_help
+        exit 0
+    fi
+done
+
+# Check Docker availability and pull image as FIRST STEP (before any other operations)
+log_info "Checking Docker availability..."
+if ! command -v docker &>/dev/null; then
+    log_error "Docker is not installed. Please install Docker first:"
+    log_error "  - macOS: https://docs.docker.com/desktop/install/mac-install/"
+    log_error "  - Linux: https://docs.docker.com/engine/install/"
+    log_error "  - Windows: https://docs.docker.com/desktop/install/windows-install/"
+    exit 1
+fi
+
+if ! docker info &>/dev/null 2>&1; then
+    log_error "Docker is not running. Please start Docker and try again."
+    exit 1
+fi
+
+# Pull Atlassian MCP Docker image as the first operational step
+log_info "Pulling Atlassian MCP Docker image (this may take a few minutes)..."
+if ! docker pull "$ATLASSIAN_MCP_IMAGE"; then
+    log_error "Failed to pull Docker image: $ATLASSIAN_MCP_IMAGE"
+    log_error "Please check your internet connection and Docker configuration."
+    exit 1
+fi
+log_success "Docker image pulled successfully - MCP server is ready"
 
 # Parse arguments
 OUTPUT_FILE=""
@@ -54,8 +83,6 @@ AGENT="" # Agent will be determined interactively if not passed as an argument
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        # -h or --help is handled by the initial show_help and exit
-        -h|--help) exit 0 ;;
         -o|--output) OUTPUT_FILE="$2"; shift 2 ;;
         --agent) AGENT="$2"; shift 2 ;;
         --jira-url) JIRA_URL="$2"; shift 2 ;;
@@ -229,10 +256,8 @@ log_success "Atlassian MCP configuration updated to use Docker in: $OUTPUT_FILE"
 
 echo ""
 log_info "Next steps:"
-echo "  1. Make sure you have Docker installed and running."
-echo "  2. Pull the image: docker pull ${ATLASSIAN_MCP_IMAGE}"
-echo "  3. Review the generated configuration in ${OUTPUT_FILE}."
-echo "  4. Review the environment file at ${PROJECT_ROOT}/.env.mcp-atlassian."
+echo "  1. Review the generated configuration in ${OUTPUT_FILE}."
+echo "  2. Review the environment file at ${PROJECT_ROOT}/.env.mcp-atlassian."
 if [[ "$AGENT" == "copilot" ]]; then
     echo "  5. Reload VS Code window (Ctrl+Shift+P → \"Developer: Reload Window\")"
     echo ""

@@ -10,7 +10,7 @@ The script configures a connection to the Atlassian MCP server, which runs in a 
 
 - **Docker:** Must be installed and **running**. The MCP server executes as a Docker container — without it, no Jira/Confluence tools will be available.
   - Verify Docker is running: `docker info`
-  - Pull the image before first use: `docker pull ghcr.io/sooperset/mcp-atlassian:latest`
+  - The installation script will automatically pull the required image (`ghcr.io/sooperset/mcp-atlassian:latest`)
 
 ## Usage
 
