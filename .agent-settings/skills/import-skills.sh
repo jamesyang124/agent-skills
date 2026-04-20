@@ -88,16 +88,31 @@ get_available_skills() {
     find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d -exec basename {} \;
 }
 
+# Resolve the canonical agent name (handles aliases).
+resolve_agent_name() {
+    local agent_name=$1
+    case "$agent_name" in
+        antigravity) echo "agent" ;;
+        copilot)     echo "claude" ;;  # Copilot reads from .claude folder
+        *)           echo "$agent_name" ;;
+    esac
+}
+
+# Resolve the skills directory for a given agent name.
+# Returns the absolute path to the agent's skills directory.
+get_agent_skills_dir() {
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
+    echo "$PROJECT_ROOT/.$agent_name/skills"
+}
+
 # Function to create symlink
 create_skill_link() {
-    local agent_name=$1
-    # Map 'antigravity' to 'agent' folder convention
-    if [ "$agent_name" = "antigravity" ]; then
-        agent_name="agent"
-    fi
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
     local skill_name=$2
-    local agent_dir="$PROJECT_ROOT/.$agent_name"
-    local skills_dir="$agent_dir/skills"
+    local skills_dir
+    skills_dir=$(get_agent_skills_dir "$agent_name")
     local link_path="$skills_dir/$skill_name"
 
     # Resolve skill to its category subdir (tools/ or workflows/)
@@ -108,10 +123,8 @@ create_skill_link() {
         return 1
     fi
 
-    # Calculate relative path from skills_dir to the skill's actual location
-    local rel_path
-    rel_path=$(get_relative_path "$skill_abs_path" "$skills_dir")
-    local target_path="$rel_path"
+    local target_path
+    target_path=$(get_relative_path "$skill_abs_path" "$skills_dir")
 
     # Create skills directory if it doesn't exist
     if [ ! -d "$skills_dir" ]; then
@@ -136,17 +149,17 @@ create_skill_link() {
         return 1
     fi
 
-    # Create symlink
+    # Create symlink (cd into target dir first for reliable relative symlinks)
     cd "$skills_dir"
     ln -s "$target_path" "$skill_name"
     cd - > /dev/null
-
     print_success "Created symlink: .$agent_name/skills/$skill_name -> $target_path"
 }
 
 # Function to import all skills to an agent
 import_all_skills() {
-    local agent_name=$1
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
     local skills=($(get_available_skills))
 
     if [ ${#skills[@]} -eq 0 ]; then
@@ -155,7 +168,7 @@ import_all_skills() {
     fi
 
     echo ""
-    print_info "Importing ${#skills[@]} skill(s) to .$agent_name..."
+    print_info "Importing ${#skills[@]} skill(s) to .$agent_name/skills..."
     echo ""
 
     for skill in "${skills[@]}"; do
@@ -165,12 +178,13 @@ import_all_skills() {
 
 # Function to import specific skills to an agent
 import_specific_skills() {
-    local agent_name=$1
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
     shift
     local skills=("$@")
 
     echo ""
-    print_info "Importing ${#skills[@]} skill(s) to .$agent_name..."
+    print_info "Importing ${#skills[@]} skill(s) to .$agent_name/skills..."
     echo ""
 
     for skill in "${skills[@]}"; do
@@ -203,20 +217,18 @@ list_skills() {
 
 # Function to verify symlinks for an agent
 verify_agent_links() {
-    local agent_name=$1
-    # Map 'antigravity' to 'agent' folder convention
-    if [ "$agent_name" = "antigravity" ]; then
-        agent_name="agent"
-    fi
-    local skills_dir="$PROJECT_ROOT/.$agent_name/skills"
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
+    local skills_dir
+    skills_dir=$(get_agent_skills_dir "$agent_name")
 
     if [ ! -d "$skills_dir" ]; then
-        print_warning "No skills directory found for .$agent_name"
+        print_warning "No skills directory found for .$agent_name/skills"
         return
     fi
 
     echo ""
-    print_info "Verifying symlinks for .$agent_name..."
+    print_info "Verifying symlinks for .$agent_name/skills..."
     echo ""
 
     local link_count=0
@@ -442,15 +454,14 @@ verify_copilot_agents() {
 
 # Function to prune orphaned skills for a symlink-based agent
 prune_agent_skills() {
-    local agent_name=$1
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
     local force=${2:-false}
-    if [ "$agent_name" = "antigravity" ]; then
-        agent_name="agent"
-    fi
-    local skills_dir="$PROJECT_ROOT/.$agent_name/skills"
+    local skills_dir
+    skills_dir=$(get_agent_skills_dir "$agent_name")
 
     if [ ! -d "$skills_dir" ]; then
-        print_warning "No skills directory found for .$agent_name"
+        print_warning "No skills directory found for .$agent_name/skills"
         return
     fi
 
@@ -494,7 +505,7 @@ prune_agent_skills() {
 
     echo ""
     if [ $pruned -eq 0 ] && [ $skipped -eq 0 ]; then
-        print_success "No orphaned skills found for .$agent_name"
+        print_success "No orphaned skills found for .$agent_name/skills"
     else
         print_info "Pruned: $pruned | Skipped: $skipped"
     fi
