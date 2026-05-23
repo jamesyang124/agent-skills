@@ -1,6 +1,6 @@
 ---
 name: graphify-monitor
-description: Installs graphify, builds an initial knowledge graph of the current project, then spawns a background subagent that re-runs graphify every 30 seconds and prints newly-discovered knowledge to the terminal. Use when monitoring a project for structural changes during active development by another coding agent. Supports "stop" argument to terminate the background loop.
+description: Installs graphify, builds an initial knowledge graph of the current project, then spawns a background subagent that runs graphify auto-update every 120 seconds and prints newly-discovered symbols to the terminal. Use when monitoring a project for structural changes during active development by another coding agent. Supports "stop" argument to terminate the background loop.
 argument-hint: "[stop]"
 allowed-tools: Bash(uname *), Bash(brew *), Bash(npm *), Bash(npx *), Bash(graphify *), Bash(diff *), Bash(cp *), Bash(cat *), Bash(ls *), Bash(mkdir *), Bash(touch *), Bash(rm *), Bash(git *), Bash(date *), Read, Write, Agent, Skill(graphify)
 ---
@@ -207,9 +207,10 @@ STEP 2 — Snapshot current node/edge counts:
   Read "[PROJECT_PATH]/graphify-out/graph.json" and extract metadata.nodes and metadata.edges.
   Store as SNAPSHOT_NODES and SNAPSHOT_EDGES.
 
-STEP 3 — Full graph rebuild:
-  Run: graphify build [PROJECT_PATH]
-  Full rebuild every cycle — captures all file changes regardless of git status.
+STEP 3 — Incremental update:
+  Run: graphify auto-update [PROJECT_PATH]
+  Re-indexes only files changed since last build (git diff + untracked).
+  Fast regardless of project size — O(changed files), not O(all files).
 
 STEP 4 — Detect new knowledge:
   Read "[PROJECT_PATH]/graphify-out/graph.json" again and extract metadata.nodes and metadata.edges.
@@ -221,8 +222,8 @@ STEP 4 — Detect new knowledge:
   If no change: print nothing.
 
 STEP 5 — Reschedule:
-  Call ScheduleWakeup with delaySeconds=30 and prompt="Read [PROJECT_PATH]/graphify-out/.monitor-prompt.txt and execute the instructions within it exactly."
-  reason="graphify-monitor: checking for new knowledge in [PROJECT_PATH]"
+  Call ScheduleWakeup with delaySeconds=120 and prompt="Read [PROJECT_PATH]/graphify-out/.monitor-prompt.txt and execute the instructions within it exactly."
+  reason="graphify-monitor: next knowledge check in [PROJECT_PATH] (120s after update completed)"
 ```
 
 ### 3.2 Spawn the background subagent
@@ -241,7 +242,8 @@ Read [PROJECT_PATH]/graphify-out/.monitor-prompt.txt and execute the instruction
 Background monitor launched.
 
   Project:  [PROJECT_PATH]
-  Interval: 30 seconds
+  Interval: 120 seconds after each update completes
+  Strategy: initial full build → incremental auto-update each cycle
   Graph:    [PROJECT_PATH]/graphify-out/graph.json
 
 New symbols and relationships will appear here as they are detected.
