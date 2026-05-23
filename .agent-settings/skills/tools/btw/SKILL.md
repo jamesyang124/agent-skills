@@ -1,16 +1,16 @@
 ---
 name: btw
-description: Reads graphify-out/GRAPH_REPORT.md and appends a full timestamped snapshot to KNOWLEDGE_SUMMARY.md in the project root. Entries are always appended, never overwritten — building a chronological evidence log of knowledge graph states. Use after /graphify-monitor has built a graph to save a snapshot of what the graph currently knows.
-allowed-tools: Bash(git rev-parse *), Bash(date *), Bash(ls *), Read, Write
+description: Reads graphify-out/graph.json and appends a timestamped knowledge snapshot to KNOWLEDGE_SUMMARY.md in the project root. Entries are always appended, never overwritten — building a chronological evidence log of knowledge graph states. Use after /graphify-monitor has built a graph to record what the graph currently knows.
+allowed-tools: Bash(git rev-parse *), Bash(date *), Bash(ls *), Bash(graphify *), Read, Write
 ---
 
 # btw
 
-Reads the current graphify knowledge graph output and appends a full timestamped snapshot to `KNOWLEDGE_SUMMARY.md`. All entries stack — the file is append-only and never deduplicated.
+Reads the current graphify knowledge graph and appends a timestamped snapshot to `KNOWLEDGE_SUMMARY.md`. All entries stack — the file is append-only and never deduplicated.
 
 ## When to Use
 
-After `/graphify-monitor` has built a knowledge graph and you want to capture the current state as a reference point. Call it whenever you want to save a snapshot — before a big change, after an interesting discovery, or as a periodic checkpoint.
+After `/graphify-monitor` has built a knowledge graph and you want to capture the current state as a reference point. Call it whenever you want to record what the graph knows — before a big change, after an interesting discovery, or as a periodic checkpoint.
 
 ---
 
@@ -24,17 +24,27 @@ git rev-parse --show-toplevel 2>/dev/null || pwd
 
 Store as `PROJECT_ROOT`.
 
-### Step 2: Verify the graph report exists
+### Step 2: Verify the graph exists
 
 ```bash
-ls "$PROJECT_ROOT/graphify-out/GRAPH_REPORT.md"
+ls "$PROJECT_ROOT/graphify-out/graph.json"
 ```
 
-If missing: tell the user "graphify-out/GRAPH_REPORT.md not found. Run /graphify-monitor first to build the knowledge graph." Then stop.
+If missing: tell the user "graphify-out/graph.json not found. Run /graphify-monitor first to build the knowledge graph." Then stop.
 
-### Step 3: Read the full graph report
+### Step 3: Extract graph summary
 
-Read the complete contents of `$PROJECT_ROOT/graphify-out/GRAPH_REPORT.md`. Do not truncate or summarize — the full content is required.
+Read `$PROJECT_ROOT/graphify-out/graph.json` and extract:
+- `metadata.files` — number of files indexed
+- `metadata.nodes` — number of symbols
+- `metadata.edges` — number of relationships
+
+Then run a broad query to get a sample of top symbols:
+```bash
+graphify query "$PROJECT_ROOT/graphify-out/graph.json" "" 2>/dev/null | head -50
+```
+
+Store the query output as `SYMBOL_SAMPLE`.
 
 ### Step 4: Get a UTC timestamp
 
@@ -54,7 +64,13 @@ Construct the entry exactly as follows:
 
 ## Knowledge Snapshot — [TIMESTAMP]
 
-[FULL CONTENTS OF GRAPH_REPORT.MD]
+**Files indexed:** [metadata.files]
+**Symbols:** [metadata.nodes]
+**Relationships:** [metadata.edges]
+
+### Symbol Sample
+
+[SYMBOL_SAMPLE]
 ```
 
 ### Step 6: Write to KNOWLEDGE_SUMMARY.md
@@ -66,13 +82,19 @@ Create the file with this content:
 # Knowledge Summary
 
 Chronological record of graphify knowledge graph snapshots.
-Each entry is a full point-in-time snapshot of graphify-out/GRAPH_REPORT.md.
+Each entry captures the symbol/relationship counts and a sample of discovered symbols at that point in time.
 
 ---
 
 ## Knowledge Snapshot — [TIMESTAMP]
 
-[FULL CONTENTS OF GRAPH_REPORT.MD]
+**Files indexed:** [metadata.files]
+**Symbols:** [metadata.nodes]
+**Relationships:** [metadata.edges]
+
+### Symbol Sample
+
+[SYMBOL_SAMPLE]
 ```
 
 **If the file exists:**
@@ -83,9 +105,11 @@ Append the formatted entry from Step 5 to the end of the file. Do not modify any
 ```
 Appended to KNOWLEDGE_SUMMARY.md
 
-  Timestamp: [TIMESTAMP]
-  Source:    graphify-out/GRAPH_REPORT.md
-  File:      [PROJECT_ROOT]/KNOWLEDGE_SUMMARY.md
+  Timestamp:     [TIMESTAMP]
+  Files indexed: [metadata.files]
+  Symbols:       [metadata.nodes]
+  Relationships: [metadata.edges]
+  File:          [PROJECT_ROOT]/KNOWLEDGE_SUMMARY.md
 
 Entry stacked. All previous entries are preserved.
 ```
@@ -95,7 +119,6 @@ Entry stacked. All previous entries are preserved.
 ## Key Rules
 
 - **Append-only**: Never overwrite or rewrite `KNOWLEDGE_SUMMARY.md`. Only ever add to the end.
-- **No summarization**: Write the full contents of `GRAPH_REPORT.md` into each entry. Condensed versions lose structural information.
-- **No deduplication**: Each `/btw` invocation creates a new timestamped entry even if the content has not changed since the last call. The timestamp is the differentiator.
+- **No deduplication**: Each `/btw` invocation creates a new timestamped entry even if nothing changed. The timestamp is the differentiator.
 - **Manual-only**: `/btw` is always invoked by the user. The background monitor never calls it automatically.
 - **Graphify must have run first**: This skill only reads output — it does not build or update the graph. Run `/graphify-monitor` first.
