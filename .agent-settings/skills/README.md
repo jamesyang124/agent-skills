@@ -18,6 +18,8 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
 ├── tools/
+│   ├── btw/
+│   │   └── SKILL.md
 │   ├── generate-pr-notes/
 │   │   └── SKILL.md
 │   ├── git-commit-conventional-strict/
@@ -33,6 +35,10 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │       ├── SKILL.md
 │       └── run_skill.sh
 └── workflows/
+    ├── goal-checkpoint/
+    │   └── SKILL.md
+    ├── graphify-monitor/
+    │   └── SKILL.md
     ├── confluence-prd-to-sdd-spec/
     │   └── SKILL.md
     ├── sdd-tech-plan-to-confluence/
@@ -111,11 +117,17 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 
 #### Tools
 
+- **btw** — Reads `graphify-out/GRAPH_REPORT.md` and appends a full timestamped snapshot to `KNOWLEDGE_SUMMARY.md`. Append-only — builds a chronological evidence log of knowledge graph states.
 - **setup-project-config** — One-time setup that generates `.agent-settings/project-config.md`. Run this first before using any Atlassian skills.
 - **generate-pr-notes** — Automatically generates comprehensive pull request notes based on git changes.
 - **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for git-cliff, with SemVer, Emoji, and commit-splitting support.
 - **api-spec-to-confluence** — Creates or updates a Confluence page from an API endpoint by analyzing router and handler code.
 - **symlink-worktree-ignored-files** — Symlinks git-ignored files from source worktree to a target worktree.
+
+#### Workflows (General)
+
+- **graphify-monitor** — Installs graphify, builds an initial knowledge graph, and spawns a background subagent that diffs the graph every 30 seconds and prints newly-discovered knowledge to the terminal. Supports `/graphify-monitor stop` to terminate the loop.
+- **goal-checkpoint** — General-purpose goal tracking with automatic checkpoint/resume at ~90% context. Commits `GOAL_STATE.md` so the next session can restore and continue.
 
 #### Workflows (SDD)
 
