@@ -156,14 +156,15 @@ echo "graphify-out/" >> "$PROJECT_PATH/.gitignore"
 
 Print: `✅ graphify-out/ added to .gitignore`
 
-### 2.2 Check for existing graph
+### 2.2 Build the initial graph
+
+Run a full build regardless of whether a prior graph exists:
 
 ```bash
-ls "$PROJECT_PATH/graphify-out/graph.json" 2>/dev/null || echo "NOT_BUILT"
+graphify build "$PROJECT_PATH"
 ```
 
-- If `graph.json` exists: print `✅ Existing graph found — running auto-update` then run `graphify auto-update "$PROJECT_PATH"` and skip to 2.3.
-- If `NOT_BUILT`: build fresh with `graphify build "$PROJECT_PATH"`.
+The monitor always does full rebuilds every 30 seconds, so the initial build follows the same pattern.
 
 Wait for completion. If either command fails, report the error and stop.
 
@@ -206,9 +207,9 @@ STEP 2 — Snapshot current node/edge counts:
   Read "[PROJECT_PATH]/graphify-out/graph.json" and extract metadata.nodes and metadata.edges.
   Store as SNAPSHOT_NODES and SNAPSHOT_EDGES.
 
-STEP 3 — Update the graph:
-  Run: graphify auto-update [PROJECT_PATH]
-  This re-extracts any files changed since the last build (via git diff + untracked).
+STEP 3 — Full graph rebuild:
+  Run: graphify build [PROJECT_PATH]
+  Full rebuild every cycle — captures all file changes regardless of git status.
 
 STEP 4 — Detect new knowledge:
   Read "[PROJECT_PATH]/graphify-out/graph.json" again and extract metadata.nodes and metadata.edges.
