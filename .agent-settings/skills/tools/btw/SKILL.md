@@ -39,12 +39,14 @@ Read `$PROJECT_ROOT/graphify-out/graph.json` and extract:
 - `metadata.nodes` — number of symbols
 - `metadata.edges` — number of relationships
 
-Then run a broad query to get a sample of top symbols:
+If `metadata.nodes` > 0, run a broad symbol query to get a sample:
 ```bash
-graphify query "$PROJECT_ROOT/graphify-out/graph.json" "" 2>/dev/null | head -50
+graphify query "$PROJECT_ROOT/graphify-out/graph.json" "." 2>/dev/null | head -50
 ```
 
-Store the query output as `SYMBOL_SAMPLE`.
+If the command fails or returns nothing, set `SYMBOL_SAMPLE` to `(no symbols indexed for this project's file types)`.
+
+Store the result as `SYMBOL_SAMPLE`.
 
 ### Step 4: Get a UTC timestamp
 
@@ -98,7 +100,7 @@ Each entry captures the symbol/relationship counts and a sample of discovered sy
 ```
 
 **If the file exists:**
-Append the formatted entry from Step 5 to the end of the file. Do not modify any existing content.
+Read the full current contents of `KNOWLEDGE_SUMMARY.md`. Concatenate the existing contents with the formatted entry from Step 5 (new entry at the end). Write the combined result back with the Write tool. Do not modify any existing content — only add the new entry after the last line.
 
 ### Step 7: Confirm to the user
 

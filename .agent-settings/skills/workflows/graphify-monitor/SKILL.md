@@ -22,16 +22,22 @@ Invoke when another coding agent is actively modifying a project and you want to
 
 If invoked with the argument `stop`:
 
-1. Write the stop sentinel:
+1. Resolve the project root (required for correct sentinel path):
    ```bash
-   touch graphify-out/.monitor-stop
+   git rev-parse --show-toplevel 2>/dev/null || pwd
    ```
-2. Confirm:
+   Store as `STOP_PROJECT_PATH`.
+
+2. Write the stop sentinel using the absolute path:
+   ```bash
+   touch "$STOP_PROJECT_PATH/graphify-out/.monitor-stop"
+   ```
+3. Confirm:
    ```
    Stop signal sent. The background monitor will exit on its next 30-second cycle.
    To restart: /graphify-monitor
    ```
-3. Exit — do not proceed to Phase 1.
+4. Exit — do not proceed to Phase 1.
 
 ---
 
@@ -135,6 +141,20 @@ git rev-parse --show-toplevel 2>/dev/null || pwd
 ```
 
 Store as `PROJECT_PATH`.
+
+### 2.1a Ensure graphify-out/ is git-ignored
+
+Check if `graphify-out` is already in `.gitignore`:
+```bash
+grep -q "graphify-out" "$PROJECT_PATH/.gitignore" 2>/dev/null || echo "NOT_IGNORED"
+```
+
+If `NOT_IGNORED`, append it:
+```bash
+echo "graphify-out/" >> "$PROJECT_PATH/.gitignore"
+```
+
+Print: `✅ graphify-out/ added to .gitignore`
 
 ### 2.2 Check for existing graph
 
