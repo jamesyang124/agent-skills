@@ -7,6 +7,34 @@ allowed-tools: Bash(*)
 
 # Symlink Worktree Ignored Files (Agent-Driven Interactive Selection)
 
+## Install this skill globally
+
+Install once — available in all projects.
+
+```bash
+# Claude
+mkdir -p ~/.claude/skills/symlink-worktree-ignored-files
+cp <agent-settings-repo>/.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md \
+   ~/.claude/skills/symlink-worktree-ignored-files/SKILL.md
+# Add to ~/.claude/CLAUDE.md: - **symlink-worktree-ignored-files** (`~/.claude/skills/symlink-worktree-ignored-files/SKILL.md`)
+
+# Copilot
+mkdir -p ~/.copilot/skills/symlink-worktree-ignored-files
+cp <agent-settings-repo>/.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md \
+   ~/.copilot/skills/symlink-worktree-ignored-files/SKILL.md
+
+# Gemini
+mkdir -p ~/.gemini/skills/symlink-worktree-ignored-files
+cp <agent-settings-repo>/.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md \
+   ~/.gemini/skills/symlink-worktree-ignored-files/SKILL.md
+```
+
+## Dependencies
+
+No external skills or MCPs required. Requires `git` and `ln` to be available in the shell.
+
+---
+
 This skill utilizes the agent to interactively guide you through the process of symlinking git-ignored files and directories. The agent will first present a numbered list of your existing git worktrees, prompt you to choose the destination, and then symlink all ignored files and directories directly.
 
 ## Description
@@ -27,23 +55,13 @@ scripts/run_skill.sh
 
 The agent will then display a numbered list of available worktrees and prompt you to choose one by entering its number.
 
-
-
 You can also provide the target worktree path directly as an argument to bypass the agent's interactive selection:
 
-
-
 ```bash
-
 scripts/run_skill.sh /path/to/target/worktree
-
 ```
 
-
-
 ## Skill Script Logic
-
-
 
 This skill is implemented using two shell scripts:
 

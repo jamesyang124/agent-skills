@@ -8,7 +8,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMPORT_SKILLS="$SCRIPT_DIR/skills/import-skills.sh"
-INSTALL_MCP="$SCRIPT_DIR/mcps/install-atlassian-mcp.sh"
+INSTALL_MCP="$SCRIPT_DIR/skills/tools/install-atlassian-mcp/scripts/install.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -98,21 +98,16 @@ fi
 
 log_step "Step 2/2 — Atlassian MCP setup (Jira + Confluence)"
 
-# Check Docker is available before prompting
-if ! command -v docker &>/dev/null; then
-    log_warn "Docker not found. Skipping MCP setup."
-    log_info "Install Docker and re-run: $0 --agent $AGENT --jira-url <url>"
-    echo ""
-    log_success "Setup complete! Skills are ready. Run again to add MCP."
-    exit 0
-fi
+# Check that the selected method's prerequisite is available
+if [[ "$METHOD" == "uvx" ]]; then
+    if ! command -v uvx &>/dev/null; then
+        log_warn "uvx not found. Skipping MCP setup."
+        log_info "Install uv and re-run: curl -LsSf https://astral.sh/uv/install.sh | sh"
 
-if ! docker info &>/dev/null 2>&1; then
-    log_warn "Docker is not running. Skipping MCP setup."
-    log_info "Start Docker and re-run: $0 --agent $AGENT --jira-url <url>"
-    echo ""
-    log_success "Setup complete! Skills are ready. Run again to add MCP."
-    exit 0
+        echo ""
+        log_success "Setup complete! Skills are ready. Run again to add MCP."
+        exit 0
+    fi
 fi
 
 # If jira-url was passed, go straight to MCP install
@@ -125,7 +120,7 @@ else
     if [[ "$MCP_CHOICE" =~ ^[Yy]$ ]]; then
         "$INSTALL_MCP" --agent "$AGENT"
     else
-        log_info "Skipped MCP. Run later: ./.agent-settings/mcps/install-atlassian-mcp.sh --agent $AGENT"
+        log_info "Skipped MCP. Run the install-atlassian-mcp skill to set up later."
     fi
 fi
 

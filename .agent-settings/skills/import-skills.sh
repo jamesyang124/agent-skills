@@ -78,14 +78,142 @@ find_skill_path() {
     echo "$result"
 }
 
-# Function to get all available skills
+# Function to get all available skills (excludes playground/)
 get_available_skills() {
     if [ ! -d "$SKILLS_SOURCE" ]; then
         print_error "Skills directory not found: $SKILLS_SOURCE"
         exit 1
     fi
 
-    find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d -exec basename {} \;
+    find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d \
+        ! -path "$SKILLS_SOURCE/playground/*" \
+        -exec basename {} \;
+}
+
+# Function to get playground skills only
+get_playground_skills() {
+    local playground_dir="$SKILLS_SOURCE/playground"
+    if [ ! -d "$playground_dir" ]; then
+        return
+    fi
+    find "$playground_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;
+}
+
+# Interactively prompt the user to multi-select playground skills via checkbox menu
+# Navigation: ↑/↓ to move cursor, space to toggle, a=all, n=none, Enter=confirm, q=skip
+prompt_playground_skills() {
+    local agent_name=$1
+    local playground_skills=()
+    while IFS= read -r line; do
+        [ -n "$line" ] && playground_skills+=("$line")
+    done < <(get_playground_skills)
+
+    if [ ${#playground_skills[@]} -eq 0 ]; then
+        return
+    fi
+
+    local count=${#playground_skills[@]}
+    local checked=()
+    local cursor=0
+    local i=0
+    while [ $i -lt $count ]; do
+        checked+=("0")
+        i=$((i + 1))
+    done
+
+    # Fixed menu height: 8 lines of chrome + count skill lines
+    # (blank + sep + title + sep + blank + N skills + blank + legend + blank)
+    local menu_height=$((count + 8))
+
+    _print_playground_menu() {
+        echo ""
+        printf "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+        printf "${YELLOW}  Playground Skills (experimental / opt-in)${NC}\n"
+        printf "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+        echo ""
+        local j=0
+        while [ $j -lt $count ]; do
+            local box="[ ]"
+            [ "${checked[$j]}" = "1" ] && box="[✓]"
+            if [ "$j" = "$cursor" ]; then
+                printf "  ${BLUE}▶ %s %s${NC}\n" "$box" "${playground_skills[$j]}"
+            else
+                printf "    %s %s\n" "$box" "${playground_skills[$j]}"
+            fi
+            j=$((j + 1))
+        done
+        echo ""
+        printf "  ${BLUE}↑/↓${NC}=move  ${BLUE}space${NC}=toggle  ${BLUE}a${NC}=all  ${BLUE}n${NC}=none  ${BLUE}Enter${NC}=confirm  ${BLUE}q${NC}=skip\n"
+        echo ""
+    }
+
+    _print_playground_menu
+
+    while true; do
+        IFS= read -r -s -n 1 key
+
+        if [[ "$key" = $'\e' ]]; then
+            # Arrow key escape sequence: read remaining 2 bytes of ESC [ A/B
+            IFS= read -r -s -n 2 seq
+            case "$seq" in
+                "[A") [ "$cursor" -gt 0 ] && cursor=$((cursor - 1)) ;;
+                "[B") [ "$cursor" -lt $((count - 1)) ] && cursor=$((cursor + 1)) ;;
+            esac
+        elif [[ "$key" = " " ]]; then
+            if [ "${checked[$cursor]}" = "1" ]; then
+                checked[$cursor]="0"
+            else
+                checked[$cursor]="1"
+            fi
+        elif [[ "$key" = "a" ]] || [[ "$key" = "A" ]]; then
+            local j=0
+            while [ $j -lt $count ]; do
+                checked[$j]="1"
+                j=$((j + 1))
+            done
+        elif [[ "$key" = "n" ]] || [[ "$key" = "N" ]]; then
+            local j=0
+            while [ $j -lt $count ]; do
+                checked[$j]="0"
+                j=$((j + 1))
+            done
+        elif [[ "$key" = "" ]]; then
+            # Enter key — confirm
+            break
+        elif [[ "$key" = "q" ]] || [[ "$key" = "0" ]]; then
+            printf "\033[%dA\033[J" "$menu_height"
+            print_info "Skipping playground skills."
+            return
+        fi
+
+        # Redraw in-place: move up menu_height lines, clear to bottom, reprint
+        printf "\033[%dA\033[J" "$menu_height"
+        _print_playground_menu
+    done
+
+    # Clear the menu before showing import results
+    printf "\033[%dA\033[J" "$menu_height"
+
+    # Collect confirmed selections
+    local selected_skills=()
+    local j=0
+    while [ $j -lt $count ]; do
+        [ "${checked[$j]}" = "1" ] && selected_skills+=("${playground_skills[$j]}")
+        j=$((j + 1))
+    done
+
+    if [ ${#selected_skills[@]} -eq 0 ]; then
+        print_info "No playground skills selected."
+        return
+    fi
+
+    echo ""
+    print_info "Importing ${#selected_skills[@]} playground skill(s)..."
+    echo ""
+
+    for skill in "${selected_skills[@]}"; do
+        create_skill_link "$agent_name" "$skill"
+    done
 }
 
 # Resolve the canonical agent name (handles aliases).
@@ -134,7 +262,8 @@ create_skill_link() {
 
     # Check if link already exists
     if [ -L "$link_path" ]; then
-        local current_target=$(readlink "$link_path")
+        local current_target
+        current_target=$(readlink "$link_path")
         if [ "$current_target" = "$target_path" ]; then
             print_info "Symlink already exists and is correct: $link_path"
             return 0
@@ -165,6 +294,17 @@ import_all_skills() {
     if [ ${#skills[@]} -eq 0 ]; then
         print_warning "No skills found in $SKILLS_SOURCE"
         return
+    fi
+
+    local skills_dir
+    skills_dir=$(get_agent_skills_dir "$agent_name")
+
+    # Remove all existing symlinks first so no stale skills linger
+    if [ -d "$skills_dir" ]; then
+        print_info "Removing existing skills from .$agent_name/skills..."
+        for link in "$skills_dir"/*; do
+            [ -L "$link" ] && rm "$link"
+        done
     fi
 
     echo ""
@@ -261,198 +401,7 @@ verify_agent_links() {
     print_info "Total: $link_count | Valid: $valid_count | Broken: $broken_count"
 }
 
-# Function to generate a GitHub Agent file from a SKILL.md (Spec-kit style)
-generate_copilot_agent_file() {
-    local skill_name=$1
-    local skill_path
-    skill_path=$(find_skill_path "$skill_name")
-    local skill_md="$skill_path/SKILL.md"
-    local agents_dir="$PROJECT_ROOT/.github/agents"
-    local output_file="$agents_dir/agent-settings.$skill_name.agent.md"
-
-    if [ ! -f "$skill_md" ]; then
-        print_error "SKILL.md not found: $skill_md"
-        return 1
-    fi
-
-    mkdir -p "$agents_dir"
-
-    # Extract description value from YAML frontmatter
-    local description
-    description=$(awk '
-        BEGIN { in_fm=0 }
-        NR==1 && /^---$/ { in_fm=1; next }
-        in_fm && /^---$/ { exit }
-        in_fm && /^description:/ {
-            val = $0
-            sub(/^description:[[:space:]]*/, "", val)
-            # Remove surrounding quotes if they exist
-            gsub(/^"|"$/, "", val)
-            print val
-            exit
-        }
-    ' "$skill_md")
-
-    # Extract body
-    local body
-    # Detect if there's a third separator (often used to separate Gemini CLI meta-instructions from agent steps)
-    local dash_count=$(grep -c "^---$" "$skill_md" || true)
-    if [ "$dash_count" -ge 3 ]; then
-        # Take everything after the third --- to get the core agent instructions
-        body=$(awk '
-            BEGIN { dashes=0 }
-            /^---$/ { dashes++; next }
-            dashes >= 3 { print }
-        ' "$skill_md")
-    else
-        # Take everything after the frontmatter
-        body=$(awk '
-            BEGIN { dashes=0 }
-            /^---$/ { dashes++; next }
-            dashes >= 2 { print }
-        ' "$skill_md")
-    fi
-
-    # Write GitHub Agent file with Proactive Action Directive
-    {
-        printf '%s\n' '---'
-        printf 'description: %s\n' "$description"
-        printf '%s\n' '---'
-        printf '\n> [!IMPORTANT]\n'
-        printf '> **COPILOT EXECUTION MANDATE**: You are now in "Automated-Draft Mode". Upon being invoked:\n'
-        printf '> 1. **Immediate Execution**: Use your tools (terminal, git, etc.) immediately to gather context (git status, diffs, etc.).\n'
-        printf '> 2. **Automate Choices**: Automate all technical decisions (Scope, Branch, Commit Type) by analyzing the environment. Do not ask the user to choose these unless you are completely unable to proceed.\n'
-        printf '> 3. **Single Interaction**: The ONLY question you should proactively ask the user is for the **Jira Ticket ID**. Ask this while simultaneously showing your draft.\n'
-        printf '> 4. **Draft then Ask**: Your primary goal is the final result. Provide a draft immediately (using placeholders if necessary) and ask for the Jira ID in the same message.\n'
-        printf '> 5. **Mandatory Output**: Never end a response with just a status update. Always show the current state of your work or the final result.\n\n'
-        printf '%s\n' "$body"
-    } > "$output_file"
-
-    print_success "Created GitHub Agent: .github/agents/agent-settings.$skill_name.agent.md"
-}
-
-# Function to create/update .github/copilot-instructions.md with skills table and invocation convention
-generate_copilot_instructions() {
-    local skills=("$@")
-    local instructions_file="$PROJECT_ROOT/.github/copilot-instructions.md"
-    local github_dir="$PROJECT_ROOT/.github"
-    local sentinel_begin="<!-- BEGIN AGENT-SETTINGS SKILLS -->"
-    local sentinel_end="<!-- END AGENT-SETTINGS SKILLS -->"
-
-    mkdir -p "$github_dir"
-
-    # Build managed block in a temp file
-    local tmp_block
-    tmp_block="$(mktemp)"
-
-    printf '%s\n' "$sentinel_begin" >> "$tmp_block"
-    printf '## Skill Invocation Convention\n\n' >> "$tmp_block"
-    printf 'Invoke a skill in Copilot Chat by typing `/` or `@@` and selecting the desired agent from the menu (e.g., `/agent-settings.generate-pr-notes` or `@@agent-settings.generate-pr-notes`).\n\n' >> "$tmp_block"
-    printf '### Available Skills\n\n' >> "$tmp_block"
-    printf '| Skill | Description | Agent Instruction File |\n' >> "$tmp_block"
-    printf '|-------|-------------|------------------------|\n' >> "$tmp_block"
-
-    for skill in "${skills[@]}"; do
-        local skill_md
-        skill_md="$(find_skill_path "$skill")/SKILL.md"
-        local desc=""
-        if [ -f "$skill_md" ]; then
-            desc=$(awk '
-                BEGIN { in_fm=0 }
-                NR==1 && /^---$/ { in_fm=1; next }
-                in_fm && /^---$/ { exit }
-                in_fm && /^description:/ {
-                    val = $0
-                    sub(/^description:[[:space:]]*/, "", val)
-                    # Remove surrounding quotes if they exist
-                    gsub(/^"|"$/, "", val)
-                    if (length(val) > 80) val = substr(val, 1, 80) "..."
-                    print val
-                    exit
-                }
-            ' "$skill_md")
-        fi
-        printf '| %s | %s | `agent-settings.%s.agent.md` |\n' "$skill" "$desc" "$skill" >> "$tmp_block"
-    done
-
-    printf '\n### How to Use\n' >> "$tmp_block"
-    printf '1. Open Copilot Chat (`Ctrl+Shift+I` / `Cmd+Shift+I`)\n' >> "$tmp_block"
-    printf '2. Type `/` or `@@` to see the list of available agents\n' >> "$tmp_block"
-    printf '3. Select `agent-settings.<skill-name>` to load the skill instructions\n' >> "$tmp_block"
-    printf '4. Copilot will follow the instructions defined in the selected agent file\n' >> "$tmp_block"
-    printf '%s\n' "$sentinel_end" >> "$tmp_block"
-
-    if [ ! -f "$instructions_file" ]; then
-        # Create fresh file with header
-        {
-            printf '# GitHub Copilot Instructions\n\n'
-            printf 'This file configures GitHub Copilot'\''s behavior for this project.\n\n'
-            cat "$tmp_block"
-        } > "$instructions_file"
-        print_success "Created .github/copilot-instructions.md"
-    else
-        if grep -qF "$sentinel_begin" "$instructions_file"; then
-            # Replace existing managed block
-            local tmp_result
-            tmp_result="$(mktemp)"
-            awk -v begin="$sentinel_begin" -v end="$sentinel_end" -v blockfile="$tmp_block" '
-                $0 == begin {
-                    while ((getline line < blockfile) > 0) print line
-                    close(blockfile)
-                    skip=1
-                    next
-                }
-                $0 == end { skip=0; next }
-                !skip { print }
-            ' "$instructions_file" > "$tmp_result"
-            cat "$tmp_result" > "$instructions_file"
-            rm -f "$tmp_result"
-            print_success "Updated skills section in .github/copilot-instructions.md"
-        else
-            # Append managed block to existing file
-            printf '\n' >> "$instructions_file"
-            cat "$tmp_block" >> "$instructions_file"
-            print_success "Added skills section to .github/copilot-instructions.md"
-        fi
-    fi
-
-    rm -f "$tmp_block"
-}
-
-# Function to verify GitHub Agent files
-verify_copilot_agents() {
-    local agents_dir="$PROJECT_ROOT/.github/agents"
-
-    echo ""
-    print_info "Verifying GitHub Agent files in .github/agents/..."
-    echo ""
-
-    if [ ! -d "$agents_dir" ]; then
-        print_warning "No .github/agents/ directory found"
-        return
-    fi
-
-    local total=0
-    local valid=0
-
-    for f in "$agents_dir"/agent-settings.*.agent.md; do
-        [ -e "$f" ] || continue
-        total=$((total + 1))
-        local has_desc
-        has_desc=$(grep -c "^description:" "$f" || true)
-        if [ "$has_desc" -gt 0 ]; then
-            print_success "$(basename "$f")"
-            valid=$((valid + 1))
-        else
-            print_error "$(basename "$f") (missing description: frontmatter)"
-        fi
-    done
-
-    echo ""
-    print_info "Total: $total | Valid: $valid"
-}
-
-# Function to prune orphaned skills for a symlink-based agent
+# Function to prune orphaned skills for an agent
 prune_agent_skills() {
     local agent_name
     agent_name=$(resolve_agent_name "$1")
@@ -466,7 +415,7 @@ prune_agent_skills() {
     fi
 
     echo ""
-    print_info "Scanning for orphaned skills in .$agent_name/skills/..."
+    print_info "Scanning for orphaned skills in .$agent_name/skills..."
     echo ""
 
     local pruned=0
@@ -489,16 +438,21 @@ prune_agent_skills() {
                 print_success "Removed: $skill_name"
                 pruned=$((pruned + 1))
             else
-                printf "  Remove? [y/N] "
-                read -r answer
-                if [[ "$answer" =~ ^[Yy]$ ]]; then
-                    rm -rf "$link"
-                    print_success "Removed: $skill_name"
-                    pruned=$((pruned + 1))
-                else
-                    print_info "Skipped: $skill_name"
-                    skipped=$((skipped + 1))
-                fi
+                while true; do
+                    printf "  Remove? (y/n) "
+                    read -r answer
+                    if [[ "$answer" =~ ^[Yy]$ ]]; then
+                        rm -rf "$link"
+                        print_success "Removed: $skill_name"
+                        pruned=$((pruned + 1))
+                        break
+                    elif [[ "$answer" =~ ^[Nn]$ ]]; then
+                        print_info "Skipped: $skill_name"
+                        skipped=$((skipped + 1))
+                        break
+                    fi
+                    # blank or other — re-prompt
+                done
             fi
         fi
     done
@@ -511,73 +465,6 @@ prune_agent_skills() {
     fi
 }
 
-# Function to prune orphaned Copilot agent files
-prune_copilot_agents() {
-    local force=${1:-false}
-    local agents_dir="$PROJECT_ROOT/.github/agents"
-
-    if [ ! -d "$agents_dir" ]; then
-        print_warning "No .github/agents/ directory found"
-        return
-    fi
-
-    echo ""
-    print_info "Scanning for orphaned Copilot agent files in .github/agents/..."
-    echo ""
-
-    local pruned=0
-    local skipped=0
-    local remaining_skills=()
-
-    # Collect all current skills first
-    mapfile -t all_skills < <(get_available_skills)
-
-    for f in "$agents_dir"/agent-settings.*.agent.md; do
-        [ -e "$f" ] || continue
-        local filename
-        filename=$(basename "$f")
-        # Extract skill name from agent-settings.<skill>.agent.md
-        local skill_name="${filename#agent-settings.}"
-        skill_name="${skill_name%.agent.md}"
-
-        if [ -z "$(find_skill_path "$skill_name")" ]; then
-            print_warning "Orphaned agent file: $filename (skill '$skill_name' no longer exists)"
-
-            if [ "$force" = true ]; then
-                rm -f "$f"
-                print_success "Removed: $filename"
-                pruned=$((pruned + 1))
-            else
-                printf "  Remove? [y/N] "
-                read -r answer
-                if [[ "$answer" =~ ^[Yy]$ ]]; then
-                    rm -f "$f"
-                    print_success "Removed: $filename"
-                    pruned=$((pruned + 1))
-                else
-                    print_info "Skipped: $filename"
-                    skipped=$((skipped + 1))
-                    remaining_skills+=("$skill_name")
-                fi
-            fi
-        else
-            remaining_skills+=("$skill_name")
-        fi
-    done
-
-    echo ""
-    if [ $pruned -eq 0 ] && [ $skipped -eq 0 ]; then
-        print_success "No orphaned Copilot agent files found"
-    else
-        print_info "Pruned: $pruned | Skipped: $skipped"
-        if [ $pruned -gt 0 ]; then
-            echo ""
-            print_info "Regenerating .github/copilot-instructions.md with remaining skills..."
-            generate_copilot_instructions "${remaining_skills[@]}"
-        fi
-    fi
-}
-
 # Function to show usage
 show_usage() {
     cat << EOF
@@ -587,13 +474,13 @@ Automates importing skills from .agent-settings/skills/ to agent-specific folder
 
 Arguments:
   AGENT_NAME          Target agent folder name (e.g., agent, claude, gemini, copilot)
-                      Note: 'antigravity' will be automatically mapped to 'agent'
-                      Note: 'copilot' generates files in .github/agents/ instead of symlinks
+                      Note: 'antigravity' is an alias for 'agent' (.agent/skills/)
+                      Note: 'copilot' is an alias for 'claude' (.claude/skills/)
 
 Options:
   -a, --all          Import all available skills (default if no skills specified)
   -l, --list         List all available skills
-  -v, --verify       Verify existing symlinks/files for the specified agent
+  -v, --verify       Verify existing symlinks for the specified agent
   -p, --prune        Remove orphaned skills (interactively prompts per entry)
   -y, --yes          Auto-confirm removals when used with --prune
   -h, --help         Show this help message
@@ -606,9 +493,10 @@ Examples:
   $0 antigravity
 
   # Import all skills to Claude agent
+  # (removes all existing symlinks first, then re-adds — no stale skills)
   $0 claude
 
-  # Import all skills to GitHub Copilot (generates .github/agents/ files)
+  # Import all skills to GitHub Copilot (uses .claude/skills/ — same as claude)
   $0 copilot
 
   # Import all skills with --all flag
@@ -618,24 +506,17 @@ Examples:
   $0 claude generate-pr-notes git-commit-conventional-strict
 
   # Import all skills to multiple agents (run separately)
-  $0 claude
+  $0 claude    # Also covers copilot (both read from .claude/skills/)
   $0 gemini
-  $0 copilot
 
   # List available skills
   $0 --list
 
-  # Verify symlinks for Claude agent
+  # Verify symlinks for Claude/Copilot (same directory)
   $0 --verify claude
-
-  # Verify Copilot Agent files
-  $0 --verify copilot
 
   # Prune orphaned skills from Claude (interactive prompts)
   $0 --prune claude
-
-  # Prune orphaned Copilot agent files (interactive prompts)
-  $0 --prune copilot
 
   # Prune without prompting (auto-remove all orphans)
   $0 --prune --yes claude
@@ -707,11 +588,7 @@ main() {
                 show_usage
                 exit 1
             fi
-            if [ "$agent_name" = "copilot" ]; then
-                verify_copilot_agents
-            else
-                verify_agent_links "$agent_name"
-            fi
+            verify_agent_links "$agent_name"
             ;;
         prune)
             if [ -z "$agent_name" ]; then
@@ -720,11 +597,7 @@ main() {
                 show_usage
                 exit 1
             fi
-            if [ "$agent_name" = "copilot" ]; then
-                prune_copilot_agents "$force"
-            else
-                prune_agent_skills "$agent_name" "$force"
-            fi
+            prune_agent_skills "$agent_name" "$force"
             ;;
         import)
             if [ -z "$agent_name" ]; then
@@ -739,45 +612,18 @@ main() {
                 exit 1
             fi
 
-            if [ "$agent_name" = "copilot" ]; then
-                local copilot_skills
-                if [ ${#skills[@]} -eq 0 ] || [ "$import_all" = true ]; then
-                    copilot_skills=($(get_available_skills))
-                else
-                    copilot_skills=("${skills[@]}")
-                fi
-
-                echo ""
-                print_info "Importing ${#copilot_skills[@]} skill(s) to GitHub Copilot (as Agents)..."
-                echo ""
-
-                for skill in "${copilot_skills[@]}"; do
-                    if [ -z "$(find_skill_path "$skill")" ]; then
-                        print_error "Skill not found: $skill"
-                        continue
-                    fi
-                    generate_copilot_agent_file "$skill"
-                done
-
-                generate_copilot_instructions "${copilot_skills[@]}"
-
-                echo ""
-                print_success "Import complete!"
-                echo ""
-                print_info "Commit .github/agents/ and .github/copilot-instructions.md to share with your team."
-                print_info "You can verify with: PROJECT_ROOT=\"$PROJECT_ROOT\" $0 --verify copilot"
+            if [ ${#skills[@]} -eq 0 ] || [ "$import_all" = true ]; then
+                import_all_skills "$agent_name"
             else
-                if [ ${#skills[@]} -eq 0 ] || [ "$import_all" = true ]; then
-                    import_all_skills "$agent_name"
-                else
-                    import_specific_skills "$agent_name" "${skills[@]}"
-                fi
-
-                echo ""
-                print_success "Import complete!"
-                echo ""
-                print_info "You can verify the links with: PROJECT_ROOT=\"$PROJECT_ROOT\" $0 --verify $agent_name"
+                import_specific_skills "$agent_name" "${skills[@]}"
             fi
+
+            prompt_playground_skills "$agent_name"
+
+            echo ""
+            print_success "Import complete!"
+            echo ""
+            print_info "You can verify the links with: PROJECT_ROOT=\"$PROJECT_ROOT\" $0 --verify $agent_name"
             ;;
     esac
 }

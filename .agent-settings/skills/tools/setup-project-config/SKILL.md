@@ -6,8 +6,36 @@ allowed-tools: Read, Glob, Grep, Write
 
 # Setup Project Config
 
+## Install this skill globally
+
+Install once — available in all projects.
+
+```bash
+# Claude
+mkdir -p ~/.claude/skills/setup-project-config
+cp <agent-settings-repo>/.agent-settings/skills/tools/setup-project-config/SKILL.md \
+   ~/.claude/skills/setup-project-config/SKILL.md
+# Add to ~/.claude/CLAUDE.md: - **setup-project-config** (`~/.claude/skills/setup-project-config/SKILL.md`)
+
+# Copilot
+mkdir -p ~/.copilot/skills/setup-project-config
+cp <agent-settings-repo>/.agent-settings/skills/tools/setup-project-config/SKILL.md \
+   ~/.copilot/skills/setup-project-config/SKILL.md
+
+# Gemini
+mkdir -p ~/.gemini/skills/setup-project-config
+cp <agent-settings-repo>/.agent-settings/skills/tools/setup-project-config/SKILL.md \
+   ~/.gemini/skills/setup-project-config/SKILL.md
+```
+
+## Dependencies
+
+No external skills or MCPs required. Only needs read access to the project codebase.
+
+---
+
 Generates `.agent-settings/project-config.md` — the shared config file read by all Atlassian skills
-(`api-spec-to-confluence`, `sdd-tech-plan-to-confluence`, etc.).
+(`sync-api-spec`, `tech-plan-to-wiki`, etc.).
 
 **Detect mode automatically** based on whether `.agent-settings/project-config.md` already exists:
 - **No file** → Mode A: Initial Setup
@@ -66,6 +94,11 @@ Scan the project root to detect:
 - OpenAPI spec file: look for `openapi.yaml`, `swagger.yaml`, `api.yaml`
 - FastAPI/automatic: check for `@app.get`, `@router.post` decorators with docstrings
 
+**SDD tool**:
+- Check for `.speckit` or `spec-kit.json` → `spec-kit`
+- Check for `openspec.json` or `.openspec` → `openspec`
+- If neither found → note as "not detected — will prompt"
+
 After scanning, show the agent's findings before prompting:
 ```
 Detected project structure:
@@ -77,6 +110,7 @@ Detected project structure:
   Services:    service/
   API prefix:  /api/v1/
   Doc style:   Swaggo annotations
+  SDD tool:    spec-kit
 ```
 
 If anything could not be detected, note it as "not detected — will prompt".
@@ -92,6 +126,9 @@ Ask for the following, one at a time or as a grouped prompt:
 4. **Jira base URL** — usually same domain, e.g., `https://yourcompany.atlassian.net`
 5. **Default Jira project key** — e.g., `PROJ`
 6. **Default Jira issue type** — default: `Story`
+7. **SDD tool** — ask: "Which SDD tool does your team use? (`spec-kit` / `openspec`)" — pre-fill with detected value if any, default `spec-kit`
+   - If `spec-kit`: commands are `spec-kit specify` / `spec-kit plan`
+   - If `openspec`: ask: "What are the specify and plan commands for openspec in your project?"
 
 If user skips a parent page, stop asking for more parent pages.
 
@@ -123,6 +160,7 @@ Re-scan detected changes:
   Framework:    Gin → Echo
   Router file:  router/router.go → internal/server/routes.go
   API prefix:   /api/v1/ → unchanged
+  SDD tool:     spec-kit → unchanged
 
 Confluence and Jira settings are unchanged (not re-prompted).
 

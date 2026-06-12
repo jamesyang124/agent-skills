@@ -21,6 +21,11 @@ Write the file using this exact format:
 ### Page Title Format
 API Spec: {METHOD} {path}
 
+## SDD Tool
+- Tool: spec-kit
+- Specify command: spec-kit specify
+- Plan command: spec-kit plan
+
 ## Jira
 - Base URL: https://yourcompany.atlassian.net
 - Default Project Key: PROJ
@@ -54,6 +59,12 @@ API Spec: {METHOD} {path}
 - FastAPI: note that docs are auto-generated from function signatures
 - If not detected, write: `Style: not detected`
 
+**SDD Tool:**
+- Detect by scanning for `.speckit`, `spec-kit.json`, `openspec.json`, or `.openspec` in project root
+- If detected: write the matching tool name and its commands
+- If not detected: default to `spec-kit` and standard commands
+- Valid values: `spec-kit`, `openspec`
+
 ---
 
 ## Notes
@@ -62,7 +73,7 @@ API Spec: {METHOD} {path}
 - Do not commit this file — it is gitignored in the skills template repo
 - If the user is running this inside their project repo (not the template repo), they can choose to commit it there
 - After writing, tell the user which skills will now use this config:
-  - `api-spec-to-confluence`
-  - `sdd-tech-plan-to-confluence`
-  - `confluence-tech-plan-to-jira`
-  - `sdd-qa-to-jira`
+  - `sync-api-spec`
+  - `tech-plan-to-wiki`
+  - `tech-plan-to-ticket`
+  - `sdd-qa-to-ticket`

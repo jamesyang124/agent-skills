@@ -7,6 +7,34 @@ allowed-tools: Bash(git *), Bash(uname *), Bash(pbcopy *), Bash(xclip *), Bash(x
 
 # Generate PR Notes
 
+## Install this skill globally
+
+Install once — available in all projects.
+
+```bash
+# Claude
+mkdir -p ~/.claude/skills/generate-pr-notes
+cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
+   ~/.claude/skills/generate-pr-notes/SKILL.md
+# Add to ~/.claude/CLAUDE.md: - **generate-pr-notes** (`~/.claude/skills/generate-pr-notes/SKILL.md`)
+
+# Copilot
+mkdir -p ~/.copilot/skills/generate-pr-notes
+cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
+   ~/.copilot/skills/generate-pr-notes/SKILL.md
+
+# Gemini
+mkdir -p ~/.gemini/skills/generate-pr-notes
+cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
+   ~/.gemini/skills/generate-pr-notes/SKILL.md
+```
+
+## Dependencies
+
+No external skills or MCPs required. Requires `git` to be available in the shell.
+
+---
+
 Automatically generate pull request notes based on git changes.
 
 ## Description

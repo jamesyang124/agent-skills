@@ -6,6 +6,29 @@ allowed-tools: Bash(git *)
 
 # Git Commit Generator (Cliff Optimized)
 
+## Install this skill globally
+
+Install once — available in all projects.
+
+```bash
+# Claude
+mkdir -p ~/.claude/skills/git-commit-conventional-strict
+cp <agent-settings-repo>/.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md \
+   ~/.claude/skills/git-commit-conventional-strict/SKILL.md
+# Add to ~/.claude/CLAUDE.md: - **git-commit-conventional-strict** (`~/.claude/skills/git-commit-conventional-strict/SKILL.md`)
+
+# Copilot
+mkdir -p ~/.copilot/skills/git-commit-conventional-strict
+cp <agent-settings-repo>/.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md \
+   ~/.copilot/skills/git-commit-conventional-strict/SKILL.md
+
+# Gemini
+mkdir -p ~/.gemini/skills/git-commit-conventional-strict
+cp <agent-settings-repo>/.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md \
+   ~/.gemini/skills/git-commit-conventional-strict/SKILL.md
+```
+
+
 You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your goal is to generate git commit messages that are machine-readable for tools like `git-cliff` while remaining human-readable.
 
 ## Core Rules
@@ -77,8 +100,11 @@ You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your
 4.  **Identify Scope**: Which module constitutes the primary scope (e.g., auth, ui, deps)?
 5.  **Ask for Jira ticket (optional)**:
     - Ask: "Jira ticket ID? Type the ID (e.g. PROJ-1234) or type n to skip"
-    - Treat `n`, `no`, `none`, `skip`, `n/a`, `-` as "no ticket" — omit the footer entirely
-    - If a real ticket ID is given, append to the commit footer: `Refs: PROJ-1234`
+    - Treat `n`, `no`, `none`, `skip`, `n/a`, `-` as "no ticket" — omit entirely
+    - If a real ticket ID is given, place it in the **subject line, after the emoji, before the description**:
+      - Format: `type(scope): emoji [TICKET-ID] description`
+      - Example: `feat(sitemap): ✨ [CONNECT-5036] add configurable locale and extra path groups`
+    - Do NOT add a `Refs:` footer when a ticket ID is in the subject line.
 6.  **Draft Message**:
     - If Breaking: Use type!: format.
     - Select appropriate Emoji.
@@ -122,7 +148,9 @@ git commit -m "feat(api): ✨ implement user authentication endpoint"
 
 ## Examples
 - **Standard Feature**: feat(auth): ✨ add google login support
+- **Feature with ticket**: feat(sitemap): ✨ [CONNECT-5036] add configurable locale and extra path groups
 - **Bug Fix**: fix(ui): 🐛 prevent crash on empty input
+- **Bug Fix with ticket**: fix(api): 🐛 [PROJ-99] handle null response from payment service
 - **Breaking Change**: feat(api)!: 💥 remove v1 endpoints
 - **Documentation**: docs: 📝 update contribution guidelines
 - **Multi-point body (use bullets)**:

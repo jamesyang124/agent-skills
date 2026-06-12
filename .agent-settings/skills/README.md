@@ -18,16 +18,13 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
 ├── tools/
-│   ├── btw/
-│   │   └── SKILL.md
 │   ├── generate-pr-notes/
 │   │   └── SKILL.md
 │   ├── git-commit-conventional-strict/
 │   │   └── SKILL.md
-│   ├── api-spec-to-confluence/
+│   ├── sync-api-spec/
 │   │   ├── SKILL.md
-│   │   ├── README.md
-│   │   └── references/documentation-template.md
+│   │   └── references/api-spec-format.md
 │   ├── setup-project-config/
 │   │   ├── SKILL.md
 │   │   └── README.md
@@ -35,17 +32,13 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │       ├── SKILL.md
 │       └── run_skill.sh
 └── workflows/
-    ├── goal-checkpoint/
+    ├── prd-to-sdd-spec/
     │   └── SKILL.md
-    ├── graphify-monitor/
+    ├── tech-plan-to-wiki/
     │   └── SKILL.md
-    ├── confluence-prd-to-sdd-spec/
+    ├── tech-plan-to-ticket/
     │   └── SKILL.md
-    ├── sdd-tech-plan-to-confluence/
-    │   └── SKILL.md
-    ├── confluence-tech-plan-to-jira/
-    │   └── SKILL.md
-    └── sdd-qa-to-jira/
+    └── sdd-qa-to-ticket/
         └── SKILL.md
 ```
 
@@ -117,24 +110,18 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 
 #### Tools
 
-- **btw** — Reads `graphify-out/GRAPH_REPORT.md` and appends a full timestamped snapshot to `KNOWLEDGE_SUMMARY.md`. Append-only — builds a chronological evidence log of knowledge graph states.
 - **setup-project-config** — One-time setup that generates `.agent-settings/project-config.md`. Run this first before using any Atlassian skills.
 - **generate-pr-notes** — Automatically generates comprehensive pull request notes based on git changes.
 - **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for git-cliff, with SemVer, Emoji, and commit-splitting support.
-- **api-spec-to-confluence** — Creates or updates a Confluence page from an API endpoint by analyzing router and handler code.
+- **sync-api-spec** — Scans all API routes and maintains `docs/agents/api-spec.md`. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish.
 - **symlink-worktree-ignored-files** — Symlinks git-ignored files from source worktree to a target worktree.
-
-#### Workflows (General)
-
-- **graphify-monitor** — Installs graphify, builds an initial knowledge graph, and spawns a background subagent that diffs the graph every 30 seconds and prints newly-discovered knowledge to the terminal. Supports `/graphify-monitor stop` to terminate the loop.
-- **goal-checkpoint** — General-purpose goal tracking with automatic checkpoint/resume at ~90% context. Commits `GOAL_STATE.md` so the next session can restore and continue.
 
 #### Workflows (SDD)
 
-- **confluence-prd-to-sdd-spec** — Fetches an external PRD from Confluence and transforms it into a local spec-kit source file.
-- **sdd-tech-plan-to-confluence** — Reads local spec-kit artifacts and publishes a technical design review page to Confluence.
-- **confluence-tech-plan-to-jira** — Analyzes a Confluence page and automatically creates a Jira root ticket with associated subtasks.
-- **sdd-qa-to-jira** — Reads local spec-kit artifacts, derives BDD QA scenarios, and creates QA sub-tickets under the Jira root ticket.
+- **prd-to-sdd-spec** — Fetches an external PRD from Confluence or Jira and transforms it into a local SDD source file.
+- **tech-plan-to-wiki** — Reads local spec-kit artifacts and publishes a technical design review page to Confluence.
+- **tech-plan-to-ticket** — Analyzes a Confluence page and automatically creates a Jira root ticket with associated subtasks.
+- **sdd-qa-to-ticket** — Reads local spec-kit artifacts, derives BDD QA scenarios, and creates QA sub-tickets under the Jira root ticket.
 
 ### Adding New Skills
 
