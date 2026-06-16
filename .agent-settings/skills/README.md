@@ -17,28 +17,51 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 .agent-settings/skills/
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
+├── knowledge-graph/
+│   ├── btw/
+│   │   └── SKILL.md
+│   └── graphify-monitor/
+│       └── SKILL.md
+├── playground/
+│   ├── git-rebase-conflict-resolver/
+│   │   └── SKILL.md
+│   ├── git-stale-branch-cleanup/
+│   │   └── SKILL.md
+│   └── install-external-skills/
+│       └── SKILL.md
 ├── tools/
+│   ├── ado-pr-code-review/
+│   │   └── SKILL.md
+│   ├── ado-pr-resolve-comments/
+│   │   └── SKILL.md
 │   ├── generate-pr-notes/
 │   │   └── SKILL.md
 │   ├── git-commit-conventional-strict/
 │   │   └── SKILL.md
-│   ├── sync-api-spec/
-│   │   ├── SKILL.md
-│   │   └── references/api-spec-format.md
+│   ├── install-atlassian-mcp/
+│   │   └── SKILL.md
+│   ├── install-azure-devops-mcp/
+│   │   └── SKILL.md
+│   ├── install-playwright-mcp/
+│   │   └── SKILL.md
 │   ├── setup-project-config/
-│   │   ├── SKILL.md
-│   │   └── README.md
-│   └── symlink-worktree-ignored-files/
-│       ├── SKILL.md
-│       └── run_skill.sh
+│   │   └── SKILL.md
+│   ├── symlink-worktree-ignored-files/
+│   │   └── SKILL.md
+│   └── sync-skills/
+│       └── SKILL.md
 └── workflows/
+    ├── goal-checkpoint/
+    │   └── SKILL.md
     ├── prd-to-sdd-spec/
     │   └── SKILL.md
-    ├── tech-plan-to-wiki/
+    ├── sdd-qa-to-jira/
+    │   └── SKILL.md
+    ├── sdd-qa-to-ticket/
     │   └── SKILL.md
     ├── tech-plan-to-ticket/
     │   └── SKILL.md
-    └── sdd-qa-to-ticket/
+    └── tech-plan-to-wiki/
         └── SKILL.md
 ```
 
@@ -108,20 +131,38 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 
 ### Available Skills
 
+#### Knowledge Graph
+
+- **btw** — Appends a timestamped knowledge snapshot from `graphify-out/graph.json` to `KNOWLEDGE_SUMMARY.md`. Append-only evidence log.
+- **graphify-monitor** — Installs graphify, builds an initial knowledge graph, then runs auto-update every 120 seconds in a background subagent. Supports `stop` argument.
+
 #### Tools
 
-- **setup-project-config** — One-time setup that generates `.agent-settings/project-config.md`. Run this first before using any Atlassian skills.
+- **setup-project-config** — One-time setup that generates `.agent-settings/project-config.md`. Run before using any Atlassian or ADO skills.
 - **generate-pr-notes** — Automatically generates comprehensive pull request notes based on git changes.
 - **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for git-cliff, with SemVer, Emoji, and commit-splitting support.
-- **sync-api-spec** — Scans all API routes and maintains `docs/agents/api-spec.md`. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish.
+- **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira/Confluence) for Claude, Copilot, or Gemini.
+- **install-azure-devops-mcp** — Install and configure the Azure DevOps MCP server.
+- **install-playwright-mcp** — Install and configure the Playwright browser-automation MCP server.
+- **ado-pr-code-review** — Security-focused inline code review on an Azure DevOps PR. Requires Azure DevOps MCP.
+- **ado-pr-resolve-comments** — Resolves active review comments on an Azure DevOps PR with user consent. Requires Azure DevOps MCP.
 - **symlink-worktree-ignored-files** — Symlinks git-ignored files from source worktree to a target worktree.
+- **sync-skills** — Syncs local `.agents/skills` with the ClawHub registry, installing only missing skills.
 
 #### Workflows (SDD)
 
-- **prd-to-sdd-spec** — Fetches an external PRD from Confluence or Jira and transforms it into a local SDD source file.
+- **prd-to-sdd-spec** — Fetches a PRD from Confluence or Jira and transforms it into a local SDD source file.
 - **tech-plan-to-wiki** — Reads local spec-kit artifacts and publishes a technical design review page to Confluence.
-- **tech-plan-to-ticket** — Analyzes a Confluence page and automatically creates a Jira root ticket with associated subtasks.
-- **sdd-qa-to-ticket** — Reads local spec-kit artifacts, derives BDD QA scenarios, and creates QA sub-tickets under the Jira root ticket.
+- **tech-plan-to-ticket** — Analyzes a Confluence page and creates a Jira root ticket with associated subtasks.
+- **sdd-qa-to-ticket** — Reads local SDD artifacts, derives BDD QA scenarios, and creates QA sub-tickets under the Jira root ticket.
+- **sdd-qa-to-jira** — Legacy spec-kit–specific variant of `sdd-qa-to-ticket`.
+- **goal-checkpoint** — Goal tracking with automatic checkpoint/resume. Commits state and writes `GOAL_STATE.md` near context limit.
+
+#### Playground (Experimental)
+
+- **git-rebase-conflict-resolver** — Dry-run / Progressive / Auto modes for resolving git rebase conflicts. All modes generate a report.
+- **git-stale-branch-cleanup** — Scans and optionally deletes stale remote branches with intent analysis and Jira detection.
+- **install-external-skills** — Interactive installer for external skill registries (supabase, vercel-labs, terraform).
 
 ### Adding New Skills
 

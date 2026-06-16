@@ -31,7 +31,7 @@ graph TD
     skill: symlink-worktree-ignored-files"]
 
     P0["Phase 0 (Pre-Specify, optional)
-    skill: confluence-prd-to-sdd-spec
+    skill: prd-to-sdd-spec
     Confluence PRD → prd-source.md"]
 
     P2["Phase 2: Specify
@@ -43,24 +43,24 @@ graph TD
     → plan.md + requirements.md"]
 
     P4["Phase 4: Review Loop
-    skill: sdd-tech-plan-to-confluence
+    skill: tech-plan-to-wiki
     → Design Review page (Confluence)"]
 
     P5["Phase 5: Plan Finalized
-    skill: sdd-tech-plan-to-confluence
+    skill: tech-plan-to-wiki
     → Status: Approved (v1)"]
 
     P6["Phase 6: Tasks
-    skill: confluence-tech-plan-to-jira
+    skill: tech-plan-to-ticket
     → Jira root ticket + subtasks"]
 
     P7["Phase 7: Implement & PR
     skills: git-commit-conventional-strict
-    api-spec-to-confluence
+    sync-api-spec
     generate-pr-notes"]
 
     P8["Phase 8: QA Gate
-    skill: sdd-qa-to-jira
+    skill: sdd-qa-to-ticket
     → BDD sub-tickets for SDET"]
 
     P9["Phase 9: Iterate
@@ -87,17 +87,17 @@ graph TD
 | Phase | Command | Purpose |
 |-------|---------|---------|
 | **Constitution** | `/symlink-worktree-ignored-files` | Set up dev environment with worktrees |
-| **Pre-Specify (optional)** | `/confluence-prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` |
+| **Pre-Specify (optional)** | `/prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` |
 | **Specify** | `spec-kit specify` | AI-assisted discussion → `spec.md` |
 | **Plan** | `spec-kit plan` | AI technical planning → `plan.md` + `requirements.md` |
-| **Review Loop (first publish)** | `/sdd-tech-plan-to-confluence` | Publish local files to Confluence design review page |
-| **Review Loop (re-publish)** | `/sdd-tech-plan-to-confluence [page-id]` | Update page after refining plan based on feedback |
-| **Plan Finalized** | `/sdd-tech-plan-to-confluence [page-id]` | Set status to Approved (v1) |
-| **Tasks** | `/confluence-tech-plan-to-jira [page-id]` | Create Jira root ticket + subtasks from approved page |
+| **Review Loop (first publish)** | `/tech-plan-to-wiki` | Publish local files to Confluence design review page |
+| **Review Loop (re-publish)** | `/tech-plan-to-wiki [page-id]` | Update page after refining plan based on feedback |
+| **Plan Finalized** | `/tech-plan-to-wiki [page-id]` | Set status to Approved (v1) |
+| **Tasks** | `/tech-plan-to-ticket [page-id]` | Create Jira root ticket + subtasks from approved page |
 | **Implement & PR** | `/git-commit-conventional-strict` | Semantic version commits |
-| **Implement & PR** | `/api-spec-to-confluence` | Document committed API in Confluence |
+| **Implement & PR** | `/sync-api-spec` | Maintain `docs/agents/api-spec.md` (optional Confluence publish) |
 | **Implement & PR** | `/generate-pr-notes` | Create pull request (phase exit condition) |
-| **QA Gate** | `/sdd-qa-to-jira [root-ticket-key]` | RD explicit hand-off → BDD QA sub-tickets in Jira |
+| **QA Gate** | `/sdd-qa-to-ticket [root-ticket-key]` | RD explicit hand-off → BDD QA sub-tickets in Jira |
 
 ---
 
@@ -125,10 +125,10 @@ graph LR
     JiraBug["Jira
     Bug ticket → back to Tasks"]
 
-    LocalFiles -->|"sdd-tech-plan-to-confluence"| Confluence
-    Confluence -->|"confluence-tech-plan-to-jira"| Jira
+    LocalFiles -->|"tech-plan-to-wiki"| Confluence
+    Confluence -->|"tech-plan-to-ticket"| Jira
     Jira -->|"implement & PR"| PR
-    PR -->|"sdd-qa-to-jira"| JiraQA
+    PR -->|"sdd-qa-to-ticket"| JiraQA
     JiraQA --> SDET
     SDET -->|"bug found"| JiraBug
     JiraBug --> Jira
@@ -151,7 +151,7 @@ Review architecture standards in Confluence. Set up dev environment.
 PO hands off PRD from Confluence. RD imports it locally.
 
 ```bash
-/confluence-prd-to-sdd-spec
+/prd-to-sdd-spec
 # Fetches Confluence PRD → saves as prd-source.md
 ```
 
@@ -178,7 +178,7 @@ spec-kit plan
 ### Phase 4 (First Publish — Review Loop)
 
 ```bash
-/sdd-tech-plan-to-confluence
+/tech-plan-to-wiki
 # Agent publishes spec.md + plan.md + requirements.md to Confluence
 # Output: Design Review page (Status: Draft)
 # Save the returned page ID: 987654321
@@ -195,7 +195,7 @@ Team reviews and adds three comments:
 spec-kit plan
 # RD incorporates feedback: queue options comparison, max retry=5, DLQ clarification
 
-/sdd-tech-plan-to-confluence 987654321
+/tech-plan-to-wiki 987654321
 # Agent updates page + appends revision history row
 # v2 | 2026-03-04 | RD | Added queue options comparison, max retry=5, DLQ clarification
 ```
@@ -208,7 +208,7 @@ Team reviews v2. One comment remains: "Can we see the SQS cost estimate?"
 spec-kit plan
 # RD adds cost analysis note to plan.md
 
-/sdd-tech-plan-to-confluence 987654321
+/tech-plan-to-wiki 987654321
 # v3 | 2026-03-05 | RD | Added cost analysis reference for SQS option
 # Team reaches consensus: go with SQS
 ```
@@ -216,7 +216,7 @@ spec-kit plan
 ### Phase 5: Plan Finalized
 
 ```bash
-/sdd-tech-plan-to-confluence 987654321
+/tech-plan-to-wiki 987654321
 # Ask agent: "Update the status to Approved (v1)"
 # Page status: Approved (v1) — plan locked
 ```
@@ -224,7 +224,7 @@ spec-kit plan
 ### Phase 6: Tasks
 
 ```bash
-/confluence-tech-plan-to-jira 987654321
+/tech-plan-to-ticket 987654321
 # Creates:
 # NOTIF-101: [PROJECT][NOTIFICATIONS] Notification Service Refactor (root)
 # NOTIF-102: [RD] Set up SQS queue and IAM roles
@@ -240,8 +240,8 @@ spec-kit plan
 /git-commit-conventional-strict
 # → feat(notifications): add notification producer with SQS
 
-/api-spec-to-confluence
-# → Documents the notification API endpoint in Confluence
+/sync-api-spec
+# → docs/agents/api-spec.md updated with notification endpoint
 
 /generate-pr-notes
 # → PR #456 "Add notification producer"
@@ -253,7 +253,7 @@ spec-kit plan
 RD reviews PR #456, confirms implementation is ready for QA, then explicitly triggers the hand-off:
 
 ```bash
-/sdd-qa-to-jira NOTIF-101
+/sdd-qa-to-ticket NOTIF-101
 ```
 
 Agent derives BDD scenarios from all `*.md` files in the spec-kit folder, presents them for RD review, then creates:
@@ -291,7 +291,7 @@ New requirement arrives. Cycle back to Specify.
 
 ```bash
 # 1. Set up Atlassian MCP
-./.agent-settings/mcps/install-atlassian-mcp.sh --agent claude
+/install-atlassian-mcp
 
 # 2. Import skills
 ./.agent-settings/skills/import-skills.sh claude
@@ -300,7 +300,7 @@ New requirement arrives. Cycle back to Specify.
 /symlink-worktree-ignored-files
 
 # 4. (Optional) Import PRD from Confluence
-/confluence-prd-to-sdd-spec
+/prd-to-sdd-spec
 
 # 5. Specify
 spec-kit specify
@@ -309,28 +309,28 @@ spec-kit specify
 spec-kit plan
 
 # 7. Publish for review
-/sdd-tech-plan-to-confluence
+/tech-plan-to-wiki
 
 # 8. After team feedback — re-publish with page ID
-/sdd-tech-plan-to-confluence [page-id]
+/tech-plan-to-wiki [page-id]
 
 # 9. Finalize plan
-# /sdd-tech-plan-to-confluence [page-id]  (ask: "Update status to Approved (v1)")
+# /tech-plan-to-wiki [page-id]  (ask: "Update status to Approved (v1)")
 
 # 10. Create Jira tickets
-/confluence-tech-plan-to-jira [page-id]
+/tech-plan-to-ticket [page-id]
 
 # 11. Implement & commit
 /git-commit-conventional-strict
 
-# 12. Document API
-/api-spec-to-confluence
+# 12. Update API spec
+/sync-api-spec
 
 # 13. Create PR (phase exit condition)
 /generate-pr-notes
 
 # 14. QA hand-off (after PR is open — RD explicit decision)
-/sdd-qa-to-jira [root-ticket-key]
+/sdd-qa-to-ticket [root-ticket-key]
 ```
 
 ---
@@ -341,5 +341,4 @@ spec-kit plan
 - [SDD Skills Map](./sdd-skills-map.md)
 - [GitHub Spec-Kit](https://github.com/github/spec-kit)
 - [Agent Skills README](../README.md)
-- [MCP Setup Guide](../.agent-settings/mcps/README.md)
 - [Skills Management](../.agent-settings/skills/README.md)

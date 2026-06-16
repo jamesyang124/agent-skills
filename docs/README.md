@@ -12,16 +12,19 @@ This directory contains comprehensive guides for integrating agent skills and MC
 |-------|-------------|
 | [Agent Settings](./agent-settings.md) | Central config guide: skills, MCPs, supported AI assistants |
 | [Skills Management](./skills.md) | Import, symlink, and manage skills across agents |
-| [MCP Setup](./mcps.md) | Atlassian MCP (Jira/Confluence) integration via Docker |
+| [MCP Setup](./agent-settings.md) | MCP server setup via install skills |
 
 ### Skills Reference
 
 **Tools** (atomic, single-purpose):
 - [setup-project-config](./tools/setup-project-config.md) — One-time codebase scan + Atlassian config
-- [api-spec-to-confluence](./tools/api-spec-to-confluence.md) — Generate API docs from Go handlers
+- [generate-pr-notes](./tools/generate-pr-notes.md) — Auto-generate pull request descriptions
+- [git-commit-conventional-strict](./tools/git-commit-conventional-strict.md) — Strict Conventional Commits with gitmoji
+- [symlink-worktree-ignored-files](./tools/symlink-worktree-ignored-files.md) — Symlink git-ignored files to another worktree
 
 **Workflows** (multi-step, orchestrated pipelines):
-- [confluence-tech-plan-to-jira](./workflows/confluence-tech-plan-to-jira.md) — Create Jira tickets from a Confluence design review
+- [tech-plan-to-ticket](./workflows/tech-plan-to-ticket.md) — Create Jira tickets from a Confluence design review
+- [sdd-qa-to-ticket](./workflows/sdd-qa-to-ticket.md) — Derive BDD QA scenarios and create Jira QA sub-tickets
 
 ---
 
@@ -127,7 +130,7 @@ Define project standards, architecture, and conventions.
 ### 0. Pre-Specify (optional)
 PO hands off a Confluence PRD. RD imports it as a local source file for spec-kit.
 
-**Skills:** `confluence-prd-to-sdd-spec`
+**Skills:** `prd-to-sdd-spec`
 **MCP:** Atlassian (Confluence)
 
 ---
@@ -149,7 +152,7 @@ RD runs `spec-kit plan` for AI-assisted technical planning. Produces `plan.md` a
 ### 4. Review Loop
 Publish local spec-kit files to Confluence as a design review page. Team comments; RD refines locally and re-publishes. Repeats until consensus.
 
-**Skills:** `sdd-tech-plan-to-confluence`
+**Skills:** `tech-plan-to-wiki`
 **MCP:** Atlassian (Confluence)
 
 ---
@@ -157,7 +160,7 @@ Publish local spec-kit files to Confluence as a design review page. Team comment
 ### 5. Plan Finalized
 RD marks the Confluence design review page as Approved (v1). Plan is locked.
 
-**Skills:** `sdd-tech-plan-to-confluence` (status update)
+**Skills:** `tech-plan-to-wiki` (status update)
 **MCP:** Atlassian (Confluence)
 
 ---
@@ -165,7 +168,7 @@ RD marks the Confluence design review page as Approved (v1). Plan is locked.
 ### 6. Tasks
 Create Jira root ticket + subtasks from the approved Confluence page.
 
-**Skills:** `confluence-tech-plan-to-jira`
+**Skills:** `tech-plan-to-ticket`
 **MCP:** Atlassian (Jira)
 
 ---
@@ -175,17 +178,17 @@ Implement code, commit semantically, document the API, and open a pull request. 
 
 **Skills:**
 - `git-commit-conventional-strict` (semantic commits)
-- `api-spec-to-confluence` (API docs in Confluence)
+- `sync-api-spec` (API spec + optional Confluence publish)
 - `generate-pr-notes` (pull request)
 
-**MCP:** Atlassian (Confluence)
+**MCP:** Atlassian (Jira)
 
 ---
 
 ### 8. QA Gate
 RD makes a conscious hand-off decision after the PR is open. Agent derives BDD scenarios from all spec-kit `*.md` files and creates QA sub-tickets under the existing root Jira ticket. SDET owns execution method and order.
 
-**Skills:** `sdd-qa-to-jira`
+**Skills:** `sdd-qa-to-ticket`
 **MCP:** Atlassian (Jira)
 
 ---
@@ -204,13 +207,13 @@ New requirements or bugs loop back to the appropriate phase (Specify, Plan, or T
 | Skill | Purpose | Used In Phases |
 |-------|---------|---------------|
 | `symlink-worktree-ignored-files` | Setup dev environment with worktrees | Constitution |
-| `confluence-prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` | Pre-Specify |
-| `sdd-tech-plan-to-confluence` | Publish local spec-kit files to Confluence design review page | Review Loop, Plan Finalized |
-| `confluence-tech-plan-to-jira` | Create Jira root ticket + subtasks from approved Confluence page | Tasks |
+| `prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` | Pre-Specify |
+| `tech-plan-to-wiki` | Publish local spec-kit files to Confluence design review page | Review Loop, Plan Finalized |
+| `tech-plan-to-ticket` | Create Jira root ticket + subtasks from approved Confluence page | Tasks |
 | `git-commit-conventional-strict` | Semantic version commits | Implement & PR |
-| `api-spec-to-confluence` | Generate API docs from committed code | Implement & PR |
+| `sync-api-spec` | Maintain `docs/agents/api-spec.md` + optional Confluence publish | Implement & PR |
 | `generate-pr-notes` | Create pull request (phase exit condition) | Implement & PR |
-| `sdd-qa-to-jira` | RD hand-off: derive BDD scenarios → Jira QA sub-tickets for SDET | QA Gate |
+| `sdd-qa-to-ticket` | RD hand-off: derive BDD scenarios → Jira QA sub-tickets for SDET | QA Gate |
 
 ### MCP Tools
 
@@ -236,7 +239,7 @@ New requirements or bugs loop back to the appropriate phase (Specify, Plan, or T
 ### Project Resources
 - [Agent Skills Main README](../README.md)
 - [Skills Management Guide](./skills.md)
-- [MCP Setup Guide](./mcps.md)
+- [Skills Management Guide](./skills.md)
 - [Agent Settings Guide](./agent-settings.md)
 
 ---

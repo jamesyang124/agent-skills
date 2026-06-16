@@ -13,7 +13,7 @@ graph TD
     MCP: Atlassian (Confluence)"]
 
     P0["0. PRE-SPECIFY (optional)
-    skill: confluence-prd-to-sdd-spec
+    skill: prd-to-sdd-spec
     Confluence PRD → prd-source.md"]
 
     P2["2. SPECIFY
@@ -23,30 +23,30 @@ graph TD
 
     P3["2→3. SPECIFY → PLAN
     spec-kit plan → plan.md + requirements.md
-    skill: sdd-tech-plan-to-confluence
+    skill: tech-plan-to-wiki
     → Design Review page + Review Loop
     MCP: Atlassian"]
 
     P4["3. PLAN — Review & Refine
-    skill: sdd-tech-plan-to-confluence re-publish
+    skill: tech-plan-to-wiki re-publish
     MCP: Atlassian + claude-mem"]
 
     P4b["3. PLAN FINALIZED
-    skill: sdd-tech-plan-to-confluence
+    skill: tech-plan-to-wiki
     → Status: Approved (v1)"]
 
     P5a["4a. TASKS — Create
-    skill: confluence-tech-plan-to-jira
+    skill: tech-plan-to-ticket
     MCP: Atlassian (Jira)"]
 
     P5b["4b. IMPLEMENT & PR
     skills: git-commit-conventional-strict
-    api-spec-to-confluence
+    sync-api-spec
     generate-pr-notes
     MCP: Atlassian (Confluence)"]
 
     P5c["4c. QA GATE
-    skill: sdd-qa-to-jira
+    skill: sdd-qa-to-ticket
     spec-kit .md files → BDD sub-tickets
     MCP: Atlassian (Jira)"]
 
@@ -90,7 +90,7 @@ graph TD
 ### Pre-Specify Phase (PO handoff)
 ```bash
 # Import PO's Confluence PRD as a local source file for spec-kit
-/confluence-prd-to-sdd-spec
+/prd-to-sdd-spec
 
 # Fetches PRD from Confluence → Saves as prd-source.md
 # RD then references prd-source.md when running spec-kit specify
@@ -108,7 +108,7 @@ spec-kit specify
 ### Specify → Plan Transition
 ```bash
 # Publish local spec-kit artifacts to Confluence for team review
-/sdd-tech-plan-to-confluence
+/tech-plan-to-wiki
 
 # Use: MCP Atlassian → Create/update Design Review page
 ```
@@ -116,7 +116,7 @@ spec-kit specify
 ### Plan Phase
 ```bash
 # Re-publish if spec-kit files updated after team feedback
-/sdd-tech-plan-to-confluence [page-id]
+/tech-plan-to-wiki [page-id]
 
 # Document architecture decisions
 # Use: MCP Atlassian → Confluence
@@ -126,7 +126,7 @@ spec-kit specify
 ### Tasks Phase
 ```bash
 # Step 1: Create Jira tickets
-/confluence-tech-plan-to-jira
+/tech-plan-to-ticket
 
 # Step 2: Implement code
 
@@ -134,7 +134,7 @@ spec-kit specify
 /git-commit-conventional-strict
 
 # Step 4: Generate API documentation from committed code
-/api-spec-to-confluence
+/generate-pr-notes
 
 # Step 5: Create pull request (phase exit condition)
 /generate-pr-notes
@@ -143,7 +143,7 @@ spec-kit specify
 ### QA Gate Phase (after PR is open)
 ```bash
 # RD explicit hand-off decision — not automatic
-/sdd-qa-to-jira [root-ticket-key]
+/sdd-qa-to-ticket [root-ticket-key]
 
 # Reads all *.md in spec-kit folder
 # Derives BDD scenarios (happy paths, edge cases, error paths)
@@ -168,15 +168,15 @@ spec-kit specify
 |-----------|-------------|---------|---------|
 | **Constitution** | `symlink-worktree-ignored-files` | Environment setup | Dev environment ready |
 | **Constitution** | Atlassian MCP | Document standards | Confluence pages |
-| **Pre-Specify (PO handoff)** | `confluence-prd-to-sdd-spec` | Fetch PO's Confluence PRD → local `prd-source.md` for spec-kit | `prd-source.md` (local) |
+| **Pre-Specify (PO handoff)** | `prd-to-sdd-spec` | Fetch PO's Confluence PRD → local `prd-source.md` for spec-kit | `prd-source.md` (local) |
 | **Specify** | Atlassian MCP + claude-mem | Write spec & remember | Confluence pages + Context |
-| **Specify → Plan (spec-kit native)** | `sdd-tech-plan-to-confluence` | Publish local spec-kit files to Confluence for team review | Design Review page in Confluence |
+| **Specify → Plan (spec-kit native)** | `tech-plan-to-wiki` | Publish local spec-kit files to Confluence for team review | Design Review page in Confluence |
 | **Plan** | Atlassian MCP + claude-mem | Document & track | Plans + Decisions |
-| **Tasks** | `api-spec-to-confluence` | Document implemented API | API docs in Confluence |
-| **Tasks** | `confluence-tech-plan-to-jira` | Task creation | Jira tickets |
+| **Tasks** | `tech-plan-to-ticket` | Task creation | Jira tickets |
 | **Tasks** | `git-commit-conventional-strict` | Version control | Semantic commits |
+| **Tasks** | `sync-api-spec` | Document implemented API | `docs/agents/api-spec.md` + optional Confluence |
 | **Tasks** | `generate-pr-notes` | PR documentation | Pull request notes |
-| **QA Gate** | `sdd-qa-to-jira` | QA hand-off after PR — BDD scenarios → Jira sub-tickets | QA sub-tickets under existing root ticket |
+| **QA Gate** | `sdd-qa-to-ticket` | QA hand-off after PR — BDD scenarios → Jira sub-tickets | QA sub-tickets under existing root ticket |
 | **Iterate** | Atlassian MCP | Sync status | Updated tickets/docs |
 | **Iterate** | claude-mem MCP | Learn & improve | Stored context |
 
@@ -191,16 +191,16 @@ Need to... ?
 │   └─> Use: /symlink-worktree-ignored-files
 │
 ├─> Import a PO's Confluence PRD as a local spec-kit source file?
-│   └─> Use: /confluence-prd-to-sdd-spec
+│   └─> Use: /prd-to-sdd-spec
 │
 ├─> Publish spec-kit local artifacts to Confluence for team review?
-│   └─> Use: /sdd-tech-plan-to-confluence
+│   └─> Use: /tech-plan-to-wiki
 │
 ├─> Create work tickets from specs?
-│   └─> Use: /confluence-tech-plan-to-jira
+│   └─> Use: /tech-plan-to-ticket
 │
 ├─> Document API from implemented code?
-│   └─> Use: /api-spec-to-confluence
+│   └─> Use: /sync-api-spec
 │
 ├─> Commit code changes?
 │   └─> Use: /git-commit-conventional-strict
@@ -209,7 +209,7 @@ Need to... ?
 │   └─> Use: /generate-pr-notes
 │
 ├─> Hand off implementation to SDET for QA (after PR)?
-│   └─> Use: /sdd-qa-to-jira [root-ticket-key]
+│   └─> Use: /sdd-qa-to-ticket [root-ticket-key]
 │
 ├─> Store/retrieve documentation?
 │   └─> Use: MCP Atlassian (Confluence)
@@ -254,7 +254,7 @@ Need to... ?
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
   Action: Generate Tech Design Document from the spec
-  Tool:   /confluence-prd-to-sdd-spec
+  Tool:   /prd-to-sdd-spec
   Input:  Confluence page "Auth Specification v1" (ID: 123456789)
   Result: Tech Design Document in Confluence
           • Architecture: JWT + refresh token strategy
@@ -277,7 +277,7 @@ Need to... ?
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
   Step 4a: Create Tasks
-    Tool:   /confluence-tech-plan-to-jira
+    Tool:   /tech-plan-to-ticket
     Input:  Confluence page ID: 123456789
     Result: Created Jira tickets
             • AUTH-101: Implement JWT generation
@@ -292,19 +292,11 @@ Need to... ?
     Tool:   /git-commit-conventional-strict
     Result: feat(auth): ✨ add JWT token generation
 
-  Step 4d: Generate API documentation from committed code
-    Tool:   /api-spec-to-confluence
-    Input:  src/routes/auth.js (committed handler)
-    Result: API documentation in Confluence
-            • JWT endpoint contract
-            • Request/response schemas
-            • Error handling
+  Step 4d: Document API
+    Tool:   /sync-api-spec
+    Result: docs/agents/api-spec.md updated with JWT endpoint
 
-            Implements JWT signing with RS256 algorithm
-
-            Closes AUTH-101
-
-  Step 4d: Create PR
+  Step 4e: Create PR
     Tool:   /generate-pr-notes
     Result: PR #789 "Add JWT Authentication"
             • Summary: 3 files changed
@@ -346,13 +338,16 @@ Use these to track your progress through the SDD cycle:
   └─> Tools ready: symlink-worktree-ignored-files, Atlassian MCP
 
 □ Specify: Requirements defined
-  └─> Specs in Confluence: api-spec-to-confluence, Atlassian MCP
+  └─> Specs via: Atlassian MCP
 
 □ Plan: Technical approach documented
-  └─> Plans in Confluence: api-spec-to-confluence, Atlassian MCP
+  └─> Plans published: tech-plan-to-wiki, Atlassian MCP
+
+□ Implement: API documented
+  └─> API spec updated: sync-api-spec
 
 □ Tasks: Work broken down and assigned
-  └─> Tickets created: confluence-tech-plan-to-jira, Atlassian MCP
+  └─> Tickets created: tech-plan-to-ticket, Atlassian MCP
 
 □ Implement: Code written and committed
   └─> Commits made: git-commit-conventional-strict
@@ -361,7 +356,7 @@ Use these to track your progress through the SDD cycle:
   └─> PR created: generate-pr-notes
 
 □ QA Gate: QA hand-off complete (RD deliberate decision after PR)
-  └─> QA sub-tickets created: sdd-qa-to-jira
+  └─> QA sub-tickets created: sdd-qa-to-ticket
 
 □ Iterate: Status synced and learnings captured
   └─> Context stored: Atlassian MCP, claude-mem
@@ -376,7 +371,7 @@ Use these to track your progress through the SDD cycle:
 - MCP: Atlassian (Confluence)
 
 **PRE-SPECIFY (PO handoff — optional)**
-- `/confluence-prd-to-sdd-spec`
+- `/prd-to-sdd-spec`
 - Confluence PRD → local `prd-source.md`
 
 **2. SPECIFY**
@@ -384,29 +379,29 @@ Use these to track your progress through the SDD cycle:
 - MCP: Atlassian (Confluence) + claude-mem
 
 **2→3. SPECIFY → PLAN (spec-kit native)**
-- `/sdd-tech-plan-to-confluence`
+- `/tech-plan-to-wiki`
 - MCP: Atlassian (Confluence)
 
 **3. PLAN — Review Loop (re-publish after feedback)**
-- `/sdd-tech-plan-to-confluence [page-id]`
+- `/tech-plan-to-wiki [page-id]`
 - MCP: Atlassian (Confluence) + claude-mem
 
 **3. PLAN FINALIZED**
-- `/sdd-tech-plan-to-confluence [page-id]` → ask: "Update status to Approved (v1)"
+- `/tech-plan-to-wiki [page-id]` → ask: "Update status to Approved (v1)"
 
 **4. TASKS — Create tickets**
-- `/confluence-tech-plan-to-jira [page-id]`
+- `/tech-plan-to-ticket [page-id]`
 - MCP: Atlassian (Jira)
 
 **4. TASKS — Implement & PR**
 - implement code
 - `/git-commit-conventional-strict`
-- `/api-spec-to-confluence` (after commit)
+- `/sync-api-spec` (update API spec)
 - `/generate-pr-notes` (phase exit condition)
-- MCP: Atlassian (Jira + Confluence) + claude-mem
+- MCP: Atlassian (Jira) + claude-mem
 
 **4c. QA GATE (after PR — RD explicit decision)**
-- `/sdd-qa-to-jira [root-ticket-key]`
+- `/sdd-qa-to-ticket [root-ticket-key]`
 - MCP: Atlassian (Jira)
 
 **5. ITERATE**
@@ -420,5 +415,4 @@ Use these to track your progress through the SDD cycle:
 - [Detailed Workflow Guide](./sdd-workflow-spec-kit-native.md)
 - [Quick Reference with Examples](./sdd-quick-reference.md)
 - [Agent Skills README](../README.md)
-- [MCP Setup](../.agent-settings/mcps/README.md)
 - [Skills Management](../.agent-settings/skills/README.md)

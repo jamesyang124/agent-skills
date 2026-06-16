@@ -59,17 +59,15 @@ To import skills and configure the Atlassian MCP server in a single step, use `s
 | `--jira-url URL` | Pre-fills the Atlassian base URL, skipping the MCP interactive prompt |
 | `--skip-mcp` | Import skills only; skip MCP setup entirely |
 
-This is the recommended path when setting up a fresh clone. It chains `import-skills.sh` and `install-atlassian-mcp.sh` automatically.
+This is the recommended path when setting up a fresh clone. It chains `import-skills.sh` and the `install-atlassian-mcp` skill automatically.
 
 ### Quick Start with Atlassian MCP
 
-To set up Atlassian Jira and Confluence integration via the MCP server standalone:
+To set up Atlassian Jira and Confluence integration, run the `install-atlassian-mcp` skill:
 
-```bash
-./.agent-settings/mcps/install-atlassian-mcp.sh
 ```
-
-For detailed instructions, refer to the [MCP Setup Guide](.agent-settings/mcps/README.md).
+/install-atlassian-mcp
+```
 
 ### Compatibility
 
@@ -83,66 +81,111 @@ The `SKILL.md` format is compatible with:
 
 This project provides a collection of specialized skills to enhance your AI agent's capabilities. Skills are organized by workflow area.
 
+### Knowledge Graph
+
+*   **graphify-monitor** — Installs graphify, builds an initial knowledge graph of the current project, then spawns a background subagent that runs graphify auto-update every 120 seconds and prints newly-discovered symbols to the terminal. Use when monitoring a project for structural changes during active development by another coding agent. Supports a `stop` argument to terminate the background loop.
+    [View Details](.agent-settings/skills/knowledge-graph/graphify-monitor/SKILL.md)
+
+*   **btw** — Reads `graphify-out/graph.json` and appends a timestamped knowledge snapshot to `KNOWLEDGE_SUMMARY.md` in the project root. Entries are always appended, never overwritten — building a chronological evidence log of knowledge graph states. Run after `graphify-monitor` has built a graph to record what the graph currently knows.
+    [View Details](.agent-settings/skills/knowledge-graph/btw/SKILL.md)
+
 ### Git Workflow
 
-*   **generate-pr-notes** — Interactively generates comprehensive pull request descriptions from git changes. Asks for scope (single commit vs. full branch), base branch, and optional Jira ticket ID, then produces a ready-to-paste markdown PR description with title, summary, categorized changes, technical details, and breaking changes.
+*   **generate-pr-notes** — Automatically generates comprehensive pull request descriptions from git changes. Analyzes commits or branch diffs and creates a ready-to-paste markdown PR description with title, summary, categorized changes, technical details, and breaking changes.
     [View Details](.agent-settings/skills/tools/generate-pr-notes/SKILL.md)
 
-*   **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for `git-cliff` changelog automation. Analyzes staged changes, selects the correct type (`feat`, `fix`, `refactor`, etc.) with SemVer mapping, adds gitmoji, and writes the commit. Automatically detects when spec/doc changes and implementation changes are mixed and splits them into two commits (docs first, implementation second).
+*   **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for `git-cliff` changelog automation. Analyzes staged changes, selects the correct type (`feat`, `fix`, `refactor`, etc.) with SemVer mapping, and adds gitmoji. Automatically detects when spec/doc changes and implementation changes are mixed and splits them into two commits (docs first, implementation second).
     [View Details](.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md)
 
 ### Project Setup
 
-*   **setup-project-config** — One-time setup skill that generates `.agent-settings/project-config.md` by scanning the codebase (language, framework, router/handler/DTO/service directories, API prefix, annotation style) and prompting for Confluence and Jira details. All Atlassian skills read from this shared config — run it once per project, re-run it after structural changes.
+*   **setup-project-config** — One-time setup skill that generates `.agent-settings/project-config.md` by scanning the codebase (language, framework, directory layout, API prefix, annotation style) and prompting for Confluence and Jira details. All Atlassian skills read from this shared config — run once per project, re-run after structural changes.
     [View Details](.agent-settings/skills/tools/setup-project-config/SKILL.md)
 
-### API Documentation
+### MCP Installation
 
-*   **api-spec-to-confluence** — Reads a Go API handler (router + handler code + Swagger annotations) for a given endpoint path and creates or updates a structured Confluence page following a standard documentation template. Covers HTTP method, auth, request/response params, JSON examples, error codes, and implementation details. Requires the Atlassian MCP server and `project-config.md` (run `setup-project-config` first).
-    [View Details](.agent-settings/skills/tools/api-spec-to-confluence/SKILL.md)
+*   **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira and Confluence) for Claude, GitHub Copilot, or Gemini agents. Supports uvx (recommended) and Docker methods.
+    [View Details](.agent-settings/skills/tools/install-atlassian-mcp/SKILL.md)
+
+*   **install-azure-devops-mcp** — Install and configure the Azure DevOps MCP server for Claude, GitHub Copilot, or Gemini agents. Covers work items, repos, pipelines, sprints, and wikis.
+    [View Details](.agent-settings/skills/tools/install-azure-devops-mcp/SKILL.md)
+
+*   **install-playwright-mcp** — Install and configure the Playwright browser-automation MCP server for Claude, GitHub Copilot, or Gemini agents.
+    [View Details](.agent-settings/skills/tools/install-playwright-mcp/SKILL.md)
+
+### Azure DevOps
+
+*   **ado-pr-code-review** — Security-focused code review on an Azure DevOps PR by URL. Posts inline LOC-level comments. Checks for PII exposure, missing input validation (XSS/injection), and error response structure. Requires the Azure DevOps MCP server.
+    [View Details](.agent-settings/skills/tools/ado-pr-code-review/SKILL.md)
+
+*   **ado-pr-resolve-comments** — Reads active review comments on an Azure DevOps PR and resolves them by applying suggested fixes with user consent. Trivial fixes shown as before/after diffs; non-trivial changes produce a refactoring plan for review. Companion to `ado-pr-code-review`. Requires the Azure DevOps MCP server.
+    [View Details](.agent-settings/skills/tools/ado-pr-resolve-comments/SKILL.md)
 
 ### Spec-Driven Development (SDD) Workflow
 
-These skills integrate with [spec-kit](https://github.com/github/spec-kit) to automate handoffs across the SDD lifecycle. See the [SDD Workflow Guide](docs/sdd-workflow-spec-kit-native.md) for the full picture.
+These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow Guide](docs/sdd-workflow-spec-kit-native.md) for the full picture.
 
 ```
 [PO writes PRD in Confluence]
         │
-        ▼ confluence-prd-to-sdd-spec      ← Phase 1: PO → RD handoff
-[spec-kit specify → spec.md]
+        ▼ prd-to-sdd-spec              ← Phase 1: PO → RD handoff
+[local prd-source.md]
         │
-        ▼ (spec-kit plan)
-[plan.md + requirements.md]
+        ▼ (spec-kit / openspec specify + plan)
+[spec.md + plan.md + requirements.md]
         │
-        ▼ sdd-tech-plan-to-confluence     ← Phase 4: Plan → Design Review
+        ▼ tech-plan-to-wiki            ← Phase 4: Plan → Design Review
 [Confluence design review page]
         │
-        ▼ confluence-tech-plan-to-jira    ← Phase 5: Design → Jira backlog
+        ▼ tech-plan-to-ticket          ← Phase 5: Design → Jira backlog
 [Jira root ticket + subtasks]
         │
         ▼ (spec-kit implement → PR)
 [PR created]
         │
-        ▼ sdd-qa-to-jira                 ← Phase 8: Implement → QA hand-off
+        ▼ sdd-qa-to-ticket             ← Phase 8: Implement → QA hand-off
 [Jira QA sub-tickets (BDD scenarios)]
 ```
 
-*   **confluence-prd-to-sdd-spec** — Fetches a PRD written by a PO/PM from Confluence and transforms it into a clean local `prd-source.md` file structured for `spec-kit specify`. Faithfully maps PRD sections (Problem Statement, Goals, User Stories, Functional/Non-Functional Requirements, Constraints) without adding opinions, marking any gaps as `[TBD]` for the RD to resolve during the specify session. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/confluence-prd-to-sdd-spec/SKILL.md)
+*   **prd-to-sdd-spec** — Fetches a PRD from Confluence or a Jira ticket that links to a PRD wiki, and transforms it into a structured local source file for `spec-kit specify` or `openspec`. Bridges the PO handoff into the SDD workflow. Requires the Atlassian MCP server.
+    [View Details](.agent-settings/skills/workflows/prd-to-sdd-spec/SKILL.md)
 
-*   **sdd-tech-plan-to-confluence** — Reads local spec-kit artifacts (`spec.md`, `plan.md`, `requirements.md`) and publishes a structured design review page to Confluence. The Confluence page is a read-only shared view for team feedback — source files remain the source of truth. Supports first-publish (Draft) and re-publish (appends revision history row). Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/sdd-tech-plan-to-confluence/SKILL.md)
+*   **tech-plan-to-wiki** — Reads local spec-kit artifacts (`spec.md`, `plan.md`, `requirements.md`) and publishes a collaborative design review page to Confluence. Supports first-publish (Draft) and re-publish (appends revision history). Requires the Atlassian MCP server.
+    [View Details](.agent-settings/skills/workflows/tech-plan-to-wiki/SKILL.md)
 
-*   **confluence-tech-plan-to-jira** — Fetches a Confluence design review or tech spec page and automatically creates a structured Jira root ticket (Story) with associated sub-tasks. Proposes topic/component brackets, confirms settings interactively, then bulk-creates the ticket hierarchy. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/confluence-tech-plan-to-jira/SKILL.md)
+*   **tech-plan-to-ticket** — Fetches a Confluence design review or tech spec page and creates a Jira root ticket (Story) with associated subtasks, or adds subtasks to an existing Jira ticket. Requires the Atlassian MCP server.
+    [View Details](.agent-settings/skills/workflows/tech-plan-to-ticket/SKILL.md)
 
-*   **sdd-qa-to-jira** — Reads all spec-kit artifacts in a feature folder (`spec.md`, `plan.md`, `requirements.md`, `prd-source.md`, and any other `*.md` files) and derives BDD QA scenarios (happy paths, edge cases, error paths, non-functional). Presents proposed scenarios to the RD for review, then creates QA sub-tickets under the existing root Jira ticket — no new root ticket is created. Posts a QA hand-off comment on the root ticket. Requires the Atlassian MCP server.
+*   **sdd-qa-to-ticket** — Reads local SDD artifacts and derives BDD QA scenarios (happy paths, edge cases, error paths, non-functional), then creates QA sub-tickets under the existing root Jira ticket. No new root ticket is created. Requires the Atlassian MCP server.
+    [View Details](.agent-settings/skills/workflows/sdd-qa-to-ticket/SKILL.md)
+
+*   **sdd-qa-to-jira** — Legacy spec-kit–specific variant of `sdd-qa-to-ticket`. Prefer `sdd-qa-to-ticket` for new projects.
     [View Details](.agent-settings/skills/workflows/sdd-qa-to-jira/SKILL.md)
+
+*   **goal-checkpoint** — General-purpose goal tracking with automatic checkpoint/resume support. Commits current state and writes a `GOAL_STATE.md` snapshot when context usage approaches 90%, so the next session can restore and continue.
+    [View Details](.agent-settings/skills/workflows/goal-checkpoint/SKILL.md)
 
 ### Utilities
 
-*   **symlink-worktree-ignored-files** — Interactively guides you to select a target git worktree, then symlinks all git-ignored files and directories (`.env`, `node_modules`, build artifacts, etc.) from the current worktree to the target. Useful for spinning up a new worktree without re-downloading heavy dependencies.
+*   **sync-api-spec** — Scans all API routes in the project and maintains `docs/agents/api-spec.md` — a machine-readable API reference for agents, frontend, and product. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish step after local file is written. Use at the Implement & PR phase of the SDD workflow.
+    [View Details](submodules/agent-settings/.agent-settings/skills/tools/sync-api-spec/SKILL.md)
+
+*   **symlink-worktree-ignored-files** — Guides you to select a target git worktree, then symlinks all git-ignored files and directories (`.env`, `node_modules`, build artifacts, etc.) from the current worktree to the target. Useful for spinning up a new worktree without re-downloading heavy dependencies.
     [View Details](.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md)
+
+*   **sync-skills** — Syncs the local `.agents/skills` directory with the ClawHub registry. Detects which skills are not yet installed and installs them automatically.
+    [View Details](.agent-settings/skills/tools/sync-skills/SKILL.md)
+
+### Playground (Experimental)
+
+*   **git-rebase-conflict-resolver** — Interactive git rebase conflict resolver with Dry-run, Progressive, and Auto modes. Dry-run predicts conflict paths without touching the branch. Progressive mode is interactive per-conflict. Auto mode resolves autonomously then presents an audit report for approval or rollback.
+    [View Details](.agent-settings/skills/playground/git-rebase-conflict-resolver/SKILL.md)
+
+*   **git-stale-branch-cleanup** — Scans remote origin branches behind the base branch, filters by staleness threshold, and generates a per-branch report with intent analysis and Jira detection. Optionally deletes remote branches and prunes local counterparts. Dry-run mode reports without deleting.
+    [View Details](.agent-settings/skills/playground/git-stale-branch-cleanup/SKILL.md)
+
+*   **install-external-skills** — Interactive multi-select installer for external agent skill registries. Reads `project-config.md` to recommend best-fit skills, fetches latest version info from GitHub, and installs selected skills via `npx`. Supports supabase/agent-skills, vercel-labs/agent-skills, and antonbabenko/terraform-skill.
+    [View Details](.agent-settings/skills/playground/install-external-skills/SKILL.md)
 
 
 ## Agent Settings Management
@@ -151,8 +194,7 @@ The `.agent-settings` directory centralizes configurations, utilities, and resou
 
 *   **Skills Management**: Detailed guidance on importing, creating, and verifying skills.
     [View Skills README](.agent-settings/skills/README.md)
-*   **Atlassian MCP Integration**: Setup instructions for integrating with Jira and Confluence via the MCP server.
-    [View MCP Setup Guide](.agent-settings/mcps/README.md)
+*   **MCP Installation**: Use the `install-atlassian-mcp`, `install-azure-devops-mcp`, or `install-playwright-mcp` skills to set up MCP servers interactively.
 
 ## Spec-Driven Development (SDD) Integration
 
@@ -172,24 +214,38 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 ├── .agent-settings/
 │   ├── project-config.md        # Generated by setup-project-config (gitignored)
 │   ├── skills/
+│   │   ├── knowledge-graph/     # Knowledge graph skills
+│   │   │   ├── btw/
+│   │   │   └── graphify-monitor/
+│   │   ├── playground/          # Experimental skills
+│   │   │   ├── git-rebase-conflict-resolver/
+│   │   │   ├── git-stale-branch-cleanup/
+│   │   │   └── install-external-skills/
 │   │   ├── tools/               # Atomic, single-purpose skills
-│   │   │   ├── setup-project-config/
-│   │   │   ├── git-commit-conventional-strict/
+│   │   │   ├── ado-pr-code-review/
+│   │   │   ├── ado-pr-resolve-comments/
 │   │   │   ├── generate-pr-notes/
-│   │   │   ├── api-spec-to-confluence/
-│   │   │   └── symlink-worktree-ignored-files/
+│   │   │   ├── git-commit-conventional-strict/
+│   │   │   ├── install-atlassian-mcp/
+│   │   │   ├── install-azure-devops-mcp/
+│   │   │   ├── install-playwright-mcp/
+│   │   │   ├── setup-project-config/
+│   │   │   ├── symlink-worktree-ignored-files/
+│   │   │   └── sync-skills/
 │   │   ├── workflows/           # Multi-step, orchestrated pipeline skills
-│   │   │   ├── confluence-prd-to-sdd-spec/
-│   │   │   ├── sdd-tech-plan-to-confluence/
-│   │   │   ├── confluence-tech-plan-to-jira/
-│   │   │   └── sdd-qa-to-jira/
-│   │   └── import-skills.sh     # Scans tools/ + workflows/, installs flat
+│   │   │   ├── goal-checkpoint/
+│   │   │   ├── prd-to-sdd-spec/
+│   │   │   ├── sdd-qa-to-jira/
+│   │   │   ├── sdd-qa-to-ticket/
+│   │   │   ├── tech-plan-to-ticket/
+│   │   │   └── tech-plan-to-wiki/
+│   │   └── import-skills.sh     # Scans all subdirs, installs flat
 │   └── mcps/                    # MCP server configurations
 └── (AI Agent config folders)    # e.g., .gemini/, .claude/, .agent/
     └── skills/                  # Symlinked skills (flat, by skill name)
 ```
 
-Skills are organized into `tools/` (atomic actions) and `workflows/` (orchestrated pipelines) in the source, but the installation output is always flat — agent-specific directories (e.g., `.claude/skills/`) contain symlinks directly by skill name.
+Skills are organized by category (`knowledge-graph/`, `playground/`, `tools/`, `workflows/`) in the source, but the installation output is always flat — agent-specific directories (e.g., `.claude/skills/`) contain symlinks directly by skill name.
 
 ## Resources
 
@@ -205,7 +261,9 @@ To contribute a new skill:
 1.  Determine the appropriate category for your skill:
     - **`tools/`** — atomic, single-purpose actions (e.g., generate a commit message, create a PR description)
     - **`workflows/`** — multi-step, orchestrated pipelines (e.g., fetch PRD → transform → publish to Confluence)
-2.  Create a skill directory with a `SKILL.md` file in the correct category under `.agent-settings/skills/tools/` or `.agent-settings/skills/workflows/`.
+    - **`knowledge-graph/`** — skills that build or read knowledge graph artifacts
+    - **`playground/`** — experimental skills not yet promoted to stable
+2.  Create a skill directory with a `SKILL.md` file in the correct category under `.agent-settings/skills/<category>/`.
 3.  Use `import-skills.sh` to symlink and test your skill.
 4.  Commit and push your changes.
 

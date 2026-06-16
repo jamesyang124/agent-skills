@@ -5,8 +5,8 @@ codebase and asking for your Confluence and Jira details.
 
 ## Why
 
-Other skills (`api-spec-to-confluence`, `sdd-tech-plan-to-confluence`, `confluence-tech-plan-to-jira`)
-need to know your project's structure and Atlassian workspace. Instead of configuring each skill
+Other skills (`sync-api-spec`, `tech-plan-to-wiki`, `tech-plan-to-ticket`, `ado-pr-code-review`)
+need to know your project's structure and Atlassian/ADO workspace. Instead of configuring each skill
 separately, this skill generates one shared config file that all of them read.
 
 ## When to Run

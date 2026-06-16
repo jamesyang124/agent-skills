@@ -16,7 +16,7 @@ This document describes the **spec-kit native** variant of the SDD workflow, whe
 | **Team feedback channel** | Confluence comments → RD refines local files → re-publishes |
 | **Task tracking** | Jira (created from finalized Confluence page) |
 
-**The feedback loop is explicit:** team members review the Confluence page and add comments. They do **not** edit the page. The lead RD takes the comments back to spec-kit, refines `plan.md` / `requirements.md`, then re-runs `/sdd-tech-plan-to-confluence` to publish the updated version. This repeats until the team reaches consensus.
+**The feedback loop is explicit:** team members review the Confluence page and add comments. They do **not** edit the page. The lead RD takes the comments back to spec-kit, refines `plan.md` / `requirements.md`, then re-runs `/tech-plan-to-wiki` to publish the updated version. This repeats until the team reaches consensus.
 
 ---
 
@@ -46,12 +46,12 @@ based on feedback"]
     end
 
     subgraph "🤖 Claude Code Agent"
-        PRDIMPORT["/confluence-prd-to-sdd-spec skill"]
-        P2W["/sdd-tech-plan-to-confluence skill"]
-        C2J["/confluence-tech-plan-to-jira skill"]
+        PRDIMPORT["/prd-to-sdd-spec skill"]
+        P2W["/tech-plan-to-wiki skill"]
+        C2J["/tech-plan-to-ticket skill"]
         IMPL["Implementation Skills
 (commit, PR, API docs)"]
-        QAGATE["/sdd-qa-to-jira skill"]
+        QAGATE["/sdd-qa-to-ticket skill"]
     end
 
     subgraph "👥 Technical Staff (Reviewers)"
@@ -142,8 +142,8 @@ sequenceDiagram
     end
 
     rect rgb(210, 230, 255)
-        Note over PO,Jira: 4. SPECIFY→PLAN BRIDGE — /sdd-tech-plan-to-confluence (first publish)
-        RD->>Agent: /sdd-tech-plan-to-confluence
+        Note over PO,Jira: 4. SPECIFY→PLAN BRIDGE — /tech-plan-to-wiki (first publish)
+        RD->>Agent: /tech-plan-to-wiki
         Agent->>Agent: Read spec.md, plan.md, requirements.md
         Agent->>Agent: Map content to design review template
         Agent->>CF: Create page "Technical Plan: [Feature]"
@@ -160,7 +160,7 @@ sequenceDiagram
             CF-->>RD: RD reads comments
             RD->>SK: spec-kit plan (refine based on feedback)
             SK-->>RD: Updated plan.md + requirements.md
-            RD->>Agent: /sdd-tech-plan-to-confluence [page-id]
+            RD->>Agent: /tech-plan-to-wiki [page-id]
             Agent->>Agent: Re-read updated local files
             Agent->>CF: Update page (append Revision History row)
             CF-->>Agent: Updated page URL
@@ -176,8 +176,8 @@ sequenceDiagram
     end
 
     rect rgb(225, 255, 225)
-        Note over PO,Jira: 7. TASKS — /confluence-tech-plan-to-jira
-        RD->>Agent: /confluence-tech-plan-to-jira [page-id]
+        Note over PO,Jira: 7. TASKS — /tech-plan-to-ticket
+        RD->>Agent: /tech-plan-to-ticket [page-id]
         Agent->>CF: Fetch approved design review page
         CF-->>Agent: Page content
         Agent->>Jira: Create root ticket + subtasks
@@ -188,15 +188,15 @@ sequenceDiagram
     rect rgb(200, 245, 215)
         Note over PO,Jira: 8. IMPLEMENT & PR
         RD->>Agent: Implement, commit, API docs
-        Note over Agent: git-commit-conventional-strict<br/>api-spec-to-confluence
+        Note over Agent: git-commit-conventional-strict<br/>sync-api-spec
         RD->>Agent: /generate-pr-notes
         Agent-->>RD: PR created (PR URL)
     end
 
     rect rgb(255, 225, 245)
-        Note over PO,SDET: 9. QA GATE — /sdd-qa-to-jira
+        Note over PO,SDET: 9. QA GATE — /sdd-qa-to-ticket
         RD->>RD: Confirm PR is open and implementation is ready
-        RD->>Agent: /sdd-qa-to-jira [root-ticket-key]
+        RD->>Agent: /sdd-qa-to-ticket [root-ticket-key]
         Agent->>Agent: Read all *.md files in spec-kit folder
         Agent->>Agent: Derive BDD scenarios (happy paths, edge cases, error paths)
         Agent-->>RD: Present proposed scenarios for review
@@ -247,12 +247,12 @@ spec-kit plan
 
 ---
 
-### Phase 4: Specify→Plan Bridge — `/sdd-tech-plan-to-confluence` (first publish)
+### Phase 4: Specify→Plan Bridge — `/tech-plan-to-wiki` (first publish)
 
 Once `plan.md` and `requirements.md` exist locally, the agent skill publishes them to Confluence as a **design review page**.
 
 ```bash
-/sdd-tech-plan-to-confluence
+/tech-plan-to-wiki
 ```
 
 **Input:** `spec.md`, `plan.md`, `requirements.md` (local files)
@@ -282,7 +282,7 @@ RD reads comments, takes them to spec-kit
     ↓
 spec-kit plan (refine plan.md + requirements.md)
     ↓
-/sdd-tech-plan-to-confluence [page-id]  ← re-publish with page ID
+/tech-plan-to-wiki [page-id]  ← re-publish with page ID
     ↓
 Confluence page updated + Revision History row added
     ↓
@@ -297,7 +297,7 @@ Repeat until consensus
 
 **Re-run command:**
 ```bash
-/sdd-tech-plan-to-confluence [page-id]
+/tech-plan-to-wiki [page-id]
 ```
 Passing the page ID directly skips the search step and ensures the correct page is updated.
 
@@ -308,7 +308,7 @@ Passing the page ID directly skips the search step and ensures the correct page 
 When the team reaches consensus, the RD marks the page as approved:
 
 ```bash
-/sdd-tech-plan-to-confluence [page-id]
+/tech-plan-to-wiki [page-id]
 # Then ask the agent: "Update the status to Approved (v1)"
 ```
 
@@ -321,12 +321,12 @@ Once `Approved (v1)`, the plan is locked as v1. The local `plan.md` and `require
 
 ---
 
-### Phase 7: Tasks — `/confluence-tech-plan-to-jira`
+### Phase 7: Tasks — `/tech-plan-to-ticket`
 
 With the design review page approved, create Jira tickets from it:
 
 ```bash
-/confluence-tech-plan-to-jira [page-id]
+/tech-plan-to-ticket [page-id]
 ```
 
 **Input:** Approved Confluence design review page
@@ -343,7 +343,7 @@ Same as the standard SDD workflow. The PR creation is the **explicit exit condit
 /git-commit-conventional-strict
 
 # Document implemented API
-/api-spec-to-confluence
+/sync-api-spec
 
 # Create pull request (phase exit condition)
 /generate-pr-notes
@@ -351,12 +351,12 @@ Same as the standard SDD workflow. The PR creation is the **explicit exit condit
 
 ---
 
-### Phase 9: QA Gate — `/sdd-qa-to-jira`
+### Phase 9: QA Gate — `/sdd-qa-to-ticket`
 
 With the PR open, the RD makes a **conscious hand-off decision** to signal the implementation is ready for QA. This is not automatic — the RD decides when the implementation is stable enough, even if the PR already exists.
 
 ```bash
-/sdd-qa-to-jira [root-ticket-key]
+/sdd-qa-to-ticket [root-ticket-key]
 ```
 
 **Trigger:** PR is open (after `/generate-pr-notes`), RD explicitly initiates hand-off.
@@ -406,14 +406,14 @@ Parent: Root ticket
 | **Constitution** | — | `symlink-worktree-ignored-files` | Atlassian | Dev environment ready |
 | **Specify** | `spec-kit specify` | — | — | `spec.md` (local) |
 | **Plan** | `spec-kit plan` | — | — | `plan.md` + `requirements.md` (local) |
-| **Plan → Review** | — | `sdd-tech-plan-to-confluence` | Atlassian | Design review page in Confluence |
-| **Review Loop** | `spec-kit plan` (refine) | `sdd-tech-plan-to-confluence` (re-publish) | Atlassian | Updated page + Revision History |
-| **Plan Finalized** | — | `sdd-tech-plan-to-confluence` (status update) | Atlassian | Page: Approved (v1) |
-| **Tasks** | — | `confluence-tech-plan-to-jira` | Atlassian | Jira tickets |
+| **Plan → Review** | — | `tech-plan-to-wiki` | Atlassian | Design review page in Confluence |
+| **Review Loop** | `spec-kit plan` (refine) | `tech-plan-to-wiki` (re-publish) | Atlassian | Updated page + Revision History |
+| **Plan Finalized** | — | `tech-plan-to-wiki` (status update) | Atlassian | Page: Approved (v1) |
+| **Tasks** | — | `tech-plan-to-ticket` | Atlassian | Jira tickets |
 | **Implement** | — | `git-commit-conventional-strict` | — | Semantic commits |
-| **Implement** | — | `api-spec-to-confluence` | Atlassian | API docs in Confluence |
+| **Implement** | — | `sync-api-spec` | Atlassian | API docs in Confluence |
 | **Implement** | — | `generate-pr-notes` | — | Pull request |
-| **QA Gate** | — | `sdd-qa-to-jira` | Atlassian | QA sub-tickets (BDD scenarios) in Jira |
+| **QA Gate** | — | `sdd-qa-to-ticket` | Atlassian | QA sub-tickets (BDD scenarios) in Jira |
 
 ---
 
@@ -443,7 +443,7 @@ spec-kit plan
 
 ### Step 4: First Publish
 ```bash
-/sdd-tech-plan-to-confluence
+/tech-plan-to-wiki
 ```
 Agent output:
 ```
@@ -453,7 +453,7 @@ https://your-org.atlassian.net/wiki/spaces/ENG/pages/987654321
 Status: Draft
 
 📌 Save your page ID: 987654321
-   Next time: /sdd-tech-plan-to-confluence 987654321
+   Next time: /tech-plan-to-wiki 987654321
 ```
 RD shares link with team. Team reviews. Three comments come back:
 1. "Why not use an existing queue service instead of rolling our own?"
@@ -468,7 +468,7 @@ spec-kit plan
 # - Added explicit max retry = 5 in requirements
 # - Clarified DLQ handling process in plan
 
-/sdd-tech-plan-to-confluence 987654321
+/tech-plan-to-wiki 987654321
 ```
 Agent updates page, adds revision history row:
 ```
@@ -482,7 +482,7 @@ Team reviews v2. One remaining comment: "Can we see the SQS cost estimate?"
 spec-kit plan
 # RD adds cost analysis note to plan.md (links to separate cost spreadsheet)
 
-/sdd-tech-plan-to-confluence 987654321
+/tech-plan-to-wiki 987654321
 ```
 Agent updates page, adds revision history row:
 ```
@@ -492,14 +492,14 @@ Team: consensus reached. Go with SQS.
 
 ### Step 7: Finalize Plan
 ```bash
-/sdd-tech-plan-to-confluence 987654321
+/tech-plan-to-wiki 987654321
 # Agent: "Update status to Approved (v1)"
 ```
 Page status: `Approved (v1)`. Plan locked.
 
 ### Step 8: Create Jira Tickets
 ```bash
-/confluence-tech-plan-to-jira 987654321
+/tech-plan-to-ticket 987654321
 ```
 Agent creates:
 - NOTIF-101: Set up SQS queue and IAM roles
@@ -514,7 +514,7 @@ Agent creates:
 /git-commit-conventional-strict
 # → feat(notifications): ✨ add notification producer with SQS
 
-/api-spec-to-confluence
+/sync-api-spec
 # → Documents the notification API endpoint
 
 /generate-pr-notes
@@ -524,7 +524,7 @@ Agent creates:
 ### Step 10: QA Gate
 RD reviews PR #456, confirms the implementation is ready for QA, then explicitly triggers the hand-off:
 ```bash
-/sdd-qa-to-jira NOTIF-101
+/sdd-qa-to-ticket NOTIF-101
 ```
 Agent output:
 ```
@@ -575,14 +575,14 @@ SDET can now claim and execute in any order.
 | **Source of truth** | Confluence page | Local spec-kit files |
 | **Confluence role** | Primary workspace | Shared review surface |
 | **Team edits page?** | Yes (collaborative editing) | No (comment-only) |
-| **Skill at Specify→Plan** | `/confluence-prd-to-sdd-spec` | `/sdd-tech-plan-to-confluence` |
-| **Re-publishing** | Re-run `/confluence-prd-to-sdd-spec` | Re-run `/sdd-tech-plan-to-confluence [page-id]` |
+| **Skill at Specify→Plan** | `/prd-to-sdd-spec` | `/tech-plan-to-wiki` |
+| **Re-publishing** | Re-run `/prd-to-sdd-spec` | Re-run `/tech-plan-to-wiki [page-id]` |
 
 ---
 
 ## References
 
 - [SDD Skills Map](./sdd-skills-map.md)
-- [sdd-tech-plan-to-confluence Skill](./../.agent-settings/skills/workflows/sdd-tech-plan-to-confluence/SKILL.md)
+- [tech-plan-to-wiki Skill](./../.agent-settings/skills/workflows/tech-plan-to-wiki/SKILL.md)
 - [GitHub Spec-Kit Repository](https://github.com/github/spec-kit)
 - [Spec-Driven Development Guide](https://github.com/github/spec-kit/blob/main/spec-driven.md)

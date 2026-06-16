@@ -16,18 +16,18 @@ The `.agent-settings` directory serves as a shared repository for:
 ```
 .agent-settings/
 ├── README.md                              # This file
+├── setup.sh                               # One-command skills + MCP setup
 │
 ├── skills/                                # Skills for AI agents
 │   ├── README.md                          # Skills documentation
 │   ├── import-skills.sh                   # Skill management script
-│   ├── generate-pr-notes/                 # Auto-generate PR descriptions
-│   │   └── SKILL.md
-│   └── git-commit-conventional-strict/    # Conventional commits with emoji
-│       └── SKILL.md
+│   ├── knowledge-graph/                   # Knowledge graph skills
+│   ├── playground/                        # Experimental skills
+│   ├── tools/                             # Atomic, single-purpose skills
+│   └── workflows/                         # Multi-step SDD pipeline skills
 │
-└── skills/tools/                          # MCP install skills and other tools
-    ├── README.md                          # MCP setup guide
-    └── install-atlassian-mcp/          # Atlassian MCP install skill
+└── mcps/                                  # MCP server configuration notes
+```
 
 Project Root (after configuration):
 ├── .agent/
@@ -70,20 +70,18 @@ See [`skills/README.md`](skills/README.md) for detailed documentation.
 
 ### Setting Up MCP Servers
 
-Install Atlassian MCP (Jira/Confluence integration):
+Use the MCP installation skills:
 
 ```bash
-# Interactive installation
-install-atlassian-mcp skill
+# Atlassian (Jira/Confluence)
+/install-atlassian-mcp
 
-# With Jira URL
-install-atlassian-mcp skill --jira-url https://myteam.atlassian.net
+# Azure DevOps
+/install-azure-devops-mcp
 
-# Help
-install-atlassian-mcp skill --help
+# Playwright browser automation
+/install-playwright-mcp
 ```
-
-Use the `install-atlassian-mcp` skill to set up Atlassian MCP.
 
 ## Supported AI Assistants
 
@@ -129,29 +127,6 @@ install-atlassian-mcp skill --agent copilot --jira-url https://myteam.atlassian.
 
 In Copilot Chat: type `@@` to browse skills or `@@skill-name` to invoke directly.
 
-## Project-Specific Configuration
-
-### For This Project (hubs-cms-go)
-
-This project uses Claude Code as the primary AI assistant with:
-
-**Skills Available:**
-- `generate-pr-notes` - Auto-generate pull request descriptions
-- `git-commit-conventional-strict` - Enforce conventional commits with emoji
-
-**Skills Currently Enabled in `.claude/skills/`:**
-- `generate-pr-notes` (symlinked)
-- `git-commit-conventional-strict` (symlinked)
-
-**MCP Servers:**
-- Not yet configured — run the `install-atlassian-mcp` skill
-- Use the `install-atlassian-mcp` skill to set up MCP servers
-
-**Configuration Locations:**
-- Antigravity Skills: `.agent/skills/` (symlinked from `.agent-settings/skills/`)
-- Claude Skills: `.claude/skills/` (symlinked from `.agent-settings/skills/`)
-- MCP Settings: `.claude/mcp.json` (not yet created)
-- Environment Variables: `.env` (not yet created, should be added to `.gitignore`)
 
 ## Best Practices
 
@@ -264,4 +239,4 @@ When adding new resources to `.agent-settings`:
 
 ## License
 
-These configurations are specific to the `hubs-cms-go` project. Adapt as needed for your use case.
+See the [LICENSE](../LICENSE) file for details.

@@ -1,4 +1,4 @@
-# sdd-qa-to-jira
+# sdd-qa-to-ticket
 
 ## Overview
 
@@ -14,10 +14,9 @@ Reads local spec-kit artifacts and derives BDD QA scenarios, then creates QA sub
 
 ## Prerequisites
 
-- Atlassian MCP Server installed and configured (`.agent-settings/mcps/install-atlassian-mcp.sh`)
-- `.env.mcp-atlassian` credentials configured
+- Atlassian MCP Server installed (run `/install-atlassian-mcp`)
 - A PR is open for the feature
-- Root Jira ticket key from Phase 7 (created by `/confluence-tech-plan-to-jira`)
+- Root Jira ticket key from Phase 7 (created by `/tech-plan-to-ticket`)
 
 ## Input Sources
 
@@ -50,7 +49,7 @@ Reads local spec-kit artifacts and derives BDD QA scenarios, then creates QA sub
 ```
 [/generate-pr-notes] → PR created
         ↓ (RD deliberate decision)
-[sdd-qa-to-jira]  ← HERE
+[sdd-qa-to-ticket]  ← HERE
         ↓
 [SDET execution] → closes sub-tickets
         ↓ (all QA tickets closed)
