@@ -1,6 +1,7 @@
 ---
 name: install-atlassian-mcp
-description: Install and configure the Atlassian MCP server (Jira and Confluence) for Claude, GitHub Copilot, or Gemini agents. Supports uvx (recommended) and Docker methods. Use when setting up Atlassian MCP, Jira MCP, Confluence MCP, or asked to install atlassian mcp.
+description: Install and configure the Atlassian MCP server (Jira and Confluence) for Claude or GitHub Copilot agents. Supports uvx (recommended) and Docker methods. Use when setting up Atlassian MCP, Jira MCP, Confluence MCP, or asked to install atlassian mcp.
+argument-hint: "[claude|copilot] [uvx|docker]"
 ---
 
 # Install Atlassian MCP
@@ -25,17 +26,23 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/install-atlassian-mcp/SKIL
    ~/.copilot/skills/install-atlassian-mcp/SKILL.md
 ```
 
-### Gemini (global)
-```bash
-mkdir -p ~/.gemini/skills/install-atlassian-mcp
-cp <agent-settings-repo>/.agent-settings/skills/tools/install-atlassian-mcp/SKILL.md \
-   ~/.gemini/skills/install-atlassian-mcp/SKILL.md
-```
-
 ---
 
 Adds Jira and Confluence access to your agent: create/search issues, read/write pages, manage sprints.
 Repository: https://github.com/sooperset/mcp-atlassian
+
+## Arguments
+
+All optional — anything not passed is asked in Step 1.
+
+| Token | Meaning |
+|---|---|
+| `claude` / `copilot` | which agent to configure |
+| `uvx` / `docker` | install method (`uvx` recommended, no Docker required) |
+
+The API token is never taken as an argument — it is collected in the terminal (Step 2).
+
+---
 
 ## Quick Start
 
@@ -46,7 +53,7 @@ Collect parameters, then run the bundled script. API tokens must be collected vi
 Use `vscode_askQuestions` with:
 
 1. **agent** — which agent to configure
-   - options: `gemini`, `claude`, `copilot`
+   - options: `claude`, `copilot`
 2. **method** — installation method
    - options: `uvx` (recommended, no Docker required), `docker`
 3. **jira-url** — Jira instance URL (e.g. `https://myteam.atlassian.net`)
@@ -61,8 +68,8 @@ PROJECT_ROOT="<workspace-root>" \
   --jira-url <jira-url>
 ```
 
-- The script will prompt for Jira username, API token, and optionally separate Confluence credentials
-- API tokens are always prompted interactively in the terminal (hidden input)
+- If `~/.env.mcp-atlassian` already exists, the script detects it and asks whether to reuse those credentials — no re-entry needed
+- API tokens are always prompted interactively in the terminal (hidden input) when no existing file is found
 - Writes `~/.env.mcp-atlassian` to your home directory (global, not per-project) and merges into the agent config
 
 Create API tokens at: https://id.atlassian.com/manage-profile/security/api-tokens
@@ -99,7 +106,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 }
 ```
 
-**Claude** (`.mcp.json`) / **Gemini** (`.gemini/settings.json`) use `mcpServers` key instead of `servers`.
+**Claude** (`.mcp.json`) use `mcpServers` key instead of `servers`.
 
 The Docker config uses `--env-file ~/.env.mcp-atlassian` (global credential store).
 

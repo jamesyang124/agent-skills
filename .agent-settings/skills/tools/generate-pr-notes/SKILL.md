@@ -22,11 +22,6 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md
 mkdir -p ~/.copilot/skills/generate-pr-notes
 cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
    ~/.copilot/skills/generate-pr-notes/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/generate-pr-notes
-cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
-   ~/.gemini/skills/generate-pr-notes/SKILL.md
 ```
 
 ## Dependencies
@@ -46,6 +41,18 @@ This skill analyzes git changes and generates comprehensive pull request notes. 
 ```
 /generate-pr-notes
 ```
+
+## Arguments
+
+All optional.
+
+| Token | Meaning |
+|---|---|
+| a branch name (e.g. `develop`) | base branch to diff against — skips the base-branch question in step 1 |
+
+Scope (last commit vs. entire branch) is always asked; it is not an argument.
+
+---
 
 ## Instructions
 

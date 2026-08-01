@@ -9,7 +9,7 @@
 set -euo pipefail
 
 # ── Defaults ────────────────────────────────────────────────────────────────
-REGISTRY="${CLAWHUB_REGISTRY:-https://skillhub.vrprod.viveport.com}"
+REGISTRY="${CLAWHUB_REGISTRY:-https://skillhub.example.com}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Skill dir defaults to two levels up from scripts/ (i.e. the skills root)
 SKILLS_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"

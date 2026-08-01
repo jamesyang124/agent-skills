@@ -42,8 +42,7 @@ graph TD
     P5b["4b. IMPLEMENT & PR
     skills: git-commit-conventional-strict
     sync-api-spec
-    generate-pr-notes
-    MCP: Atlassian (Confluence)"]
+    generate-pr-notes"]
 
     P5c["4c. QA GATE
     skill: sdd-qa-to-ticket
@@ -134,7 +133,7 @@ spec-kit specify
 /git-commit-conventional-strict
 
 # Step 4: Generate API documentation from committed code
-/generate-pr-notes
+/sync-api-spec
 
 # Step 5: Create pull request (phase exit condition)
 /generate-pr-notes
@@ -172,9 +171,9 @@ spec-kit specify
 | **Specify** | Atlassian MCP + claude-mem | Write spec & remember | Confluence pages + Context |
 | **Specify → Plan (spec-kit native)** | `tech-plan-to-wiki` | Publish local spec-kit files to Confluence for team review | Design Review page in Confluence |
 | **Plan** | Atlassian MCP + claude-mem | Document & track | Plans + Decisions |
+| **Tasks** | `sync-api-spec` | Scan all routes, update API spec file | `docs/agents/api-spec.md` |
 | **Tasks** | `tech-plan-to-ticket` | Task creation | Jira tickets |
 | **Tasks** | `git-commit-conventional-strict` | Version control | Semantic commits |
-| **Tasks** | `sync-api-spec` | Document implemented API | `docs/agents/api-spec.md` + optional Confluence |
 | **Tasks** | `generate-pr-notes` | PR documentation | Pull request notes |
 | **QA Gate** | `sdd-qa-to-ticket` | QA hand-off after PR — BDD scenarios → Jira sub-tickets | QA sub-tickets under existing root ticket |
 | **Iterate** | Atlassian MCP | Sync status | Updated tickets/docs |
@@ -292,11 +291,19 @@ Need to... ?
     Tool:   /git-commit-conventional-strict
     Result: feat(auth): ✨ add JWT token generation
 
-  Step 4d: Document API
+  Step 4d: Generate API documentation from committed code
     Tool:   /sync-api-spec
-    Result: docs/agents/api-spec.md updated with JWT endpoint
+    Input:  src/routes/auth.js (committed handler)
+    Result: docs/agents/api-spec.md updated
+            • JWT endpoint contract
+            • Request/response schemas
+            • Error handling
 
-  Step 4e: Create PR
+            Implements JWT signing with RS256 algorithm
+
+            Closes AUTH-101
+
+  Step 4d: Create PR
     Tool:   /generate-pr-notes
     Result: PR #789 "Add JWT Authentication"
             • Summary: 3 files changed
@@ -338,13 +345,10 @@ Use these to track your progress through the SDD cycle:
   └─> Tools ready: symlink-worktree-ignored-files, Atlassian MCP
 
 □ Specify: Requirements defined
-  └─> Specs via: Atlassian MCP
+  └─> Specs in Confluence: tech-plan-to-wiki, Atlassian MCP
 
 □ Plan: Technical approach documented
-  └─> Plans published: tech-plan-to-wiki, Atlassian MCP
-
-□ Implement: API documented
-  └─> API spec updated: sync-api-spec
+  └─> Plans in Confluence: tech-plan-to-wiki, Atlassian MCP
 
 □ Tasks: Work broken down and assigned
   └─> Tickets created: tech-plan-to-ticket, Atlassian MCP
@@ -396,9 +400,9 @@ Use these to track your progress through the SDD cycle:
 **4. TASKS — Implement & PR**
 - implement code
 - `/git-commit-conventional-strict`
-- `/sync-api-spec` (update API spec)
+- `/sync-api-spec` (after commit)
 - `/generate-pr-notes` (phase exit condition)
-- MCP: Atlassian (Jira) + claude-mem
+- MCP: Atlassian (Jira + Confluence) + claude-mem
 
 **4c. QA GATE (after PR — RD explicit decision)**
 - `/sdd-qa-to-ticket [root-ticket-key]`
@@ -415,4 +419,5 @@ Use these to track your progress through the SDD cycle:
 - [Detailed Workflow Guide](./sdd-workflow-spec-kit-native.md)
 - [Quick Reference with Examples](./sdd-quick-reference.md)
 - [Agent Skills README](../README.md)
+- [MCP Setup](../.agent-settings/skills/tools/README.md)
 - [Skills Management](../.agent-settings/skills/README.md)

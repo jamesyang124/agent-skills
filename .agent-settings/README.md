@@ -30,16 +30,9 @@ The `.agent-settings` directory serves as a shared repository for:
 ```
 
 Project Root (after configuration):
-├── .agent/
-│   └── skills/                            # Antigravity skills (symlinks)
 ├── .claude/
 │   ├── mcp.json                           # Claude MCP servers (committed)
 │   └── skills/                            # Project skills (symlinks)
-├── .cursor/
-│   ├── settings.json                      # Cursor settings
-│   └── mcp.json                           # Cursor MCP config (optional)
-├── .gemini/
-│   └── settings.json                      # Gemini settings
 └── .env                                   # Environment variables (not committed)
 ```
 
@@ -52,9 +45,6 @@ Skills extend AI agent capabilities with specialized workflows and prompts.
 ```bash
 # List available skills
 .agent-settings/skills/import-skills.sh --list
-
-# Import all skills to Antigravity
-.agent-settings/skills/import-skills.sh agent
 
 # Import all skills to Claude
 .agent-settings/skills/import-skills.sh claude
@@ -89,16 +79,10 @@ This configuration supports the following AI coding assistants:
 
 | Assistant | Skills | MCP Servers | Migration |
 |-----------|--------|-------------|-----------|
-| **Antigravity** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Claude Code** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Codex CLI** | ✅ Native | ✅ Full Support | ✅ From others |
-| **Cursor** | ✅ Via symlinks | ⚠️ Limited | ✅ To Claude |
 | **GitHub Copilot** | ✅ Full Support | ✅ Full Support | ✅ To Claude |
 | **Google AI Studio** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
-
-## Antigravity Configuration
-
-**Skills:** `.agent/skills/` - Project skills (symlinks, commit to Git)
 
 ## Claude Code Configuration
 
@@ -168,7 +152,6 @@ BLENDVISION_API_KEY=your-blendvision-key
 BLENDVISION_BASE_URI=https://api.blendvision.com
 
 # Other AI Assistants (if migrating)
-CURSOR_API_KEY=your-cursor-key
 GOOGLE_AI_API_KEY=your-google-key
 GITHUB_COPILOT_TOKEN=your-copilot-token
 ```
@@ -207,14 +190,12 @@ docker logs atlassian-mcp
 env | grep ATLASSIAN
 ```
 
-### Migration Failed
+### MCP Config Invalid
 
 ```bash
-# Validate input JSON
-jq empty .cursor/settings.json
-
-# Use dry-run to preview
-install-atlassian-mcp skill --dry-run auto .cursor/settings.json
+# Validate the MCP config JSON
+jq empty .mcp.json          # Claude
+jq empty .vscode/mcp.json   # Copilot
 
 # Check jq installation
 which jq || brew install jq

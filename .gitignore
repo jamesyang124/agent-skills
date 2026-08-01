@@ -7,6 +7,9 @@
 # Atlassian MCP credentials
 .env.mcp-atlassian
 
+# Local reviewer roster (real names/emails) - keep only the .example.json template committed
+config/reviewers.json
+
 # Project-specific skill configuration (generated per project, not committed to template repo)
 .agent-settings/project-config.md
 

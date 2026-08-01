@@ -1,6 +1,7 @@
 ---
 name: tech-plan-to-wiki
 description: Reads local spec-kit artifacts (spec.md, plan.md, requirements.md) and publishes a collaborative design review page to Confluence. Use this at the Plan→Review transition in the spec-kit native SDD workflow to share your technical plan with the team.
+argument-hint: "[feature-dir] [confluence-page-id]"
 ---
 
 # Tech Plan to Wiki
@@ -20,11 +21,6 @@ cp <agent-settings-repo>/.agent-settings/skills/workflows/tech-plan-to-wiki/SKIL
 mkdir -p ~/.copilot/skills/tech-plan-to-wiki
 cp <agent-settings-repo>/.agent-settings/skills/workflows/tech-plan-to-wiki/SKILL.md \
    ~/.copilot/skills/tech-plan-to-wiki/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/tech-plan-to-wiki
-cp <agent-settings-repo>/.agent-settings/skills/workflows/tech-plan-to-wiki/SKILL.md \
-   ~/.gemini/skills/tech-plan-to-wiki/SKILL.md
 ```
 
 
@@ -38,6 +34,19 @@ All published pages **must follow** the template at:
 `references/design-review-template.md` (relative to this skill folder: `.agent-settings/skills/tech-plan-to-wiki`)
 
 Use the template as the structural skeleton. Populate each section from the spec-kit artifacts. Use `[TODO]` for gaps — never invent content.
+
+## Arguments
+
+All optional — anything not passed is asked for.
+
+| Token shape | Interpreted as |
+|---|---|
+| all digits | Confluence page ID → **update** that page instead of creating one |
+| anything else | SDD feature directory holding `spec.md` / `plan.md` / `requirements.md` |
+
+No page ID → create mode. Save the returned page ID for re-runs, otherwise a duplicate page is created.
+
+---
 
 ## Prerequisites
 

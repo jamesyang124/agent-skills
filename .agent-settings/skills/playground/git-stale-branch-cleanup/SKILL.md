@@ -1,6 +1,7 @@
 ---
 name: git-stale-branch-cleanup
 description: Scans remote origin branches behind the base branch, filters by staleness threshold, generates a per-branch scan report with intent analysis and Jira detection, then optionally deletes remote branches and prunes local counterparts. Dry-run mode reports without deleting. Use when cleaning up stale branches, pruning old feature branches, or asked to remove merged/abandoned branches.
+argument-hint: "[--dry-run|--live] [base-branch] [threshold-days]"
 allowed-tools: Bash(git *), Bash(date *), Bash(echo *), Bash(printf *), Bash(grep *), Bash(awk *), Bash(sed *), Bash(sort *), Bash(wc *), Bash(bash *)
 ---
 
@@ -18,6 +19,21 @@ Two modes — both always generate a full scan report before any action:
 /git-stale-branch-cleanup --dry-run
 /git-stale-branch-cleanup --live
 ```
+
+## Arguments
+
+All optional.
+
+| Token / flag | Meaning |
+|---|---|
+| `--dry-run` | scan and report only, nothing deleted (**default**) |
+| `--live` | scan, report, then multi-select and delete |
+| a bare integer | staleness threshold in days (Phase 2) |
+| any other bare token | base branch, e.g. `origin/main` (Phase 1) |
+
+Anything not passed is asked for in its phase prompt.
+
+---
 
 ## Reference Scripts
 

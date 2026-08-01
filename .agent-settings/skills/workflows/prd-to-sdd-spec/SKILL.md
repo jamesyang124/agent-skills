@@ -1,6 +1,7 @@
 ---
 name: prd-to-sdd-spec
 description: Fetches an external PRD from Confluence or from a Jira ticket that links to a PRD wiki, and transforms it into a structured local source file that the RD can reference when running SDD tools like spec-kit specify or openspec. Bridges the PO handoff into the SDD workflow.
+argument-hint: "<confluence-page-id|search-hint|TICKET-123>"
 ---
 
 # PRD to SDD Spec
@@ -20,11 +21,6 @@ cp <agent-settings-repo>/.agent-settings/skills/workflows/prd-to-sdd-spec/SKILL.
 mkdir -p ~/.copilot/skills/prd-to-sdd-spec
 cp <agent-settings-repo>/.agent-settings/skills/workflows/prd-to-sdd-spec/SKILL.md \
    ~/.copilot/skills/prd-to-sdd-spec/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/prd-to-sdd-spec
-cp <agent-settings-repo>/.agent-settings/skills/workflows/prd-to-sdd-spec/SKILL.md \
-   ~/.gemini/skills/prd-to-sdd-spec/SKILL.md
 ```
 
 
@@ -58,6 +54,18 @@ This skill bridges the **PO handoff** and the **Specify** phase of the SDD workf
 [/tech-plan-to-wiki]
     → Design review page in Confluence
 ```
+
+## Arguments
+
+One PRD source, optional — asked in Step 1 if omitted.
+
+| Token shape | Interpreted as |
+|---|---|
+| all digits | Confluence page ID of the PRD |
+| matches `[A-Z]+-\d+` | Jira ticket key that links to the PRD wiki |
+| anything else | Confluence search hint (title / keywords) |
+
+---
 
 ## Prerequisites
 

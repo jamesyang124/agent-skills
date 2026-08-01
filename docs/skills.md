@@ -1,6 +1,6 @@
 # Skills Directory
 
-This directory contains shared skills that can be imported into different AI agent configurations (Claude, Cursor, Gemini, GitHub Copilot, etc.) using symbolic links.
+This directory contains shared skills that can be imported into different AI agent configurations (Claude, GitHub Copilot, etc.) using symbolic links.
 
 ## Overview
 
@@ -29,9 +29,15 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   └── install-external-skills/
 │       └── SKILL.md
 ├── tools/                          # Atomic, single-purpose skills
+│   ├── ado-open-pr/
+│   │   └── SKILL.md
 │   ├── ado-pr-code-review/
 │   │   └── SKILL.md
 │   ├── ado-pr-resolve-comments/
+│   │   └── SKILL.md
+│   ├── api-spec-to-confluence/
+│   │   └── SKILL.md
+│   ├── explain-diff-html/
 │   │   └── SKILL.md
 │   ├── generate-pr-notes/
 │   │   └── SKILL.md
@@ -43,9 +49,15 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   │   └── SKILL.md
 │   ├── install-playwright-mcp/
 │   │   └── SKILL.md
+│   ├── install-sentry-mcp/
+│   │   └── SKILL.md
 │   ├── setup-project-config/
 │   │   └── SKILL.md
+│   ├── spec-recalibrate/
+│   │   └── SKILL.md
 │   ├── symlink-worktree-ignored-files/
+│   │   └── SKILL.md
+│   ├── sync-api-spec/
 │   │   └── SKILL.md
 │   └── sync-skills/
 │       └── SKILL.md
@@ -64,10 +76,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
         └── SKILL.md
 
 # Installation output is always flat (by skill name, not category):
-.agent/skills/
-├── generate-pr-notes -> ../../.agent-settings/skills/tools/generate-pr-notes
-└── sdd-qa-to-ticket -> ../../.agent-settings/skills/workflows/sdd-qa-to-ticket
-
 .claude/skills/
 ├── generate-pr-notes -> ../../.agent-settings/skills/tools/generate-pr-notes
 └── tech-plan-to-ticket -> ../../.agent-settings/skills/workflows/tech-plan-to-ticket
@@ -80,18 +88,11 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 Use the `import-skills.sh` script to automatically create symlinks:
 
 ```bash
-# Import all skills to Antigravity (targets .agent folder)
-.agent-settings/skills/import-skills.sh agent
-
 # Import all skills to Claude
 .agent-settings/skills/import-skills.sh claude
 
 # Import specific skills
-.agent-settings/skills/import-skills.sh agent generate-pr-notes git-commit-conventional-strict
-
-# Import to multiple agents
-.agent-settings/skills/import-skills.sh claude
-.agent-settings/skills/import-skills.sh gemini
+.agent-settings/skills/import-skills.sh claude generate-pr-notes git-commit-conventional-strict
 
 # List available skills
 .agent-settings/skills/import-skills.sh --list
@@ -111,17 +112,6 @@ Use the `import-skills.sh` script to automatically create symlinks:
 
 If you prefer to create symlinks manually:
 
-##### For Antigravity
-
-```bash
-# Create skills directory if it doesn't exist
-mkdir -p .agent/skills
-
-# Link a skill from .agent-settings to .agent
-ln -s ../../.agent-settings/skills/tools/generate-pr-notes .agent/skills/generate-pr-notes
-ln -s ../../.agent-settings/skills/tools/git-commit-conventional-strict .agent/skills/git-commit-conventional-strict
-```
-
 ##### For Claude Agent
 
 ```bash
@@ -131,16 +121,6 @@ mkdir -p .claude/skills
 # Link a skill from .agent-settings to .claude
 ln -s ../../.agent-settings/skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
 ln -s ../../.agent-settings/skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
-```
-
-##### For Gemini Agent
-
-```bash
-# Create skills directory if it doesn't exist
-mkdir -p .gemini/skills
-
-# Link a skill from .agent-settings to .gemini
-ln -s ../../.agent-settings/skills/tools/generate-pr-notes .gemini/skills/generate-pr-notes
 ```
 
 ##### For GitHub Copilot
@@ -193,9 +173,8 @@ ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/
 
    **Using the automated script (recommended):**
    ```bash
-   # Import the new skill to specific agents
+   # Import the new skill to Claude/Copilot
    .agent-settings/skills/import-skills.sh claude my-new-skill
-   .agent-settings/skills/import-skills.sh gemini my-new-skill
 
    # Or import all skills (including the new one)
    .agent-settings/skills/import-skills.sh claude
@@ -204,7 +183,6 @@ ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/
    **Or manually create symlinks:**
    ```bash
    ln -s ../../.agent-settings/skills/tools/my-new-skill .claude/skills/my-new-skill
-   ln -s ../../.agent-settings/skills/tools/my-new-skill .gemini/skills/my-new-skill
    ```
 
 ### Verifying Symlinks
@@ -266,12 +244,17 @@ Current skills in `.agent-settings/skills/`:
 - **setup-project-config** - One-time setup that scans the codebase and generates `.agent-settings/project-config.md` — the shared config read by all Atlassian/ADO skills
 - **generate-pr-notes** - Automatically generates comprehensive pull request descriptions from git changes
 - **git-commit-conventional-strict** - Strict Conventional Commits generator with gitmoji, optimized for `git-cliff`
-- **install-atlassian-mcp** - Install and configure the Atlassian MCP server (Jira/Confluence) for Claude, Copilot, or Gemini
+- **install-atlassian-mcp** - Install and configure the Atlassian MCP server (Jira/Confluence) for Claude or Copilot
 - **install-azure-devops-mcp** - Install and configure the Azure DevOps MCP server
 - **install-playwright-mcp** - Install and configure the Playwright browser-automation MCP server
 - **ado-pr-code-review** - Security-focused inline code review on an Azure DevOps PR. Requires Azure DevOps MCP.
 - **ado-pr-resolve-comments** - Resolves active review comments on an Azure DevOps PR. Requires Azure DevOps MCP.
-- **sync-api-spec** - Scans all API routes and maintains `docs/agents/api-spec.md`. Incremental: only re-scans changed routes. Optional Confluence publish. (from submodule)
+- **ado-open-pr** - Opens an Azure DevOps PR for the current branch: pushes, generates the description, and adds reviewers. Requires Azure DevOps MCP.
+- **api-spec-to-confluence** - Publishes a local API spec file to Confluence (local-only variant of `sync-api-spec`'s publish step).
+- **explain-diff-html** - Renders the current diff (or a PR's diff) as a standalone, browsable HTML explainer.
+- **sync-api-spec** - Scans all API routes and maintains `docs/agents/api-spec.md`. Incremental: only re-scans changed routes. Optional Confluence publish.
+- **install-sentry-mcp** - Install and configure the Sentry MCP server for error-monitoring lookups.
+- **spec-recalibrate** - Re-syncs local spec-kit/openspec docs against the committed diff when they've drifted from the code.
 - **symlink-worktree-ignored-files** - Symlinks git-ignored files/directories from the current worktree to a target worktree
 - **sync-skills** - Syncs local `.agents/skills` with the ClawHub registry, installing only missing skills
 

@@ -1,0 +1,9 @@
+{
+  "jiraBaseUrl": "https://your-org.atlassian.net/browse/",
+  "teams": {
+    "managers": ["alice@example.com", "bob@example.com"],
+    "core": ["carol@example.com"],
+    "growth": ["dave@example.com", "erin@example.com"],
+    "ops": ["frank@example.com"]
+  }
+}

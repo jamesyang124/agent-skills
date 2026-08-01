@@ -220,9 +220,8 @@ prompt_playground_skills() {
 resolve_agent_name() {
     local agent_name=$1
     case "$agent_name" in
-        antigravity) echo "agent" ;;
-        copilot)     echo "claude" ;;  # Copilot reads from .claude folder
-        *)           echo "$agent_name" ;;
+        copilot) echo "claude" ;;  # Copilot reads from .claude folder
+        *)       echo "$agent_name" ;;
     esac
 }
 
@@ -473,8 +472,7 @@ Usage: $0 [OPTIONS] AGENT_NAME [SKILL_NAMES...]
 Automates importing skills from .agent-settings/skills/ to agent-specific folders.
 
 Arguments:
-  AGENT_NAME          Target agent folder name (e.g., agent, claude, gemini, copilot)
-                      Note: 'antigravity' is an alias for 'agent' (.agent/skills/)
+  AGENT_NAME          Target agent folder name (e.g., claude, copilot)
                       Note: 'copilot' is an alias for 'claude' (.claude/skills/)
 
 Options:
@@ -486,12 +484,6 @@ Options:
   -h, --help         Show this help message
 
 Examples:
-  # Import all skills to Antigravity (targets .agent folder)
-  $0 agent
-
-  # Or use the 'antigravity' alias
-  $0 antigravity
-
   # Import all skills to Claude agent
   # (removes all existing symlinks first, then re-adds — no stale skills)
   $0 claude
@@ -505,9 +497,8 @@ Examples:
   # Import specific skills to Claude agent
   $0 claude generate-pr-notes git-commit-conventional-strict
 
-  # Import all skills to multiple agents (run separately)
-  $0 claude    # Also covers copilot (both read from .claude/skills/)
-  $0 gemini
+  # Import all skills (covers both Claude and Copilot, both read from .claude/skills/)
+  $0 claude
 
   # List available skills
   $0 --list
@@ -608,7 +599,7 @@ main() {
             fi
 
             if [ "$agent_name" = "codex" ]; then
-                print_error "Codex is no longer supported. Use antigravity, claude, gemini, or copilot."
+                print_error "Codex is no longer supported. Use claude or copilot."
                 exit 1
             fi
 

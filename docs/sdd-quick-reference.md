@@ -95,7 +95,7 @@ graph TD
 | **Plan Finalized** | `/tech-plan-to-wiki [page-id]` | Set status to Approved (v1) |
 | **Tasks** | `/tech-plan-to-ticket [page-id]` | Create Jira root ticket + subtasks from approved page |
 | **Implement & PR** | `/git-commit-conventional-strict` | Semantic version commits |
-| **Implement & PR** | `/sync-api-spec` | Maintain `docs/agents/api-spec.md` (optional Confluence publish) |
+| **Implement & PR** | `/sync-api-spec` | Scan all routes → `docs/agents/api-spec.md` |
 | **Implement & PR** | `/generate-pr-notes` | Create pull request (phase exit condition) |
 | **QA Gate** | `/sdd-qa-to-ticket [root-ticket-key]` | RD explicit hand-off → BDD QA sub-tickets in Jira |
 
@@ -241,7 +241,7 @@ spec-kit plan
 # → feat(notifications): add notification producer with SQS
 
 /sync-api-spec
-# → docs/agents/api-spec.md updated with notification endpoint
+# → Scans all routes, updates docs/agents/api-spec.md
 
 /generate-pr-notes
 # → PR #456 "Add notification producer"
@@ -291,7 +291,7 @@ New requirement arrives. Cycle back to Specify.
 
 ```bash
 # 1. Set up Atlassian MCP
-/install-atlassian-mcp
+./install-atlassian-mcp skill --agent claude
 
 # 2. Import skills
 ./.agent-settings/skills/import-skills.sh claude
@@ -323,7 +323,7 @@ spec-kit plan
 # 11. Implement & commit
 /git-commit-conventional-strict
 
-# 12. Update API spec
+# 12. Document API
 /sync-api-spec
 
 # 13. Create PR (phase exit condition)
@@ -341,4 +341,5 @@ spec-kit plan
 - [SDD Skills Map](./sdd-skills-map.md)
 - [GitHub Spec-Kit](https://github.com/github/spec-kit)
 - [Agent Skills README](../README.md)
+- [MCP Setup Guide](../.agent-settings/skills/tools/README.md)
 - [Skills Management](../.agent-settings/skills/README.md)

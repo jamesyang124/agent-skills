@@ -14,7 +14,8 @@ Reads local spec-kit artifacts and derives BDD QA scenarios, then creates QA sub
 
 ## Prerequisites
 
-- Atlassian MCP Server installed (run `/install-atlassian-mcp`)
+- Atlassian MCP Server installed and configured (`install-atlassian-mcp skill`)
+- `~/.env.mcp-atlassian` credentials configured
 - A PR is open for the feature
 - Root Jira ticket key from Phase 7 (created by `/tech-plan-to-ticket`)
 

@@ -18,6 +18,7 @@ This directory contains comprehensive guides for integrating agent skills and MC
 
 **Tools** (atomic, single-purpose):
 - [setup-project-config](./tools/setup-project-config.md) — One-time codebase scan + Atlassian config
+- [sync-api-spec](./tools/sync-api-spec.md) — Scan all API routes, maintain `docs/agents/api-spec.md`
 - [generate-pr-notes](./tools/generate-pr-notes.md) — Auto-generate pull request descriptions
 - [git-commit-conventional-strict](./tools/git-commit-conventional-strict.md) — Strict Conventional Commits with gitmoji
 - [symlink-worktree-ignored-files](./tools/symlink-worktree-ignored-files.md) — Symlink git-ignored files to another worktree

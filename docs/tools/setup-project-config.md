@@ -5,9 +5,11 @@ codebase and asking for your Confluence and Jira details.
 
 ## Why
 
-Other skills (`sync-api-spec`, `tech-plan-to-wiki`, `tech-plan-to-ticket`, `ado-pr-code-review`)
-need to know your project's structure and Atlassian/ADO workspace. Instead of configuring each skill
-separately, this skill generates one shared config file that all of them read.
+Other skills (`sync-api-spec`, `ado-open-pr`, `tech-plan-to-wiki`, `sdd-qa-to-ticket`,
+`install-external-skills`) need to know your project's structure and Atlassian workspace. Instead of
+configuring each skill separately, this skill generates one shared config file that all of them read.
+The authoritative consumer list lives in
+`.agent-settings/skills/tools/setup-project-config/references/config-output-format.md`.
 
 ## When to Run
 
@@ -71,4 +73,4 @@ separately, this skill generates one shared config file that all of them read.
 - The config file is gitignored in this template repo — it belongs to your project, not the skills repo
 - If you've installed the skills into your own project repo, you can choose to commit `project-config.md` there
 - To update any values, just re-run the skill — it will show a diff and confirm before writing
-- Atlassian credentials (username, API token) are stored separately in `.env.mcp-atlassian`, not in this config
+- Atlassian credentials (username, API token) are stored separately in `~/.env.mcp-atlassian`, not in this config

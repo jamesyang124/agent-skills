@@ -1,6 +1,7 @@
 ---
 name: tech-plan-to-ticket
 description: Fetches a Confluence design review or tech spec page and creates a Jira root ticket with associated subtasks, or adds subtasks to an existing Jira ticket. Use when turning a Confluence page into Jira tickets, creating tasks from a tech plan, breaking down a design review into Jira issues, or at the Tasks phase of the SDD workflow.
+argument-hint: "<confluence-page-id|search-hint> [TICKET-123]"
 ---
 
 # Confluence to Jira Tickets
@@ -20,11 +21,6 @@ cp <agent-settings-repo>/.agent-settings/skills/workflows/tech-plan-to-ticket/SK
 mkdir -p ~/.copilot/skills/tech-plan-to-ticket
 cp <agent-settings-repo>/.agent-settings/skills/workflows/tech-plan-to-ticket/SKILL.md \
    ~/.copilot/skills/tech-plan-to-ticket/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/tech-plan-to-ticket
-cp <agent-settings-repo>/.agent-settings/skills/workflows/tech-plan-to-ticket/SKILL.md \
-   ~/.gemini/skills/tech-plan-to-ticket/SKILL.md
 ```
 
 
@@ -36,6 +32,20 @@ All generated Jira ticket descriptions **must be based on** the template at:
 `references/jira-ticket-template.md` (relative to this skill folder: `.agent-settings/skills/tech-plan-to-ticket`).
 
 Use the template as a structural guide. Populate the sections based on the analysis of the Confluence page. If a section is not applicable, you may omit it, but keep the core structure (Summary, Context, Requirements).
+
+## Arguments
+
+All optional — anything not passed is asked for.
+
+| Token shape | Interpreted as |
+|---|---|
+| all digits | Confluence page ID |
+| matches `[A-Z]+-\d+` | existing Jira ticket to use as the base — subtasks are added under it and the plan goes in a comment; its description is never overwritten |
+| anything else | Confluence search hint (title / keywords) |
+
+No Jira key → Step 3 asks whether to create a new root ticket or reuse an existing one.
+
+---
 
 ## Prerequisites
 

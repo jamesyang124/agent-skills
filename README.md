@@ -35,16 +35,6 @@ description: A clear description of what this skill does and when to use it
 
 Skills can be easily installed using the provided `import-skills.sh` script, which handles symlinking and setup for various AI agents. For detailed instructions on both automated and manual skill installation, please refer to the [Skills Management README](.agent-settings/skills/README.md).
 
-### Quick Start with Gemini CLI
-
-To install all available skills for Gemini CLI using the automated script:
-
-```bash
-./.agent-settings/skills/import-skills.sh gemini
-```
-
-This will create necessary symlinks (e.g., `~/.gemini/skills/skill-name`) and ensure skills are hot-reloaded without restarting your agent.
-
 ### One-Command Setup (Skills + MCP)
 
 To import skills and configure the Atlassian MCP server in a single step, use `setup.sh`:
@@ -55,7 +45,7 @@ To import skills and configure the Atlassian MCP server in a single step, use `s
 
 | Option | Description |
 |---|---|
-| `--agent claude\|copilot\|gemini` | Agent to configure (default: interactive prompt) |
+| `--agent claude\|copilot` | Agent to configure (default: interactive prompt) |
 | `--jira-url URL` | Pre-fills the Atlassian base URL, skipping the MCP interactive prompt |
 | `--skip-mcp` | Import skills only; skip MCP setup entirely |
 
@@ -73,9 +63,8 @@ To set up Atlassian Jira and Confluence integration, run the `install-atlassian-
 
 The `SKILL.md` format is compatible with:
 - **Claude Code** ✓
-- **Gemini CLI** ✓
+- **GitHub Copilot** ✓
 - **ChatGPT CLI tools** ✓
-- **Antigravity** ✓ (maps to `.agent/skills/`)
 
 ## Available Skills
 
@@ -104,14 +93,17 @@ This project provides a collection of specialized skills to enhance your AI agen
 
 ### MCP Installation
 
-*   **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira and Confluence) for Claude, GitHub Copilot, or Gemini agents. Supports uvx (recommended) and Docker methods.
+*   **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira and Confluence) for Claude or GitHub Copilot agents. Supports uvx (recommended) and Docker methods.
     [View Details](.agent-settings/skills/tools/install-atlassian-mcp/SKILL.md)
 
-*   **install-azure-devops-mcp** — Install and configure the Azure DevOps MCP server for Claude, GitHub Copilot, or Gemini agents. Covers work items, repos, pipelines, sprints, and wikis.
+*   **install-azure-devops-mcp** — Install and configure the Azure DevOps MCP server for Claude or GitHub Copilot agents. Covers work items, repos, pipelines, sprints, and wikis.
     [View Details](.agent-settings/skills/tools/install-azure-devops-mcp/SKILL.md)
 
-*   **install-playwright-mcp** — Install and configure the Playwright browser-automation MCP server for Claude, GitHub Copilot, or Gemini agents.
+*   **install-playwright-mcp** — Install and configure the Playwright browser-automation MCP server for Claude or GitHub Copilot agents.
     [View Details](.agent-settings/skills/tools/install-playwright-mcp/SKILL.md)
+
+*   **install-sentry-mcp** — Install and configure the official Sentry MCP server for Claude or GitHub Copilot agents. Supports remote (OAuth, recommended) and local stdio (npx + access token) methods.
+    [View Details](.agent-settings/skills/tools/install-sentry-mcp/SKILL.md)
 
 ### Azure DevOps
 
@@ -120,6 +112,9 @@ This project provides a collection of specialized skills to enhance your AI agen
 
 *   **ado-pr-resolve-comments** — Reads active review comments on an Azure DevOps PR and resolves them by applying suggested fixes with user consent. Trivial fixes shown as before/after diffs; non-trivial changes produce a refactoring plan for review. Companion to `ado-pr-code-review`. Requires the Azure DevOps MCP server.
     [View Details](.agent-settings/skills/tools/ado-pr-resolve-comments/SKILL.md)
+
+*   **ado-open-pr** — Opens an Azure DevOps pull request for the current branch: pushes the branch, generates the description via `generate-pr-notes`, opens the PR against a target branch, and adds reviewers resolved from teams or explicit emails. By default also syncs drifted spec-kit/openspec docs to match the committed diff before opening the PR. Requires the Azure DevOps MCP server.
+    [View Details](.agent-settings/skills/tools/ado-open-pr/SKILL.md)
 
 ### Spec-Driven Development (SDD) Workflow
 
@@ -168,13 +163,19 @@ These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow G
 ### Utilities
 
 *   **sync-api-spec** — Scans all API routes in the project and maintains `docs/agents/api-spec.md` — a machine-readable API reference for agents, frontend, and product. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish step after local file is written. Use at the Implement & PR phase of the SDD workflow.
-    [View Details](submodules/agent-settings/.agent-settings/skills/tools/sync-api-spec/SKILL.md)
+    [View Details](.agent-settings/skills/tools/sync-api-spec/SKILL.md)
 
 *   **symlink-worktree-ignored-files** — Guides you to select a target git worktree, then symlinks all git-ignored files and directories (`.env`, `node_modules`, build artifacts, etc.) from the current worktree to the target. Useful for spinning up a new worktree without re-downloading heavy dependencies.
     [View Details](.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md)
 
 *   **sync-skills** — Syncs the local `.agents/skills` directory with the ClawHub registry. Detects which skills are not yet installed and installs them automatically.
     [View Details](.agent-settings/skills/tools/sync-skills/SKILL.md)
+
+*   **spec-recalibrate** — Recalibrates a repo's spec-driven docs (spec-kit `specs/`, openspec `openspec/specs/`) against the code that now implements them: maps each spec to its code, classifies drift, and with consent updates stale spec docs to match the code — spec docs only, never the implementation.
+    [View Details](.agent-settings/skills/tools/spec-recalibrate/SKILL.md)
+
+*   **explain-diff-html** — Produces a rich HTML explanation of a code change, diff, branch, or PR.
+    [View Details](.agent-settings/skills/tools/explain-diff-html/SKILL.md)
 
 ### Playground (Experimental)
 
@@ -190,7 +191,7 @@ These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow G
 
 ## Agent Settings Management
 
-The `.agent-settings` directory centralizes configurations, utilities, and resources for AI coding assistants. This enables sharing skills and Model Context Protocol (MCP) server configurations across agents like Claude Code and Gemini CLI.
+The `.agent-settings` directory centralizes configurations, utilities, and resources for AI coding assistants. This enables sharing skills and Model Context Protocol (MCP) server configurations across agents like Claude Code and GitHub Copilot.
 
 *   **Skills Management**: Detailed guidance on importing, creating, and verifying skills.
     [View Skills README](.agent-settings/skills/README.md)
@@ -222,15 +223,21 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 │   │   │   ├── git-stale-branch-cleanup/
 │   │   │   └── install-external-skills/
 │   │   ├── tools/               # Atomic, single-purpose skills
+│   │   │   ├── ado-open-pr/
 │   │   │   ├── ado-pr-code-review/
 │   │   │   ├── ado-pr-resolve-comments/
+│   │   │   ├── api-spec-to-confluence/
+│   │   │   ├── explain-diff-html/
 │   │   │   ├── generate-pr-notes/
 │   │   │   ├── git-commit-conventional-strict/
 │   │   │   ├── install-atlassian-mcp/
 │   │   │   ├── install-azure-devops-mcp/
 │   │   │   ├── install-playwright-mcp/
+│   │   │   ├── install-sentry-mcp/
 │   │   │   ├── setup-project-config/
+│   │   │   ├── spec-recalibrate/
 │   │   │   ├── symlink-worktree-ignored-files/
+│   │   │   ├── sync-api-spec/
 │   │   │   └── sync-skills/
 │   │   ├── workflows/           # Multi-step, orchestrated pipeline skills
 │   │   │   ├── goal-checkpoint/
@@ -241,7 +248,9 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 │   │   │   └── tech-plan-to-wiki/
 │   │   └── import-skills.sh     # Scans all subdirs, installs flat
 │   └── mcps/                    # MCP server configurations
-└── (AI Agent config folders)    # e.g., .gemini/, .claude/, .agent/
+├── config/
+│   └── reviewers.example.json   # Team → reviewer-email roster (used by ado-open-pr)
+└── (AI Agent config folders)    # e.g., .claude/, .github/
     └── skills/                  # Symlinked skills (flat, by skill name)
 ```
 

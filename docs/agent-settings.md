@@ -17,25 +17,18 @@ The `.agent-settings` directory serves as a shared repository for:
 .agent-settings/
 ├── skills/                                # Skills for AI agents
 │   ├── import-skills.sh                   # Skill management script
-│   ├── generate-pr-notes/                 # Auto-generate PR descriptions
-│   │   └── SKILL.md
-│   └── git-commit-conventional-strict/    # Conventional commits with emoji
-│       └── SKILL.md
+│   ├── knowledge-graph/                   # Knowledge graph skills
+│   ├── playground/                        # Experimental skills
+│   ├── tools/                             # Atomic, single-purpose skills
+│   └── workflows/                         # Multi-step, orchestrated pipeline skills
 │
-└── mcps/                                  # MCP server configurations
-    └── install-atlassian-mcp.sh           # Atlassian MCP installer
+└── mcps/                                  # Legacy notes (see docs/mcps.md);
+                                            # MCP install is now skill-based above
 
 Project Root (after configuration):
-├── .agent/
-│   └── skills/                            # Antigravity skills (symlinks)
 ├── .claude/
 │   ├── mcp.json                           # Claude MCP servers (committed)
 │   └── skills/                            # Project skills (symlinks)
-├── .cursor/
-│   ├── settings.json                      # Cursor settings
-│   └── mcp.json                           # Cursor MCP config (optional)
-├── .gemini/
-│   └── settings.json                      # Gemini settings
 └── .env                                   # Environment variables (not committed)
 ```
 
@@ -48,9 +41,6 @@ Skills extend AI agent capabilities with specialized workflows and prompts.
 ```bash
 # List available skills
 .agent-settings/skills/import-skills.sh --list
-
-# Import all skills to Antigravity
-.agent-settings/skills/import-skills.sh agent
 
 # Import all skills to Claude
 .agent-settings/skills/import-skills.sh claude
@@ -69,14 +59,14 @@ See [`docs/skills.md`](./skills.md) for detailed documentation.
 Install Atlassian MCP (Jira/Confluence integration):
 
 ```bash
-# Interactive installation
-.agent-settings/mcps/install-atlassian-mcp.sh
+# Interactive installation (invoke the skill directly in-agent)
+/install-atlassian-mcp
 
-# With Jira URL
-.agent-settings/mcps/install-atlassian-mcp.sh --jira-url https://myteam.atlassian.net
+# Or run the bundled script directly
+.agent-settings/skills/tools/install-atlassian-mcp/scripts/install.sh --jira-url https://myteam.atlassian.net
 
 # Help
-.agent-settings/mcps/install-atlassian-mcp.sh --help
+.agent-settings/skills/tools/install-atlassian-mcp/scripts/install.sh --help
 ```
 
 See [`docs/mcps.md`](./mcps.md) for detailed setup.
@@ -87,15 +77,9 @@ This configuration supports the following AI coding assistants:
 
 | Assistant | Skills | MCP Servers | Migration |
 |-----------|--------|-------------|-----------|
-| **Antigravity** | ✅ Native | ✅ Full Support | ✅ From others |
 | **Claude Code** | ✅ Native | ✅ Full Support | ✅ From others |
-| **Cursor** | ✅ Via symlinks | ⚠️ Limited | ✅ To Claude |
 | **GitHub Copilot** | ✅ Full Support | ✅ Full Support | ✅ To Claude |
 | **Google AI Studio** | ⚠️ Limited | ⚠️ Limited | ✅ To Claude |
-
-## Antigravity Configuration
-
-**Skills:** `.agent/skills/` - Project skills (symlinks, commit to Git)
 
 ## Claude Code Configuration
 
@@ -114,7 +98,7 @@ This configuration supports the following AI coding assistants:
 .agent-settings/skills/import-skills.sh copilot
 
 # Install Atlassian MCP for Copilot
-.agent-settings/mcps/install-atlassian-mcp.sh --agent copilot --jira-url https://myteam.atlassian.net
+.agent-settings/skills/tools/install-atlassian-mcp/scripts/install.sh --agent copilot --jira-url https://myteam.atlassian.net
 ```
 
 In Copilot Chat: type `@@` to browse skills or `@@agent-settings.skill-name` to invoke directly.
@@ -134,11 +118,10 @@ This project uses Claude Code as the primary AI assistant with:
 - `git-commit-conventional-strict` (symlinked)
 
 **MCP Servers:**
-- Not yet configured (example configurations available in `mcps/examples/`)
+- Not yet configured — run the `install-atlassian-mcp` skill
 - See `docs/mcps.md` for setup instructions
 
 **Configuration Locations:**
-- Antigravity Skills: `.agent/skills/` (symlinked from `.agent-settings/skills/`)
 - Claude Skills: `.claude/skills/` (symlinked from `.agent-settings/skills/`)
 - MCP Settings: `.claude/mcp.json` (not yet created)
 - Environment Variables: `.env` (not yet created, should be added to `.gitignore`)
@@ -183,7 +166,6 @@ EXAMPLE_API_KEY=your-api-key
 EXAMPLE_BASE_URI=https://api.example.com
 
 # Other AI Assistants (if migrating)
-CURSOR_API_KEY=your-cursor-key
 GOOGLE_AI_API_KEY=your-google-key
 GITHUB_COPILOT_TOKEN=your-copilot-token
 ```
@@ -222,14 +204,12 @@ docker logs atlassian-mcp
 env | grep ATLASSIAN
 ```
 
-### Migration Failed
+### MCP Config Invalid
 
 ```bash
-# Validate input JSON
-jq empty .cursor/settings.json
-
-# Use dry-run to preview
-.agent-settings/mcps/install-atlassian-mcp.sh --dry-run auto .cursor/settings.json
+# Validate the MCP config JSON
+jq empty .mcp.json          # Claude
+jq empty .vscode/mcp.json   # Copilot
 
 # Check jq installation
 which jq || brew install jq
@@ -241,7 +221,7 @@ When adding new resources to `.agent-settings`:
 
 1. **Skills** - Add to `skills/` directory with a `SKILL.md` file
 2. **MCP Servers** - Document setup in `docs/mcps.md`
-3. **Migration Support** - Update `install-atlassian-mcp.sh` for new assistant types
+3. **Migration Support** - Update the `install-atlassian-mcp` skill for new assistant types
 4. **Update Documentation** - Add examples and usage instructions
 5. **Test Thoroughly** - Verify across different agents before committing
 

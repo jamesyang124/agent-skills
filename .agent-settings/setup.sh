@@ -35,14 +35,14 @@ show_help() {
     printf "    ./setup.sh [OPTIONS]\n\n"
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show this help\n"
-    printf "    --agent AGENT           Agent to set up: claude, copilot, gemini\n"
+    printf "    --agent AGENT           Agent to set up: claude, copilot\n"
     printf "    --jira-url URL          Jira URL (skips MCP prompt, sets up MCP automatically)\n"
     printf "    --skip-mcp              Import skills only, skip MCP setup\n\n"
     printf "${YELLOW}Examples:${NC}\n"
     printf "    ./setup.sh\n"
     printf "    ./setup.sh --agent claude\n"
     printf "    ./setup.sh --agent claude --jira-url https://myteam.atlassian.net\n"
-    printf "    ./setup.sh --agent gemini --skip-mcp\n\n"
+    printf "    ./setup.sh --agent copilot --skip-mcp\n\n"
 }
 
 # Parse args
@@ -67,21 +67,19 @@ if [[ -z "$AGENT" ]]; then
     printf "${YELLOW}Select agent to set up:${NC}\n"
     printf "  1) Claude Code\n"
     printf "  2) GitHub Copilot (VS Code)\n"
-    printf "  3) Gemini CLI\n"
-    printf "Enter choice [1-3]: "
+    printf "Enter choice [1-2]: "
     read -n 1 -r AGENT_CHOICE
     echo ""
     case $AGENT_CHOICE in
         1) AGENT="claude" ;;
         2) AGENT="copilot" ;;
-        3) AGENT="gemini" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
 
 case "$AGENT" in
-    claude|copilot|gemini) ;;
-    *) log_error "Invalid agent: $AGENT. Use claude, copilot, or gemini."; exit 1 ;;
+    claude|copilot) ;;
+    *) log_error "Invalid agent: $AGENT. Use claude or copilot."; exit 1 ;;
 esac
 
 # Step 2: Import skills

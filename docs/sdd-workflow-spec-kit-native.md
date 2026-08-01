@@ -411,7 +411,7 @@ Parent: Root ticket
 | **Plan Finalized** | — | `tech-plan-to-wiki` (status update) | Atlassian | Page: Approved (v1) |
 | **Tasks** | — | `tech-plan-to-ticket` | Atlassian | Jira tickets |
 | **Implement** | — | `git-commit-conventional-strict` | — | Semantic commits |
-| **Implement** | — | `sync-api-spec` | Atlassian | API docs in Confluence |
+| **Implement** | — | `sync-api-spec` | — | `docs/agents/api-spec.md` |
 | **Implement** | — | `generate-pr-notes` | — | Pull request |
 | **QA Gate** | — | `sdd-qa-to-ticket` | Atlassian | QA sub-tickets (BDD scenarios) in Jira |
 

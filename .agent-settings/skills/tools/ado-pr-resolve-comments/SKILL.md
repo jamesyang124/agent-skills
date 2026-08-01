@@ -28,18 +28,10 @@ curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engin
 # Then reference it from your global Copilot instructions file.
 ```
 
-### Gemini (global)
-```bash
-mkdir -p ~/.gemini/skills/diagnose
-curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnose/SKILL.md \
-  -o ~/.gemini/skills/diagnose/SKILL.md
-```
-
 ### Via agent-settings import-skills.sh (project-local)
 ```bash
 # If using this agent-settings repo, import it into a project:
 .agent-settings/skills/import-skills.sh claude diagnose     # Claude / Copilot
-.agent-settings/skills/import-skills.sh gemini diagnose     # Gemini
 ```
 
 > The diagnose skill must be visible to your agent before proceeding.
@@ -47,6 +39,16 @@ curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engin
 ---
 
 Reads active PR threads and resolves them by applying fixes, with user consent at every step.
+
+---
+
+## Arguments
+
+| Token | Meaning |
+|---|---|
+| an Azure DevOps PR URL | **required** — the PR whose active comments are resolved; parsed in Step 1 |
+
+No URL → ask for one before doing anything else.
 
 ---
 

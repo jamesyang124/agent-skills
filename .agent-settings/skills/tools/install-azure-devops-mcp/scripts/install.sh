@@ -34,7 +34,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show help\n"
     printf "    -o, --output FILE       Output file (overrides interactive selection)\n"
-    printf "    --agent AGENT           Specify agent: 'gemini', 'claude', or 'copilot'\n"
+    printf "    --agent AGENT           Specify agent: 'claude' or 'copilot'\n"
     printf "    --org ORG               Azure DevOps organization name\n"
     printf "    --pat TOKEN             Personal Access Token (avoid; prefer interactive input)\n\n"
     printf "${YELLOW}Examples:${NC}\n"
@@ -81,37 +81,48 @@ log_success "npx is available"
 # Interactive agent selection if not provided
 if [[ -z "$AGENT" ]]; then
     printf "\n${YELLOW}Select the target agent:${NC}\n"
-    printf "  1) Gemini\n"
-    printf "  2) Claude\n"
-    printf "  3) GitHub Copilot\n"
-    printf "Enter choice [1-3]: "
+    printf "  1) Claude\n"
+    printf "  2) GitHub Copilot\n"
+    printf "Enter choice [1-2]: "
     read -n 1 -r AGENT_CHOICE
     echo ""
     case $AGENT_CHOICE in
-        1) AGENT="gemini" ;;
-        2) AGENT="claude" ;;
-        3) AGENT="copilot" ;;
+        1) AGENT="claude" ;;
+        2) AGENT="copilot" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
 
+# Enforce supported agents (guards the --agent flag on every path, incl. with -o)
+case "$AGENT" in
+    claude|copilot) ;;
+    *) log_error "Unsupported agent: ${AGENT}. Use claude or copilot."; exit 1 ;;
+esac
+
 if [[ -z "$OUTPUT_FILE" ]]; then
-    if [[ "$AGENT" == "gemini" ]]; then
-        if [[ -f "$HOME/.gemini/antigravity/mcp_config.json" ]]; then
-            OUTPUT_FILE="$HOME/.gemini/antigravity/mcp_config.json"
-        else
-            OUTPUT_FILE="${PROJECT_ROOT}/.gemini/settings.json"
-        fi
-    elif [[ "$AGENT" == "claude" ]]; then
+    if [[ "$AGENT" == "claude" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.mcp.json"
     elif [[ "$AGENT" == "copilot" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.vscode/mcp.json"
     else
-        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', or 'copilot'."
+        log_error "Invalid agent specified: ${AGENT}. Use 'claude' or 'copilot'."
         exit 1
     fi
 fi
 log_info "Will write configuration to: ${OUTPUT_FILE}"
+
+# Check for existing global credentials — reuse PAT if confirmed
+ENV_FILE_PATH="${HOME}/.env.mcp-azure-devops"
+if [[ -f "${ENV_FILE_PATH}" && -z "${ADO_PAT}" ]]; then
+    log_info "Existing credential file found: ${ENV_FILE_PATH}"
+    printf "${YELLOW}Reuse existing Azure DevOps PAT?${NC} (Y/n): "
+    read -n 1 -r REUSE_PAT; echo ""
+    if [[ ! "$REUSE_PAT" =~ ^[Nn]$ ]]; then
+        set -a; source "${ENV_FILE_PATH}"; set +a
+        ADO_PAT="${AZURE_DEVOPS_EXT_PAT}"
+        log_success "Loaded existing PAT from ${ENV_FILE_PATH}"
+    fi
+fi
 
 # Interactive prompts for required values
 if [[ -z "$ADO_ORG" ]]; then
@@ -131,7 +142,6 @@ if [[ -z "$ADO_PAT" ]]; then
 fi
 
 # Write env file
-ENV_FILE_PATH="${HOME}/.env.mcp-azure-devops"
 log_info "Generating environment file at: ${ENV_FILE_PATH}"
 cat <<EOF_ENV > "$ENV_FILE_PATH"
 AZURE_DEVOPS_EXT_PAT=${ADO_PAT}

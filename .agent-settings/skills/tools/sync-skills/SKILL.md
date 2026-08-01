@@ -7,6 +7,7 @@ description: >
   without reinstalling ones that are already present.
   Triggers on: "install new skills", "sync skills", "update skill list",
   "check for new skills", "pull skills from registry".
+argument-hint: "[--dry-run] [--skills-dir <path>] [--registry <url>] [--limit <n>]"
 allowed-tools: Bash(bash *), Bash(node *), Bash(npx *)
 ---
 
@@ -27,17 +28,25 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/sync-skills/SKILL.md \
 mkdir -p ~/.copilot/skills/sync-skills
 cp <agent-settings-repo>/.agent-settings/skills/tools/sync-skills/SKILL.md \
    ~/.copilot/skills/sync-skills/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/sync-skills
-cp <agent-settings-repo>/.agent-settings/skills/tools/sync-skills/SKILL.md \
-   ~/.gemini/skills/sync-skills/SKILL.md
 ```
 
 
 This skill compares the registry catalog against the locally installed skills
 and installs any that are missing.  Already-installed skills are never
 re-downloaded (idempotent).
+
+## Arguments
+
+All optional — passed straight through to `scripts/sync-skills.sh`.
+
+| Flag | Meaning |
+|---|---|
+| `--dry-run` | print what would be installed without installing |
+| `--skills-dir <path>` | root skills directory (default: two levels up, i.e. `.agents/skills`) |
+| `--registry <url>` | registry base URL (default: `https://skillhub.example.com`) |
+| `--limit <n>` | max skills to fetch from the registry (default: 200) |
+
+---
 
 ## Bundled Script
 
@@ -48,7 +57,7 @@ The logic lives in `scripts/sync-skills.sh` (relative to this skill folder).
 
 Options:
   --skills-dir <path>   Root skills directory (default: two levels up, i.e. .agents/skills)
-  --registry   <url>    Registry base URL   (default: https://skillhub.vrprod.viveport.com)
+  --registry   <url>    Registry base URL   (default: https://skillhub.example.com)
   --dry-run             Print what would be installed without actually installing
   --limit      <n>      Max skills to fetch from registry (default: 200)
 ```
@@ -71,7 +80,7 @@ SKILLS_ROOT="$(dirname "$SKILL_DIR")"
 ```bash
 bash "$SKILL_DIR/scripts/sync-skills.sh" \
   --skills-dir "$SKILLS_ROOT" \
-  --registry https://skillhub.vrprod.viveport.com
+  --registry https://skillhub.example.com
 ```
 
 Or with a custom registry:

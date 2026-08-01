@@ -1,6 +1,6 @@
 # Tech Plan to Ticket Skill
 
-Automatically generate Jira tickets from a Confluence design review or tech spec page.
+Automatically generate Jira tickets from Confluence documentation.
 
 ## Overview
 

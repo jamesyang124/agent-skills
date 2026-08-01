@@ -22,11 +22,6 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/symlink-worktree-ignored-f
 mkdir -p ~/.copilot/skills/symlink-worktree-ignored-files
 cp <agent-settings-repo>/.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md \
    ~/.copilot/skills/symlink-worktree-ignored-files/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/symlink-worktree-ignored-files
-cp <agent-settings-repo>/.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md \
-   ~/.gemini/skills/symlink-worktree-ignored-files/SKILL.md
 ```
 
 ## Dependencies
@@ -60,6 +55,18 @@ You can also provide the target worktree path directly as an argument to bypass 
 ```bash
 scripts/run_skill.sh /path/to/target/worktree
 ```
+
+## Arguments
+
+All optional.
+
+| Token | Meaning |
+|---|---|
+| a path to a git worktree | target worktree to link into — skips the interactive worktree picker |
+
+The source worktree is always the current directory.
+
+---
 
 ## Skill Script Logic
 

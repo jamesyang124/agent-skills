@@ -32,7 +32,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show help\n"
     printf "    -o, --output FILE       Output config file (overrides interactive selection)\n"
-    printf "    --agent AGENT           gemini | claude | copilot\n"
+    printf "    --agent AGENT           claude | copilot\n"
     printf "    --jira-url URL          Jira instance URL\n"
     printf "    --confluence-url URL    Confluence URL (default: same as Jira)\n\n"
     printf "${YELLOW}Environment:${NC}\n"
@@ -81,34 +81,43 @@ log_success "uvx is available"
 # Interactive agent selection
 if [[ -z "$AGENT" ]]; then
     printf "\n${YELLOW}Select the target agent:${NC}\n"
-    printf "  1) Gemini\n"
-    printf "  2) Claude\n"
-    printf "  3) GitHub Copilot\n"
-    printf "Enter choice [1-3]: "
+    printf "  1) Claude\n"
+    printf "  2) GitHub Copilot\n"
+    printf "Enter choice [1-2]: "
     read -n 1 -r AGENT_CHOICE; echo ""
     case $AGENT_CHOICE in
-        1) AGENT="gemini" ;;
-        2) AGENT="claude" ;;
-        3) AGENT="copilot" ;;
+        1) AGENT="claude" ;;
+        2) AGENT="copilot" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
 
+# Enforce supported agents (guards the --agent flag on every path, incl. with -o)
+case "$AGENT" in
+    claude|copilot) ;;
+    *) log_error "Unsupported agent: ${AGENT}. Use claude or copilot."; exit 1 ;;
+esac
+
 # Resolve output file
 if [[ -z "$OUTPUT_FILE" ]]; then
     case "$AGENT" in
-        gemini)
-            if [[ -f "$HOME/.gemini/antigravity/mcp_config.json" ]]; then
-                OUTPUT_FILE="$HOME/.gemini/antigravity/mcp_config.json"
-            else
-                OUTPUT_FILE="${PROJECT_ROOT}/.gemini/settings.json"
-            fi ;;
         claude)   OUTPUT_FILE="${PROJECT_ROOT}/.mcp.json" ;;
         copilot)  OUTPUT_FILE="${PROJECT_ROOT}/.vscode/mcp.json" ;;
-        *) log_error "Invalid agent: ${AGENT}. Use gemini, claude, or copilot."; exit 1 ;;
+        *) log_error "Invalid agent: ${AGENT}. Use claude or copilot."; exit 1 ;;
     esac
 fi
 log_info "Target config: ${OUTPUT_FILE}"
+
+# Check for existing global credentials — reuse if confirmed
+if [[ -f "${GLOBAL_ENV_FILE}" ]]; then
+    log_info "Existing credential file found: ${GLOBAL_ENV_FILE}"
+    printf "${YELLOW}Reuse existing Atlassian credentials?${NC} (Y/n): "
+    read -n 1 -r REUSE_CREDS; echo ""
+    if [[ ! "$REUSE_CREDS" =~ ^[Nn]$ ]]; then
+        set -a; source "${GLOBAL_ENV_FILE}"; set +a
+        log_success "Loaded credentials for ${JIRA_USERNAME}@${JIRA_URL}"
+    fi
+fi
 
 # Collect Jira URL
 if [[ -z "$JIRA_URL" ]]; then
@@ -118,33 +127,44 @@ if [[ -z "$JIRA_URL" ]]; then
 fi
 CONFLUENCE_URL="${CONFLUENCE_URL:-${JIRA_URL}}"
 
-# Collect credentials
-printf "\n${YELLOW}Enter your Atlassian credentials.${NC}\n"
-printf "Create API tokens at: https://id.atlassian.com/manage-profile/security/api-tokens\n\n"
+# Collect credentials (skipped if loaded from existing env file)
+if [[ -z "$JIRA_USERNAME" || -z "$JIRA_API_TOKEN" ]]; then
+    printf "\n${YELLOW}Enter your Atlassian credentials.${NC}\n"
+    printf "Create API tokens at: https://id.atlassian.com/manage-profile/security/api-tokens\n\n"
 
-printf "${YELLOW}Jira Username (email):${NC} "
-read JIRA_USERNAME
-[[ -z "$JIRA_USERNAME" ]] && { log_error "Jira Username is required"; exit 1; }
+    if [[ -z "$JIRA_USERNAME" ]]; then
+        printf "${YELLOW}Jira Username (email):${NC} "
+        read JIRA_USERNAME
+        [[ -z "$JIRA_USERNAME" ]] && { log_error "Jira Username is required"; exit 1; }
+    fi
 
-printf "${YELLOW}Jira API Token:${NC} "
-read -s JIRA_API_TOKEN; echo ""
-[[ -z "$JIRA_API_TOKEN" ]] && { log_error "Jira API Token is required"; exit 1; }
+    if [[ -z "$JIRA_API_TOKEN" ]]; then
+        printf "${YELLOW}Jira API Token:${NC} "
+        read -s JIRA_API_TOKEN; echo ""
+        [[ -z "$JIRA_API_TOKEN" ]] && { log_error "Jira API Token is required"; exit 1; }
+    fi
 
-printf "\n${YELLOW}Are your Confluence credentials the same as Jira?${NC} (y/N): "
-read -n 1 -r CONFLUENCE_SAME; echo ""
+    if [[ -z "$CONFLUENCE_USERNAME" || -z "$CONFLUENCE_API_TOKEN" ]]; then
+        printf "\n${YELLOW}Are your Confluence credentials the same as Jira?${NC} (y/N): "
+        read -n 1 -r CONFLUENCE_SAME; echo ""
 
-if [[ "$CONFLUENCE_SAME" =~ ^[Yy]$ ]]; then
-    CONFLUENCE_USERNAME="$JIRA_USERNAME"
-    CONFLUENCE_API_TOKEN="$JIRA_API_TOKEN"
-    log_info "Using Jira credentials for Confluence."
+        if [[ "$CONFLUENCE_SAME" =~ ^[Yy]$ ]]; then
+            CONFLUENCE_USERNAME="$JIRA_USERNAME"
+            CONFLUENCE_API_TOKEN="$JIRA_API_TOKEN"
+            log_info "Using Jira credentials for Confluence."
+        else
+            printf "${YELLOW}Confluence Username (email):${NC} "
+            read CONFLUENCE_USERNAME
+            [[ -z "$CONFLUENCE_USERNAME" ]] && { log_error "Confluence Username is required"; exit 1; }
+
+            printf "${YELLOW}Confluence API Token:${NC} "
+            read -s CONFLUENCE_API_TOKEN; echo ""
+            [[ -z "$CONFLUENCE_API_TOKEN" ]] && { log_error "Confluence API Token is required"; exit 1; }
+        fi
+    fi
 else
-    printf "${YELLOW}Confluence Username (email):${NC} "
-    read CONFLUENCE_USERNAME
-    [[ -z "$CONFLUENCE_USERNAME" ]] && { log_error "Confluence Username is required"; exit 1; }
-
-    printf "${YELLOW}Confluence API Token:${NC} "
-    read -s CONFLUENCE_API_TOKEN; echo ""
-    [[ -z "$CONFLUENCE_API_TOKEN" ]] && { log_error "Confluence API Token is required"; exit 1; }
+    CONFLUENCE_USERNAME="${CONFLUENCE_USERNAME:-$JIRA_USERNAME}"
+    CONFLUENCE_API_TOKEN="${CONFLUENCE_API_TOKEN:-$JIRA_API_TOKEN}"
 fi
 
 mkdir -p "$(dirname "$OUTPUT_FILE")"

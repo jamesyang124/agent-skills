@@ -1,6 +1,7 @@
 ---
 name: git-rebase-conflict-resolver
 description: Interactive git rebase conflict resolver with Dry-run, Progressive, and Auto modes. Dry-run predicts conflict paths without touching the branch. Progressive mode is interactive per-conflict. Auto mode resolves autonomously then presents an audit report for approval or rollback. All modes generate a report. Use when rebasing branches, resolving merge conflicts, or asked to help with git rebase.
+argument-hint: "[--dry-run|--progressive|--auto] [target-branch]"
 allowed-tools: Bash(git *), Bash(cat *), Bash(diff *), Bash(grep *), Bash(find *), Bash(echo *), Bash(printf *), Bash(tee *)
 ---
 
@@ -20,6 +21,21 @@ Three modes — all generate a report:
 /git-rebase-conflict-resolver --progressive  # interactive per-conflict
 /git-rebase-conflict-resolver --auto       # autonomous resolution + audit report
 ```
+
+---
+
+## Arguments
+
+All optional.
+
+| Token / flag | Meaning |
+|---|---|
+| `--dry-run` | predict conflicting commits and files; never touch the branch |
+| `--progressive` | interactive per-conflict resolution (**default**) |
+| `--auto` | resolve autonomously, then present an audit report to approve or roll back |
+| any other bare token | rebase target branch |
+
+No mode flag → the Mode Selection prompt runs. No branch token → the Target Branch Selection prompt runs.
 
 ---
 

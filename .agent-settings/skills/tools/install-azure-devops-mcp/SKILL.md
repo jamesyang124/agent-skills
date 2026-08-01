@@ -1,6 +1,7 @@
 ---
 name: install-azure-devops-mcp
-description: Install and configure the Azure DevOps MCP server for Claude, GitHub Copilot, or Gemini agents. Use when setting up Azure DevOps MCP, ADO MCP, work items, repos, pipelines, sprints, wikis, or asked to install azure devops mcp.
+description: Install and configure the Azure DevOps MCP server for Claude or GitHub Copilot agents. Use when setting up Azure DevOps MCP, ADO MCP, work items, repos, pipelines, sprints, wikis, or asked to install azure devops mcp.
+argument-hint: "[claude|copilot] [ado-org]"
 ---
 
 # Install Azure DevOps MCP
@@ -25,17 +26,23 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/install-azure-devops-mcp/S
    ~/.copilot/skills/install-azure-devops-mcp/SKILL.md
 ```
 
-### Gemini (global)
-```bash
-mkdir -p ~/.gemini/skills/install-azure-devops-mcp
-cp <agent-settings-repo>/.agent-settings/skills/tools/install-azure-devops-mcp/SKILL.md \
-   ~/.gemini/skills/install-azure-devops-mcp/SKILL.md
-```
-
 ---
 
 Adds Azure DevOps access to your agent: work items, repos, branches, PRs, pipelines, test plans, sprints, wikis.
 Repository: https://github.com/microsoft/azure-devops-mcp
+
+## Arguments
+
+All optional — anything not passed is asked in Step 1.
+
+| Token | Meaning |
+|---|---|
+| `claude` / `copilot` | which agent to configure |
+| any other bare token | Azure DevOps organization name (e.g. `mycompany`) |
+
+The PAT is never taken as an argument — it is collected in the terminal (Step 2).
+
+---
 
 ## Quick Start
 
@@ -46,7 +53,7 @@ Collect parameters, then run the bundled script. The PAT must be collected via t
 Use `vscode_askQuestions` with:
 
 1. **agent** — which agent to configure
-   - options: `gemini`, `claude`, `copilot`
+   - options: `claude`, `copilot`
 2. **org** — Azure DevOps organization name (e.g. `mycompany`)
 
 ### Step 2 — Run the installer
@@ -61,7 +68,8 @@ PROJECT_ROOT="<workspace-root>" \
 ```
 
 - Set `PROJECT_ROOT` to the user's current workspace folder
-- The script will prompt for a PAT interactively in the terminal (hidden input)
+- If `~/.env.mcp-azure-devops` already exists, the script detects it and asks whether to reuse the stored PAT — no re-entry needed
+- PAT is always prompted interactively in the terminal (hidden input) when no existing file is found
 - The script merges into any existing config file; it will not overwrite other servers
 
 **PAT scopes required:**
@@ -92,7 +100,7 @@ Tell the user: **Restart your agent to load Azure DevOps MCP.**
 }
 ```
 
-**Claude** (`.mcp.json`) / **Gemini** (`.gemini/settings.json`):
+**Claude** (`.mcp.json`):
 ```json
 {
   "mcpServers": {

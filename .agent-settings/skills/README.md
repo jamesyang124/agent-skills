@@ -1,6 +1,6 @@
 # Skills Directory
 
-This directory contains shared skills that can be imported into different AI agent configurations (Claude, Cursor, Gemini, GitHub Copilot, etc.) using symbolic links.
+This directory contains shared skills that can be imported into different AI agent configurations (Claude, GitHub Copilot, etc.) using symbolic links.
 
 ## Overview
 
@@ -30,9 +30,15 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   └── install-external-skills/
 │       └── SKILL.md
 ├── tools/
+│   ├── ado-open-pr/
+│   │   └── SKILL.md
 │   ├── ado-pr-code-review/
 │   │   └── SKILL.md
 │   ├── ado-pr-resolve-comments/
+│   │   └── SKILL.md
+│   ├── api-spec-to-confluence/
+│   │   └── SKILL.md
+│   ├── explain-diff-html/
 │   │   └── SKILL.md
 │   ├── generate-pr-notes/
 │   │   └── SKILL.md
@@ -44,9 +50,15 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   │   └── SKILL.md
 │   ├── install-playwright-mcp/
 │   │   └── SKILL.md
+│   ├── install-sentry-mcp/
+│   │   └── SKILL.md
 │   ├── setup-project-config/
 │   │   └── SKILL.md
+│   ├── spec-recalibrate/
+│   │   └── SKILL.md
 │   ├── symlink-worktree-ignored-files/
+│   │   └── SKILL.md
+│   ├── sync-api-spec/
 │   │   └── SKILL.md
 │   └── sync-skills/
 │       └── SKILL.md
@@ -72,9 +84,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 Use the `import-skills.sh` script to automatically create symlinks:
 
 ```bash
-# Import all skills to Antigravity (targets .agent folder)
-.agent-settings/skills/import-skills.sh agent
-
 # Import all skills to Claude
 .agent-settings/skills/import-skills.sh claude
 
@@ -141,11 +150,17 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 - **setup-project-config** — One-time setup that generates `.agent-settings/project-config.md`. Run before using any Atlassian or ADO skills.
 - **generate-pr-notes** — Automatically generates comprehensive pull request notes based on git changes.
 - **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for git-cliff, with SemVer, Emoji, and commit-splitting support.
-- **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira/Confluence) for Claude, Copilot, or Gemini.
+- **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira/Confluence) for Claude or Copilot.
 - **install-azure-devops-mcp** — Install and configure the Azure DevOps MCP server.
 - **install-playwright-mcp** — Install and configure the Playwright browser-automation MCP server.
 - **ado-pr-code-review** — Security-focused inline code review on an Azure DevOps PR. Requires Azure DevOps MCP.
 - **ado-pr-resolve-comments** — Resolves active review comments on an Azure DevOps PR with user consent. Requires Azure DevOps MCP.
+- **ado-open-pr** — Opens an Azure DevOps PR for the current branch (push, generate description, add reviewers). Requires Azure DevOps MCP.
+- **api-spec-to-confluence** — Publishes a local API spec file to Confluence (local-only variant of `sync-api-spec`'s publish step).
+- **explain-diff-html** — Renders the current diff (or a PR's diff) as a standalone, browsable HTML explainer.
+- **install-sentry-mcp** — Install and configure the Sentry MCP server for error-monitoring lookups.
+- **spec-recalibrate** — Re-syncs local spec-kit/openspec docs against the committed diff when they've drifted from the code.
+- **sync-api-spec** — Scans all API routes and maintains `docs/agents/api-spec.md`. Incremental: only re-scans changed routes. Optional Confluence publish.
 - **symlink-worktree-ignored-files** — Symlinks git-ignored files from source worktree to a target worktree.
 - **sync-skills** — Syncs local `.agents/skills` with the ClawHub registry, installing only missing skills.
 

@@ -1,6 +1,7 @@
 ---
 name: install-playwright-mcp
-description: Install and configure the Playwright browser-automation MCP server for Claude, GitHub Copilot, or Gemini agents. Use when setting up Playwright MCP, browser automation, web testing tools, or asked to install playwright mcp.
+description: Install and configure the Playwright browser-automation MCP server for Claude or GitHub Copilot agents. Use when setting up Playwright MCP, browser automation, web testing tools, or asked to install playwright mcp.
+argument-hint: "[claude|copilot] [headed|headless]"
 ---
 
 # Install Playwright MCP
@@ -25,17 +26,21 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/install-playwright-mcp/SKI
    ~/.copilot/skills/install-playwright-mcp/SKILL.md
 ```
 
-### Gemini (global)
-```bash
-mkdir -p ~/.gemini/skills/install-playwright-mcp
-cp <agent-settings-repo>/.agent-settings/skills/tools/install-playwright-mcp/SKILL.md \
-   ~/.gemini/skills/install-playwright-mcp/SKILL.md
-```
-
 ---
 
 Adds browser automation to your agent: navigate, screenshot, click, fill forms, intercept network.
 Repository: https://github.com/microsoft/playwright-mcp
+
+## Arguments
+
+All optional — anything not passed is asked in Step 1.
+
+| Token | Meaning |
+|---|---|
+| `claude` / `copilot` | which agent to configure |
+| `headed` / `headless` | browser mode (`headed` is the default) |
+
+---
 
 ## Quick Start
 
@@ -46,7 +51,7 @@ Ask the user two questions, then run the bundled script.
 Use `vscode_askQuestions` with:
 
 1. **agent** — which agent to configure
-   - options: `gemini`, `claude`, `copilot`
+   - options: `claude`, `copilot`
 2. **mode** — browser mode
    - options: `headed` (default, shows browser window), `headless`
 
@@ -83,7 +88,7 @@ Tell the user: **Restart your agent to load Playwright MCP.**
 }
 ```
 
-**Claude** (`.mcp.json`) / **Gemini** (`.gemini/settings.json`):
+**Claude** (`.mcp.json`):
 ```json
 {
   "mcpServers": {

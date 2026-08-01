@@ -1,6 +1,6 @@
 ---
 name: ado-pr-code-review
-description: Perform a security-focused code review on an Azure DevOps PR by URL. Posts inline LOC-level review comments. Checks for PII exposure in public-facing APIs/UI/URLs, missing input validation (XSS/injection), and error response structure (must carry 'code' field). Use when asked to review a PR, code review ado PR, security review pull request, or given an Azure DevOps PR URL.
+description: Perform a security-focused code review on an Azure DevOps PR by URL. Posts inline LOC-level review comments. Checks for PII exposure in public-facing APIs/UI/URLs, missing input validation (XSS/injection), error response structure (must carry 'code' field), and mandatory OWASP/CWE risk coverage (OWASP Top 10, CWE Top 25, OWASP API Top 10, OWASP Mobile Top 10, and OWASP IoT Top 10). Use when asked to review a PR, code review ado PR, security review pull request, or given an Azure DevOps PR URL.
 argument-hint: "<azure-devops-pr-url>"
 allowed-tools: mcp_azure_devops__repo_get_pull_request_by_id, mcp_azure_devops__repo_get_pull_request_changes, mcp_azure_devops__repo_get_file_content, mcp_azure_devops__repo_create_pull_request_thread, mcp_azure_devops__repo_list_pull_request_threads
 ---
@@ -28,18 +28,10 @@ curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engin
 # Then reference it from your global Copilot instructions file.
 ```
 
-### Gemini (global)
-```bash
-mkdir -p ~/.gemini/skills/diagnose
-curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnose/SKILL.md \
-  -o ~/.gemini/skills/diagnose/SKILL.md
-```
-
 ### Via agent-settings import-skills.sh (project-local)
 ```bash
 # If using this agent-settings repo, import it into a project:
 .agent-settings/skills/import-skills.sh claude diagnose     # Claude / Copilot
-.agent-settings/skills/import-skills.sh gemini diagnose     # Gemini
 ```
 
 > The diagnose skill must be visible to your agent before proceeding.
@@ -47,6 +39,16 @@ curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engin
 ---
 
 Security-focused PR review that posts inline LOC-level comments on the diff.
+
+## Arguments
+
+| Token | Meaning |
+|---|---|
+| an Azure DevOps PR URL | **required** — the PR to review; parsed in Step 1 |
+
+No URL → ask for one before doing anything else.
+
+---
 
 ## Step 1 — Parse the PR URL
 
@@ -153,9 +155,30 @@ If it is valid, add a code comment explaining the design intent so future review
 
 ## Step 3 — Analyze each file
 
-For every changed file apply all three review lenses below. Collect findings as a list of `{filePath, line, severity, title, body}` tuples — **one finding per line**.
+For every changed file apply all required review lenses below (A-H), based on file surface and runtime context. Collect findings as a list of `{filePath, line, severity, title, body}` tuples — **one finding per line**.
 
 Do not post a single overall summary comment. Every finding must be attached to a specific line.
+
+## Baseline Standards (Must Use Latest Version)
+
+Before evaluating findings, use the latest available release of each standard below (do not rely on outdated versions if a newer release exists):
+
+- OWASP Code Review Guide: https://owasp.org/www-project-code-review-guide/assets/OWASP_Code_Review_Guide_v2.pdf
+- OWASP Top 10 Web: https://owasp.org/www-project-top-ten/
+- CWE Top 25: https://cwe.mitre.org/top25/
+- OWASP API Security Top 10: https://owasp.org/API-Security/
+- OWASP Mobile Top 10: https://owasp.org/www-project-mobile-top-10/
+- OWASP IoT Top 10 / IoT project: https://owasp.org/www-project-internet-of-things/
+
+As of 2026-06 reference points are:
+
+- OWASP Top 10 Web: 2025
+- CWE Top 25: 2025 list
+- OWASP API Security Top 10: 2023
+- OWASP Mobile Top 10: 2024 final release
+- OWASP IoT Top 10: latest archived OWASP IoT Top 10 guidance (no newer replacement shown on project page)
+
+If a newer edition is published, use the newer edition immediately.
 
 ---
 
@@ -232,7 +255,7 @@ For each null/empty finding, **ask the author** whether the empty/nil state is i
 
 **Comment template — missing type/length/format validation**:
 ```
-� **Medium — No input validation on `{parameter/field}`**
+🟡 **Medium — No input validation on `{parameter/field}`**
 
 `{parameter/field}` is user-supplied with no visible type/length/format constraint.
 This may allow unexpected values that could lead to XSS or injection.
@@ -281,7 +304,7 @@ Flag when:
 
 **Comment template**:
 ```
-� **Medium — Error response missing `code` field**
+🟡 **Medium — Error response missing `code` field**
 
 This error response does not include a `code` field. Callers must be able to identify
 error types via a stable `code` (not `message`, which can change with copy/i18n).
@@ -300,6 +323,115 @@ For example:
 Use 🔴 Critical if this is a contract-breaking change where a downstream caller currently reads `.code`. Use 🟡 Medium for new endpoints.
 
 Post on the **line where the error response object is constructed or returned**.
+
+---
+
+### Lens D — OWASP Top 10 Web (Latest)
+
+Map changed code to OWASP Top 10 categories and flag applicable issues, with emphasis on:
+
+- Broken access control
+- Cryptographic failures
+- Injection
+- Insecure design
+- Security misconfiguration
+- Vulnerable/outdated components
+- Identification/authentication failures
+- Software/data integrity failures
+- Security logging/monitoring failures
+- SSRF
+
+Rules:
+
+- Use current OWASP Top 10 terminology and IDs from the latest edition.
+- If the code introduces one of these risks, post a finding with a concrete exploit path.
+- If no category applies for a file, do not force a finding.
+
+Post on the most specific risky line (sink, policy bypass, or insecure config declaration).
+
+---
+
+### Lens E — CWE Top 25 (Latest)
+
+Map findings to CWE IDs from the latest CWE Top 25 list.
+
+Rules:
+
+- Every high-confidence weakness should include at least one CWE mapping (for example `CWE-79`, `CWE-89`, `CWE-22`, `CWE-287`, `CWE-502`).
+- Prefer the most specific CWE that matches code behavior.
+- If uncertainty is high, use a question-severity comment and ask for clarification before asserting a CWE.
+
+Comment addition requirement:
+
+Add a final line to each applicable comment:
+`CWE Mapping: CWE-XXX ({short name})`
+
+---
+
+### Lens F — OWASP API Security Top 10 (Latest)
+
+For API code paths, evaluate against current OWASP API Top 10 categories, including at minimum:
+
+- API1 Broken Object Level Authorization (BOLA)
+- API2 Broken Authentication
+- API3 Broken Object Property Level Authorization (BOPLA)
+- API4 Unrestricted Resource Consumption
+- API5 Broken Function Level Authorization
+- API6 Unrestricted Access to Sensitive Business Flows
+- API7 Server Side Request Forgery
+- API8 Security Misconfiguration
+- API9 Improper Inventory Management
+- API10 Unsafe Consumption of APIs
+
+Flag missing object-level authorization checks, tenant scoping flaws, unconstrained pagination, missing rate limiting, privileged function exposure, and untrusted upstream API handling.
+
+Post on the authorization decision point, route handler, or outbound API consumption line.
+
+---
+
+### Lens G — OWASP Mobile Top 10 (Latest)
+
+When changed code affects mobile apps, SDKs, mobile APIs, or app-backend contracts used by mobile clients, evaluate against the latest OWASP Mobile Top 10.
+
+Check for at least:
+
+- Improper credential usage
+- Inadequate supply chain security
+- Insecure authentication/authorization
+- Insufficient input/output validation
+- Insecure communication
+- Inadequate privacy controls
+- Insufficient binary protections
+- Security misconfiguration
+- Insecure data storage
+- Insufficient cryptography
+
+Flag risky local storage, hardcoded secrets, weak transport/crypto defaults, weak token/session handling, and missing anti-tamper assumptions in client-trusting flows.
+
+Post where the insecure mobile-facing contract, storage usage, credential handling, or crypto/transport config is defined.
+
+---
+
+### Lens H — OWASP IoT Top 10 (Latest Available)
+
+When changed code affects device firmware, embedded services, management planes, device onboarding, OTA update flow, or IoT cloud control APIs, evaluate against OWASP IoT Top 10 guidance (latest available from OWASP IoT project/archive).
+
+Check for at least:
+
+- Weak/guessable/default passwords
+- Insecure network services
+- Insecure ecosystem interfaces (web/cloud/mobile/API)
+- Lack of secure update mechanism
+- Use of insecure or outdated components
+- Insufficient privacy protection
+- Insecure data transfer/storage
+- Lack of device management and monitoring
+- Insecure default settings
+- Lack of physical hardening assumptions where relevant
+
+Flag unauthenticated device actions, unsigned update paths, insecure provisioning, exposed debug/admin interfaces, and missing device identity validation.
+
+Post where trust is established or broken (auth boundary, update verifier, provisioning logic, or control-plane endpoint).
 
 ---
 
@@ -342,7 +474,7 @@ Automated security-focused review. Findings grouped by severity.
 
 ---
 
-All findings posted as inline comments. Lenses covered: PII exposure · Input validation · Error code contract.
+All findings posted as inline comments. Lenses covered: PII exposure · Input validation · Error code contract · OWASP Top 10 Web · CWE Top 25 · OWASP API Top 10 · OWASP Mobile Top 10 · OWASP IoT Top 10.
 ```
 
 Omit any severity section that has 0 findings.
@@ -350,7 +482,7 @@ Omit any severity section that has 0 findings.
 ## Notes
 
 - Skip binary files, lock files (`*.lock`, `package-lock.json`), and generated files
-- If a file has no public-facing surface (e.g. internal utility with no HTTP/UI exposure), skip Lens A for that file but still apply Lenses B and C
+- If a file has no public-facing surface (e.g. internal utility with no HTTP/UI exposure), skip Lens A for that file but still apply relevant lenses (always B and C; plus D-H where applicable)
 - When in doubt about PII risk, **always** leave the comment — it is better to flag and let the author judge than to miss a leak
 - Do not flag intentional internal IDs used only in backend-to-backend calls that never reach a client
 

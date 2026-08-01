@@ -1,6 +1,7 @@
 ---
 name: git-commit-conventional-strict
 description: Strict Conventional Commits generator optimized for git-cliff, with SemVer and Emoji support. Use when committing code changes, writing commit messages, or when asked to commit with conventional format, semantic versioning, emoji commits, or gitmoji.
+argument-hint: "[TICKET-123] [scope]"
 allowed-tools: Bash(git *)
 ---
 
@@ -21,15 +22,24 @@ cp <agent-settings-repo>/.agent-settings/skills/tools/git-commit-conventional-st
 mkdir -p ~/.copilot/skills/git-commit-conventional-strict
 cp <agent-settings-repo>/.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md \
    ~/.copilot/skills/git-commit-conventional-strict/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/git-commit-conventional-strict
-cp <agent-settings-repo>/.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md \
-   ~/.gemini/skills/git-commit-conventional-strict/SKILL.md
 ```
 
 
 You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your goal is to generate git commit messages that are machine-readable for tools like `git-cliff` while remaining human-readable.
+
+## Arguments
+
+All optional. The message itself is always derived from the current git diff.
+
+| Token shape | Interpreted as |
+|---|---|
+| matches `[A-Z]+-\d+` | Jira ticket ID — skips the step 5 prompt and goes straight into the subject line as `type(scope): emoji [TICKET-ID] description` |
+| `no` / `none` / `skip` / `n` | commit with **no** ticket — skips the step 5 prompt |
+| anything else | scope override (e.g. `auth`, `ui`, `deps`) instead of the scope inferred from the diff |
+
+No ticket token → step 5 asks for one.
+
+---
 
 ## Core Rules
 
@@ -97,8 +107,8 @@ You are an expert in Semantic Versioning (SemVer) and Conventional Commits. Your
     - **Implementation files**: Source code, tests, configuration files
     - If BOTH types are present, split into separate commits (see Commit Splitting Strategy below)
 3.  **Determine SemVer**: Is this a Patch (fix), Minor (feat), or Major (Breaking) change?
-4.  **Identify Scope**: Which module constitutes the primary scope (e.g., auth, ui, deps)?
-5.  **Ask for Jira ticket (optional)**:
+4.  **Identify Scope**: Which module constitutes the primary scope (e.g., auth, ui, deps)? A scope passed as an argument wins over the one inferred from the diff.
+5.  **Ask for Jira ticket (optional)** — **skip this prompt entirely if a ticket ID or a skip token was passed as an argument**:
     - Ask: "Jira ticket ID? Type the ID (e.g. PROJ-1234) or type n to skip"
     - Treat `n`, `no`, `none`, `skip`, `n/a`, `-` as "no ticket" — omit entirely
     - If a real ticket ID is given, place it in the **subject line, after the emoji, before the description**:
@@ -155,12 +165,12 @@ git commit -m "feat(api): ✨ implement user authentication endpoint"
 - **Documentation**: docs: 📝 update contribution guidelines
 - **Multi-point body (use bullets)**:
   ```
-  chore(codex): 🔧 remove codex support
+  refactor(agents): ♻️ limit supported agents to claude and copilot
 
   - remove interactive menu option and --agent flag value
-  - remove TOML config block from install-atlassian-mcp.sh
-  - add explicit rejection in import-skills.sh
-  - drop codex references from .agent-settings docs
+  - add explicit whitelist guard in install scripts
+  - reject unsupported agents in import-skills.sh
+  - drop references from .agent-settings docs
   ```
 - **Spec + Implementation (split)**:
   - Commit 1: `docs(api): 📝 define product search filtering spec`

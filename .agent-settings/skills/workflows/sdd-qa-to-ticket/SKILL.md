@@ -1,6 +1,7 @@
 ---
 name: sdd-qa-to-ticket
 description: Reads local SDD artifacts (from spec-kit, openspec, or similar tools) and derives BDD QA scenarios, then creates QA sub-tickets under the existing root Jira ticket from Phase 7. Use this as the explicit QA hand-off after a PR is created in the SDD workflow.
+argument-hint: "[TICKET-123] [feature-dir]"
 ---
 
 # SDD QA to Ticket
@@ -20,11 +21,6 @@ cp <agent-settings-repo>/.agent-settings/skills/workflows/sdd-qa-to-ticket/SKILL
 mkdir -p ~/.copilot/skills/sdd-qa-to-ticket
 cp <agent-settings-repo>/.agent-settings/skills/workflows/sdd-qa-to-ticket/SKILL.md \
    ~/.copilot/skills/sdd-qa-to-ticket/SKILL.md
-
-# Gemini
-mkdir -p ~/.gemini/skills/sdd-qa-to-ticket
-cp <agent-settings-repo>/.agent-settings/skills/workflows/sdd-qa-to-ticket/SKILL.md \
-   ~/.gemini/skills/sdd-qa-to-ticket/SKILL.md
 ```
 
 
@@ -36,6 +32,19 @@ This skill bridges the **Implement** and **QA** phases of the SDD workflow. It r
 
 All QA sub-tickets **must follow** the BDD template at:
 `references/qa-ticket-template.md` (relative to this skill folder: `.agent-settings/skills/sdd-qa-to-ticket`)
+
+## Arguments
+
+All optional — anything not passed is asked for.
+
+| Token shape | Interpreted as |
+|---|---|
+| matches `[A-Z]+-\d+` | root Jira ticket key from Phase 7 — the parent for the QA sub-tickets |
+| anything else | SDD feature directory holding the artifacts to read |
+
+The root ticket key is **required** to proceed — sub-tickets cannot be created without a parent.
+
+---
 
 ## Prerequisites
 

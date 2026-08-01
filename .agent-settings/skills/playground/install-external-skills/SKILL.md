@@ -1,6 +1,7 @@
 ---
 name: install-external-skills
 description: Interactive multi-select installer for external agent skill registries. Reads project-config.md to derive best-fit skills for the project, fetches latest version info from GitHub, and installs selected skills via npx. Supports supabase/agent-skills, vercel-labs/agent-skills, and antonbabenko/terraform-skill. Use when asked to install external skills, browse skill registries, or add community skills.
+argument-hint: "(no arguments - interactive multi-select)"
 allowed-tools: Bash(npx *), Bash(curl *), Bash(node *), Bash(cat *), Bash(echo *), Bash(printf *), Bash(which *)
 ---
 
@@ -13,6 +14,12 @@ Reads your project config to recommend best-fit skills, fetches the latest regis
 ```
 /install-external-skills
 ```
+
+---
+
+## Arguments
+
+None. Fully interactive — the skill reads `.agent-settings/project-config.md`, then prompts for registry selection (Phase 1) and skill selection (Phase 3).
 
 ---
 

@@ -34,7 +34,7 @@ show_help() {
     printf "${YELLOW}Options:${NC}\n"
     printf "    -h, --help              Show help\n"
     printf "    -o, --output FILE       Output file (overrides interactive selection)\n"
-    printf "    --agent AGENT           Specify agent: 'gemini', 'claude', or 'copilot'\n"
+    printf "    --agent AGENT           Specify agent: 'claude' or 'copilot'\n"
     printf "    --headless              Configure for headless mode (default: headed)\n\n"
     printf "${YELLOW}Examples:${NC}\n"
     printf "    ./install-playwright-mcp.sh\n"
@@ -75,33 +75,31 @@ log_success "npx is available"
 # Interactive agent selection if not provided
 if [[ -z "$AGENT" ]]; then
     printf "\n${YELLOW}Select the target agent:${NC}\n"
-    printf "  1) Gemini\n"
-    printf "  2) Claude\n"
-    printf "  3) GitHub Copilot\n"
-    printf "Enter choice [1-3]: "
+    printf "  1) Claude\n"
+    printf "  2) GitHub Copilot\n"
+    printf "Enter choice [1-2]: "
     read -n 1 -r AGENT_CHOICE
     echo ""
     case $AGENT_CHOICE in
-        1) AGENT="gemini" ;;
-        2) AGENT="claude" ;;
-        3) AGENT="copilot" ;;
+        1) AGENT="claude" ;;
+        2) AGENT="copilot" ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
 fi
 
+# Enforce supported agents (guards the --agent flag on every path, incl. with -o)
+case "$AGENT" in
+    claude|copilot) ;;
+    *) log_error "Unsupported agent: ${AGENT}. Use claude or copilot."; exit 1 ;;
+esac
+
 if [[ -z "$OUTPUT_FILE" ]]; then
-    if [[ "$AGENT" == "gemini" ]]; then
-        if [[ -f "$HOME/.gemini/antigravity/mcp_config.json" ]]; then
-            OUTPUT_FILE="$HOME/.gemini/antigravity/mcp_config.json"
-        else
-            OUTPUT_FILE="${PROJECT_ROOT}/.gemini/settings.json"
-        fi
-    elif [[ "$AGENT" == "claude" ]]; then
+    if [[ "$AGENT" == "claude" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.mcp.json"
     elif [[ "$AGENT" == "copilot" ]]; then
         OUTPUT_FILE="${PROJECT_ROOT}/.vscode/mcp.json"
     else
-        log_error "Invalid agent specified: ${AGENT}. Use 'gemini', 'claude', or 'copilot'."
+        log_error "Invalid agent specified: ${AGENT}. Use 'claude' or 'copilot'."
         exit 1
     fi
 fi
