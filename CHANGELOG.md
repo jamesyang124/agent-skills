@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2026-10-01]
+
+### Added
+- `own-skills/perf-ticket-harness` — evidence-first harness for perf / lock-contention tickets
+  (verify report → bench loop → findings md+html → standalone POC → candidates → spec-kit impl →
+  bench-verified PR → self-review). Includes `scripts/scaffold.sh` (per-ticket bench dir from
+  templates), `scripts/md2html.py` (dependency-free report renderer), and templates for the bench
+  README, `run.sh`, `snapshot.sql`, findings, POC results, and solution candidates. Distilled from
+  the CONNECT-6031 `room.view_count` investigation.
+
 ## [2026-03-06]
 
 ### Added

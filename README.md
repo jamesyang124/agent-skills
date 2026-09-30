@@ -279,3 +279,12 @@ To contribute a new skill:
 ## License
 
 See [LICENSE](LICENSE) file for details.
+
+## Own Skills (`own-skills/`)
+
+Self-authored skills that are not sourced from an external registry. Install globally by copying the
+skill directory to `~/.agents/skills/<name>` and symlinking it into each agent's skills directory
+(`~/.claude/skills`, `~/.codex/skills`, `~/.copilot/skills`).
+
+*   **perf-ticket-harness** — Evidence-first harness for performance / hot-query / lock-contention tickets. Eight phases with gates: verify the SRE report against code, build a repeatable bench under `docs/perf-poc-shared/<ticket-slug>/` that reproduces the symptom, write a numbers-only findings report (md + html via `scripts/md2html.py`), POC the candidate fix as a standalone program, draft all solution candidates, implement through the target repo's spec-kit flow, verify with the same bench, commit/push/PR, and self-review with `ado-pr-code-review`. Argument: the Jira ticket id. Reference run: CONNECT-6031.
+    [View Details](own-skills/perf-ticket-harness/SKILL.md)

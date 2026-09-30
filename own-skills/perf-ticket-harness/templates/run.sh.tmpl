@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+# run.sh — perf-ticket-harness bench loop for {{SLUG}}.
+# Derived from the CONNECT-6031 reference run (graphify-knowledge/docs/perf-poc-shared/connect-6031-view-count/run.sh).
+# Every TODO_* token is ticket-specific: base compose file, DB user/name, bench-entity predicate, hotspot entity,
+# the flagged SQL pattern, any-write pattern (so a candidate's new statement is counted too), and the endpoint path.
+# Keep the phases: preflight → reset → snapshot → sampler → load (+blocker) → snapshot → results.md → bench-log.
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$DIR/../../.." && pwd)"
+BASE_COMPOSE="$ROOT/TODO-service/local/docker-compose.yml"
+COMPOSE=(docker-compose -f "$BASE_COMPOSE" -f "$DIR/docker-compose.yml")
+PG=("${COMPOSE[@]}" exec -T postgres psql -X -v ON_ERROR_STOP=1 -U TODO_db_user -d TODO_db_name)
+source "$DIR/../bench-utils.sh"
+
+# ── Params ────────────────────────────────────────────────────────────────────
+SCENARIO="${SCENARIO:-uniform}"       # uniform (random over N_ROOMS) | hotspot (all on b222223 = bench room 1)
+N_ROOMS="${N_ROOMS:-1000}"
+N_REQS="${N_REQS:-2000}"              # total POST /viewed requests
+CONC="${CONC:-20}"                    # concurrent curl workers (xargs -P)
+FEED_RATIO="${FEED_RATIO:-0}"         # fraction of requests with ?source=feed
+BLOCKER="${BLOCKER:-none}"            # none | row | index
+BLOCK_SEC="${BLOCK_SEC:-30}"
+BLOCK_AT="${BLOCK_AT:-20}"            # seconds into the load before the blocker starts
+NOTE="${NOTE:-}"
+APP_URL="${APP_URL:-http://localhost:5679}"
+
+# ── Run identity ──────────────────────────────────────────────────────────────
+LOG="$DIR/bench-log.md"
+RUN_TS=$(date -u '+%Y%m%dT%H%M%SZ')
+if [[ -f "$LOG" ]]; then
+  RUN_NUM=$(grep -c '^## Run #' "$LOG" 2>/dev/null || true); RUN_NUM=$(( ${RUN_NUM:-0} + 1 ))
+else
+  RUN_NUM=1
+fi
+RUN_ID=$(printf "run%04d_%s" "$RUN_NUM" "$RUN_TS")
+RUN_DIR="$DIR/runs/$(printf "run-%02d" "$RUN_NUM")"
+mkdir -p "$RUN_DIR"
+echo "==> $RUN_ID → $RUN_DIR"
+
+# ── 1. Preflight ──────────────────────────────────────────────────────────────
+curl -sf "$APP_URL/health" >/dev/null || { echo "app not healthy at $APP_URL"; exit 1; }
+"${PG[@]}" -v n_rooms="$N_ROOMS" -f - < "$DIR/seed-rooms.sql" | tail -2
+CMS_SHA=$(git -C "$ROOT/hubs-cms-go" rev-parse --short HEAD)$(git -C "$ROOT/hubs-cms-go" diff --quiet || echo "-dirty")
+DTS_TOKEN=$("${PG[@]}" -tA -c "SELECT token FROM directus_users WHERE email='admin@htc.com' AND token IS NOT NULL LIMIT 1" || true)
+ACCOUNTABILITY=$(curl -sf -H "Authorization: Bearer ${DTS_TOKEN:-none}" http://localhost:8055/collections/room | jq -r '.data.meta.accountability // "unknown"' 2>/dev/null || echo unknown)
+SF_ENABLED=$("${COMPOSE[@]}" exec -T app sh -c 'echo ${DTS_SF_ENABLED:-default-true}' | tr -d '\r')
+ASYNC_ENABLED=$("${COMPOSE[@]}" exec -T app sh -c 'echo ${VIEW_COUNT_ASYNC_ENABLED:-default-false}' | tr -d '\r')
+cat > "$RUN_DIR/params.env" <<EOF
+RUN_ID=$RUN_ID
+SCENARIO=$SCENARIO
+N_ROOMS=$N_ROOMS
+N_REQS=$N_REQS
+CONC=$CONC
+FEED_RATIO=$FEED_RATIO
+BLOCKER=$BLOCKER
+BLOCK_SEC=$BLOCK_SEC
+BLOCK_AT=$BLOCK_AT
+CMS_SHA=$CMS_SHA
+ROOM_ACCOUNTABILITY=$ACCOUNTABILITY
+DTS_SF_ENABLED=$SF_ENABLED
+VIEW_COUNT_ASYNC_ENABLED=$ASYNC_ENABLED
+NOTE=$NOTE
+EOF
+
+# ── 2. Reset ──────────────────────────────────────────────────────────────────
+"${PG[@]}" -q <<'SQL'
+UPDATE room SET view_count = 0, feed_view_count = 0 WHERE TODO_entity_filter;
+TRUNCATE directus_revisions, directus_activity;
+SELECT pg_stat_statements_reset();
+SELECT pg_stat_reset();
+SQL
+"${COMPOSE[@]}" exec -T redis redis-cli FLUSHALL >/dev/null
+sleep 2
+
+# ── 3. Snapshot before ────────────────────────────────────────────────────────
+"${PG[@]}" -tA -f - < "$DIR/snapshot.sql" > "$RUN_DIR/before.json"
+
+# ── 4. Wait sampler ───────────────────────────────────────────────────────────
+printf 'ts\tungranted_locks\tpid\twait_event_type\twait_event\tquery\n' > "$RUN_DIR/waits.tsv"
+(
+  while true; do
+    "${PG[@]}" -tA -F $'\t' -c "
+      SELECT now()::time(0), (SELECT count(*) FROM pg_locks WHERE NOT granted), pid,
+             coalesce(wait_event_type,'-'), coalesce(wait_event,'-'), left(regexp_replace(query, '\s+', ' ', 'g'), 70)
+      FROM pg_stat_activity
+      WHERE state <> 'idle' AND pid <> pg_backend_pid() AND backend_type = 'client backend'
+        AND query NOT ILIKE '%pg_stat_activity%'" >> "$RUN_DIR/waits.tsv" 2>/dev/null || true
+    sleep 1
+  done
+) &
+SAMPLER_PID=$!
+
+# ── 5. Load (+ blocker) ───────────────────────────────────────────────────────
+if [[ "$BLOCKER" != "none" ]]; then
+  (
+    sleep "$BLOCK_AT"
+    echo "==> blocker=$BLOCKER for ${BLOCK_SEC}s"
+    case "$BLOCKER" in
+      row)   "${PG[@]}" -q -c "BEGIN; SELECT id FROM room WHERE TODO_hot_entity FOR UPDATE; SELECT pg_sleep($BLOCK_SEC); COMMIT;" ;;
+      index) "${PG[@]}" -q -c "BEGIN; CREATE INDEX bench_blocker ON room(title); SELECT pg_sleep($BLOCK_SEC); COMMIT;" \
+             && "${PG[@]}" -q -c "DROP INDEX IF EXISTS bench_blocker;" ;;
+      *) echo "unknown BLOCKER=$BLOCKER" ;;
+    esac
+    echo "==> blocker released"
+  ) &
+  BLOCKER_PID=$!
+fi
+
+echo "==> load: $SCENARIO, $N_REQS requests, concurrency $CONC"
+URLS="$RUN_DIR/urls.txt"
+# hub_sid of bench room g = "b" + 6 base-8 digits of g shifted to 2..9 (same encoding as seed-rooms.sql)
+awk -v n="$N_REQS" -v rooms="$N_ROOMS" -v sc="$SCENARIO" -v fr="$FEED_RATIO" -v base="$APP_URL" '
+function enc(g,   o, i, r) { o=""; for(i=0;i<6;i++){ r=g%8; o=substr("23456789", r+1, 1) o; g=int(g/8) } return o }
+BEGIN{
+  srand(42);
+  for(i=0;i<n;i++){
+    g = (sc=="hotspot") ? 1 : 1+int(rand()*rooms);
+    hub = "b" enc(g);
+    q = (fr>0 && rand()<fr) ? "?source=feed" : "";
+    printf "%sTODO/endpoint/%s%s\n", base, hub, q
+  }}' > "$URLS"
+LOAD_T0=$(date +%s)
+xargs -P "$CONC" -n 1 -I{} curl -s -o /dev/null -X POST -w '%{http_code}\t%{time_total}\t%{url}\n' '{}' < "$URLS" > "$RUN_DIR/load.tsv" || true
+LOAD_SEC=$(( $(date +%s) - LOAD_T0 ))
+echo "==> load done in ${LOAD_SEC}s"
+
+[[ -n "${BLOCKER_PID:-}" ]] && wait "$BLOCKER_PID" || true
+kill "$SAMPLER_PID" 2>/dev/null || true
+wait "$SAMPLER_PID" 2>/dev/null || true
+sleep 2
+
+# ── 6. Snapshot after ─────────────────────────────────────────────────────────
+"${PG[@]}" -tA -f - < "$DIR/snapshot.sql" > "$RUN_DIR/after.json"
+
+# ── 7. Diff → results.md ──────────────────────────────────────────────────────
+plain_ok=$(awk -F'\t' '$1==200 && $3 !~ /source=feed/' "$RUN_DIR/load.tsv" | wc -l | tr -d ' ')
+feed_ok=$(awk -F'\t' '$1==200 && $3 ~ /source=feed/' "$RUN_DIR/load.tsv" | wc -l | tr -d ' ')
+viewed_ok=$(( plain_ok + feed_ok ))
+n_sent=$(wc -l < "$RUN_DIR/load.tsv" | tr -d ' ')
+err_rate=$(awk -F'\t' -v n="$n_sent" 'BEGIN{e=0} $1!=200{e++} END{if(n>0) printf "%.2f", 100*e/n; else print "n/a"}' "$RUN_DIR/load.tsv")
+lat() { awk -F'\t' '{print $2*1000}' "$RUN_DIR/load.tsv" | sort -n | awk -v p="$1" '{a[NR]=$1} END{if(NR==0){print 0; exit} i=int(NR*p); if(i<1)i=1; printf "%.1f", a[i]}'; }
+p50=$(lat 0.50); p95=$(lat 0.95); p99=$(lat 0.99)
+kmax=$(awk -F'\t' 'BEGIN{m=0} {if($2*1000>m)m=$2*1000} END{printf "%.1f", m}' "$RUN_DIR/load.tsv")
+rps=$( [[ "$LOAD_SEC" -gt 0 ]] && awk -v n="$n_sent" -v s="$LOAD_SEC" 'BEGIN{printf "%.1f", n/s}' || echo "n/a" )
+
+sum_before=$(jq -r '.bench_view_count_sum' "$RUN_DIR/before.json")
+sum_after=$(jq -r '.bench_view_count_sum' "$RUN_DIR/after.json")
+actual=$(( sum_after - sum_before ))
+lost=$(( viewed_ok - actual ))
+
+# statement rows: after only (counters were reset before the run)
+STMT_TABLE=$(jq -r '
+  .statements[] | select(.calls > 0) |
+  "| \(.calls) | \(.mean_exec_time*100|round/100) | \(.max_exec_time*100|round/100) | \(.stddev_exec_time*100|round/100) | \(.total_exec_time|round) | \(.rows) | \(.shared_blks_hit) | \(.shared_blks_read) | \(.wal_bytes) | `\(.query|gsub("\\s+";" ")|.[0:110])` |"
+' "$RUN_DIR/after.json")
+upd_calls=$(jq -r '[.statements[] | select(.query | test("TODO_flagged_sql_pattern"; "i")) | .calls] | add // 0' "$RUN_DIR/after.json")
+upd_mean=$(jq -r '[.statements[] | select(.query | test("TODO_flagged_sql_pattern"; "i")) | .mean_exec_time] | max // 0 | . * 100 | round / 100' "$RUN_DIR/after.json")
+upd_max=$(jq -r '[.statements[] | select(.query | test("TODO_flagged_sql_pattern"; "i")) | .max_exec_time] | max // 0 | . * 100 | round / 100' "$RUN_DIR/after.json")
+upd_stddev=$(jq -r '[.statements[] | select(.query | test("TODO_flagged_sql_pattern"; "i")) | .stddev_exec_time] | max // 0 | . * 100 | round / 100' "$RUN_DIR/after.json")
+any_upd_calls=$(jq -r '[.statements[] | select(.query | test("TODO_any_write_pattern"; "i")) | .calls] | add // 0' "$RUN_DIR/after.json")
+updates_per_200=$( [[ "$viewed_ok" -gt 0 ]] && awk -v a="$any_upd_calls" -v b="$viewed_ok" 'BEGIN{printf "%.3f", a/b}' || echo "n/a" )
+selects_per_200=$(jq -r --argjson ok "$viewed_ok" '[.statements[] | select(.query | test("^select"; "i")) | .calls] | add // 0 | if $ok > 0 then (. / $ok * 100 | round / 100) else "n/a" end' "$RUN_DIR/after.json")
+
+tbl() { jq -r ".tables.$1" "$2"; }
+act_rows=$(( $(tbl directus_activity_rows "$RUN_DIR/after.json") - $(tbl directus_activity_rows "$RUN_DIR/before.json") ))
+rev_rows=$(( $(tbl directus_revisions_rows "$RUN_DIR/after.json") - $(tbl directus_revisions_rows "$RUN_DIR/before.json") ))
+rev_bytes=$(( $(tbl directus_revisions_bytes "$RUN_DIR/after.json") - $(tbl directus_revisions_bytes "$RUN_DIR/before.json") ))
+tup_upd=$(( $(tbl room_n_tup_upd "$RUN_DIR/after.json") - $(tbl room_n_tup_upd "$RUN_DIR/before.json") ))
+tup_hot=$(( $(tbl room_n_tup_hot_upd "$RUN_DIR/after.json") - $(tbl room_n_tup_hot_upd "$RUN_DIR/before.json") ))
+
+WAIT_HIST=$(awk -F'\t' 'NR>1 && $4!="-" {c[$4":"$5]++; n++} NR>1 {t++} END{ if(n==0){print "| (no waits sampled) | 0 | 0% |"} else for(k in c) printf "| %s | %d | %.1f%% |\n", k, c[k], 100*c[k]/t}' "$RUN_DIR/waits.tsv" | sort -t'|' -k3 -nr)
+max_ungranted=$(awk -F'\t' 'NR>1 {if($2>m)m=$2} END{print m+0}' "$RUN_DIR/waits.tsv")
+samples=$(awk -F'\t' 'NR>1{print $1}' "$RUN_DIR/waits.tsv" | sort -u | wc -l | tr -d ' ')
+
+cat > "$RUN_DIR/results.md" <<EOF
+# $RUN_ID
+
+## Params
+$(sed 's/^/- /' "$RUN_DIR/params.env")
+
+## Load (curl, xargs -P $CONC)
+| sent | ok (200) | of which feed | error rate | achieved req/s | p50 ms | p95 ms | p99 ms | max ms |
+|---|---|---|---|---|---|---|---|---|
+| $n_sent | $viewed_ok | $feed_ok | ${err_rate}% | $rps | $p50 | $p95 | $p99 | $kmax |
+
+## Lost-update check
+| expected (viewed_ok) | actual (Σ view_count Δ) | lost | UPDATE calls / 200 |
+|---|---|---|---|
+| $viewed_ok | $actual | $lost | $updates_per_200 |
+
+## The report's UPDATE (\`update "room" set "view_count" = \$1 where "id" in (\$2)\`)
+| calls | mean ms | max ms | stddev ms |
+|---|---|---|---|
+| $upd_calls | $upd_mean | $upd_max | $upd_stddev |
+
+## Side effects per 200
+| activity rows Δ | revisions rows Δ | revisions bytes Δ | SELECT calls / 200 | room n_tup_upd | n_tup_hot_upd |
+|---|---|---|---|---|---|
+| $act_rows | $rev_rows | $rev_bytes | $selects_per_200 | $tup_upd | $tup_hot |
+
+## Wait sampling (1 s, ${samples} samples)
+| wait_event_type:wait_event | samples | % of sampled backends |
+|---|---|---|
+$WAIT_HIST
+
+Max ungranted locks at any sample: $max_ungranted
+
+## Statements touched (after run; counters were reset before load)
+| calls | mean ms | max ms | stddev ms | total ms | rows | blks hit | blks read | wal bytes | query |
+|---|---|---|---|---|---|---|---|---|---|
+$STMT_TABLE
+
+## Verdict
+_(fill in by hand)_
+EOF
+
+write_bench_log "$LOG" "$RUN_NUM" "$RUN_ID" "$NOTE"
+{
+  echo "Params: scenario=$SCENARIO n_rooms=$N_ROOMS n_reqs=$N_REQS conc=$CONC feed_ratio=$FEED_RATIO blocker=$BLOCKER/${BLOCK_SEC}s sf=$SF_ENABLED async=$ASYNC_ENABLED accountability=$ACCOUNTABILITY cms=$CMS_SHA"
+  echo "UPDATE calls=$upd_calls mean=${upd_mean}ms max=${upd_max}ms stddev=${upd_stddev}ms | viewed_ok=$viewed_ok lost=$lost | p95=${p95}ms | revisions Δ=$rev_rows"
+} >> "$LOG"
+
+echo "==> done: $RUN_DIR/results.md"
+sed -n '/^## Load/,/^## Statements/p' "$RUN_DIR/results.md" | head -40

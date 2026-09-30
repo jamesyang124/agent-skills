@@ -1,0 +1,41 @@
+-- snapshot.sql — one JSON row of DB state for run.sh (before/after). Derived from CONNECT-6031.
+-- TODO: replace the statement patterns, side-effect tables, and entity predicate for this ticket.
+SELECT json_build_object(
+  'ts', now(),
+  'statements', (
+    SELECT coalesce(json_agg(s ORDER BY s.total_exec_time DESC), '[]'::json) FROM (
+      SELECT queryid, calls, total_exec_time, mean_exec_time, min_exec_time, max_exec_time,
+             stddev_exec_time, rows, shared_blks_hit, shared_blks_read, blk_read_time, wal_bytes,
+             left(query, 160) AS query
+      FROM pg_stat_statements
+      WHERE query ILIKE '%update%"room"%view_count%'
+         OR query ILIKE '%update room%view_count%'
+         OR query ILIKE '%directus_activity%'
+         OR query ILIKE '%directus_revisions%'
+         OR query ILIKE '%room_custom_tag%'
+         OR query ILIKE '%room_room_tag%'
+         OR query ILIKE '%room_trailer_images%'
+         OR query ILIKE '%room_setting%'
+         OR query ILIKE '%dummy_room%'
+         OR (query ILIKE 'select%from "room"%hub_sid%' )
+    ) s
+  ),
+  'top15', (
+    SELECT coalesce(json_agg(t), '[]'::json) FROM (
+      SELECT queryid, calls, total_exec_time, mean_exec_time, max_exec_time, rows, left(query, 100) AS query
+      FROM pg_stat_statements
+      WHERE query NOT ILIKE '%pg_stat_statements%' AND query NOT ILIKE '%json_build_object%'
+      ORDER BY total_exec_time DESC LIMIT 15
+    ) t
+  ),
+  'tables', json_build_object(
+    'directus_activity_rows',  (SELECT count(*) FROM directus_activity),
+    'directus_activity_bytes', pg_total_relation_size('directus_activity'),
+    'directus_revisions_rows', (SELECT count(*) FROM directus_revisions),
+    'directus_revisions_bytes', pg_total_relation_size('directus_revisions'),
+    'room_n_tup_upd',     (SELECT n_tup_upd     FROM pg_stat_user_tables WHERE relname = 'room'),
+    'room_n_tup_hot_upd', (SELECT n_tup_hot_upd FROM pg_stat_user_tables WHERE relname = 'room')
+  ),
+  'bench_view_count_sum', (SELECT coalesce(sum(view_count), 0) FROM room WHERE TODO_entity_filter),
+  'hot_room_view_count',  (SELECT view_count FROM room WHERE TODO_hot_entity)
+);
