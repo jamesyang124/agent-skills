@@ -80,6 +80,12 @@ Render HTML for people who won't open the repo: `python3 scripts/md2html.py find
 - Must measure: throughput absorbed, request-side latency, DB statements per interval, **lost = increments − Σ delta**, leftovers in the store after drain, behaviour under the row blocker, crash-recovery (hand-plant a leftover batch and confirm replay).
 - Also measure the simplest competing design (`-mode direct` in the reference POC) so "shorter" vs "removed" contention is a number, not an argument.
 - Every surprise is a design rule for Phase 6 (reference: statement timeout must be shorter than the distributed-lock TTL — found only because a run double-counted).
+- Reusable pattern for high-frequency counters (views, likes, shares, play time): accumulate with
+  `HINCRBY` into one hash; the worker swaps it with a single atomic `RENAME pending → flushing`,
+  reads the frozen copy, writes one `UPDATE … FROM unnest(...)` of **deltas**, then `DEL`s. No
+  read-then-delete window, handlers never block, a failed flush is replayed from `flushing`. Keys
+  need a `{hash-tag}` so RENAME is single-slot under cluster mode. Reference implementation:
+  CONNECT-6031 `poc-redis-flush/` and hubs-cms-go `service/view_count_flush.go`.
 
 Write `templates/poc-results.md` → `docs/<ticket-lower>/poc-<design>-results.md`.
 
