@@ -9,6 +9,7 @@
 | Embed | the content runs in a cross-origin iframe `https://<id>.world.viverse.app/`. Never open that URL directly (it returns 403 outside the host page) |
 | Viewport | 1908×922 CSS px; content frame box `85,82,1419,832` (use with `frame_diff.py --box` and `contact_sheets.py --crop 1334:750:85:82`) |
 | Declared metadata | the search index `rooms` (`GET <index>/_doc/<room_id>`): `title`, `content_type_name` (Game / Experience / Videos / Templates), `tags`, `custom_tags`, `description_plaintext`, `description_core` (a rule-cleaned publisher description: still declared data, not observed), `publisher_claims`, `is_adult_only`, `policy` (`allow_any_user` = public) |
+| Declared language (2026-10-02 export) | Join `room_language_tag.room_id` to the room UUID, then `room_language_tag.language_tag_id` to `language_tag.id`; display `language_tag.tag` and `name`. `room_language_tag.id` is the association-row ID, **not** the language tag ID. Do not infer labels from a denormalized `room.language_tags[]` value without verifying which ID space it contains. |
 | items_dir | `rooms` |
 
 ## Rules specific to this site
