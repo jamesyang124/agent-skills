@@ -177,6 +177,9 @@ These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow G
 *   **explain-diff-html** — Produces a rich HTML explanation of a code change, diff, branch, or PR.
     [View Details](.agent-settings/skills/tools/explain-diff-html/SKILL.md)
 
+*   **agent-playtest** — Evidence-grounded simulated playtests of interactive web content (games, 3D worlds, galleries) with parallel browser subagents: closed-loop play, screenshot evidence, structured observed descriptions kept separate from declared metadata, screenshot audit, validation, human spot-check and reliability report. Browser-agnostic (ego-browser, Playwright, MCP browsers); includes a human-demo mode that records local mouse/keyboard to compare with the agent's attempt.
+    [View Details](own-skills/agent-playtest/SKILL.md)
+
 ### Playground (Experimental)
 
 *   **git-rebase-conflict-resolver** — Interactive git rebase conflict resolver with Dry-run, Progressive, and Auto modes. Dry-run predicts conflict paths without touching the branch. Progressive mode is interactive per-conflict. Auto mode resolves autonomously then presents an audit report for approval or rollback.

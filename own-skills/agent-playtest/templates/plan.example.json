@@ -1,0 +1,9 @@
+{
+ "campaign": "2026-10-01_r9",
+ "note": "Why these items, in what priority, and what is out of scope.",
+ "work": {
+  "agent1": [{"item_id": "abc1234", "title": "Example Game", "url": "https://example.com/abc1234", "priority_reason": "searched 22x last week", "kind": "new"}],
+  "agent2": []
+ },
+ "skipped": [{"item_id": "zzz9999", "reason": "paywall"}]
+}
