@@ -54,4 +54,4 @@ Coordinator verifies room/campaign/source hashes, changed-file scope and missing
 
 ## Reporting
 
-Use paired Declared vs Observed sections, retaining unknown/empty values and all existing substantive fields. Show useful content first, coverage/missing evidence clearly, loader in a collapsed diagnostic section and no ad gallery. Show source/campaign, audit scope and human-review status. The bundled `review_sheet.py` reads optional `review.json` for paired metadata/observations, language, devices, timing and coverage; this is presentation, not automatic collection or truth verification. Do not label absent language/coverage data as collected.
+Read `report-layout.md` and use the bundled renderer. Keep Declared and Observed distinct; the approved report places Declared and screenshots in the upper row, with full-width Observed below. Preserve substantive fields, missing-state semantics, source/campaign, audit scope and human review. Presentation is not collection or truth verification. Do not label absent language/coverage data as collected.

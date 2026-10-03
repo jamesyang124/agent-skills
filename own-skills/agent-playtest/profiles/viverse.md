@@ -36,3 +36,10 @@ curl -s "localhost:9200/rooms/_search?size=10000&_source=hub_sid,content_type_na
 
 `declared_kind` → expected `observed_kind`: `Game` → game; `Experience` and `Templates` → interactive_scene or gallery;
 `Videos` → video. This is `observed_kind_mismatches.py`'s default map.
+
+
+## Review HTML metadata adapter
+
+Supply exact snapshot names in `review.json declared.db_snapshot_fields`: title, content_type_name, description, description_plaintext, tags, custom_tags, view_count and (for Game) game_score_rating. Keep nulls; a populated description_plaintext must not disappear because description is null. game_score_rating is a DB declaration, not an audit verdict or agreement score. content_type_id, UUIDs and language association IDs belong in technical provenance, not the main review table. DB locale presentation uses joined name/code; preserve join IDs and snapshot provenance separately. `languages.title` and `languages.description` are judgments of creator-supplied text, separate from observed UI/subtitle/audio languages. Devices remain HMD, Android, Desktop, iOS with declared/tested/unconfirmed distinctions.
+
+The project adapter owns snapshot/CSV joins and imports; the generic skill renderer only reads supplied metadata. Do not connect to the stack or migrate a schema to render a report. For mixed returned campaigns use the registry's source_campaign per item. Follow `references/report-layout.md`; legacy snapshots remain reference-only.

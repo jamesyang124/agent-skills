@@ -63,6 +63,10 @@ Read `references/play-protocol.md` and follow it exactly. Core rules:
 - **Observed vs declared**: record `observed_kind` and other observed attributes in the attempt. Never edit the item's
   declared metadata.
 
+## Report layout
+
+Before generating HTML, read `references/report-layout.md`. Use the bundled offline renderer: Declared/screenshots above, full-width Observed below. The master inventory and selected spot-check have distinct scopes; rendering does not approve data.
+
 ## After play (orchestrator)
 
 1. **Audit** with `scripts/contact_sheets.py`: first, middle and last screenshot per item. Mark items whose evidence

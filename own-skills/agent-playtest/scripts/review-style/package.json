@@ -1,0 +1,20 @@
+{
+  "name": "review-ui",
+  "version": "1.0.0",
+  "description": "Offline CSS build for the playtest review report",
+  "main": "index.js",
+  "scripts": {
+    "build": "node copy-font.mjs && tailwindcss -i input.css -o ../../assets/review/review.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@tailwindcss/cli": "4.3.0",
+    "daisyui": "5.7.47",
+    "tailwindcss": "4.3.0"
+  },
+  "private": true
+}
