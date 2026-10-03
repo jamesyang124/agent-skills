@@ -1,0 +1,6 @@
+{
+  "group_id": "<Teams team (group) id, GUID>",
+  "channel_id": "19:xxxxxxxx@thread.tacv2",
+  "jira_base": "https://yourorg.atlassian.net/browse/",
+  "timezone": "Taipei Standard Time"
+}

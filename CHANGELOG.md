@@ -11,6 +11,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - `own-skills/agent-playtest` — closed-loop agent playtests of web content → audited, evidence-cited observed descriptions; browser adapters, site profiles (VIVERSE example), human-demo recorder, validation / mismatch / spot-check scripts with a self-test
 
+## [2026-10-03]
+
+### Added
+- `own-skills/ado-pr-teams-notify` — Azure DevOps PR → Microsoft Teams channel notifications via one
+  Power Automate flow (card per PR + one-line thread reply per event). Includes
+  `scripts/gen_flow_definition.py` (builds the flow package from a template export), `ado_hooks.py`
+  (Service Hook subscriptions via REST, PAT), `build_test_payloads.py` / `send_event.sh` (state-sequence
+  tests), `backfill_pr.py`, and references for architecture, card spec, flow internals, ADO REST,
+  browser adapters (ego-browser / Playwright / Chrome DevTools MCP), test plan and troubleshooting.
+
 ## [2026-03-06]
 
 ### Added

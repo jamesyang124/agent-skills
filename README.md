@@ -116,6 +116,9 @@ This project provides a collection of specialized skills to enhance your AI agen
 *   **ado-open-pr** — Opens an Azure DevOps pull request for the current branch: pushes the branch, generates the description via `generate-pr-notes`, opens the PR against a target branch, and adds reviewers resolved from teams or explicit emails. By default also syncs drifted spec-kit/openspec docs to match the committed diff before opening the PR. Requires the Azure DevOps MCP server.
     [View Details](.agent-settings/skills/tools/ado-open-pr/SKILL.md)
 
+*   **ado-pr-teams-notify** — Azure DevOps pull-request notifications in a Microsoft Teams channel through one Power Automate flow: one color-coded Adaptive Card per PR (state chip, reviewers, Jira link, Summary, stacked Activity, latest comment) and a one-line thread reply per event so active PRs float to the bottom; draft PRs skipped; many repos/branches into one flow. Covers the Teams Workflows template, export/edit/import of the flow package (generator script), Service Hook subscriptions via REST, end-to-end state tests, backfilling an open PR, adding repos or switching channels, and the gotchas. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); REST steps also run with a PAT only.
+    [View Details](own-skills/ado-pr-teams-notify/SKILL.md)
+
 ### Spec-Driven Development (SDD) Workflow
 
 These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow Guide](docs/sdd-workflow-spec-kit-native.md) for the full picture.
