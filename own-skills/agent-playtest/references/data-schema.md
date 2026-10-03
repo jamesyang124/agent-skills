@@ -8,6 +8,7 @@
   <items_dir>/<item_id>/         raw per-item data, written while playing (items_dir defaults to "items"; VIVERSE uses "rooms")
     playtest.json                {"item_id", "title", "url", "attempts": [...]}; append only
     description.json             observed description + evidence + confidence
+    review.json                  optional sourced review notes for local HTML reports
     shots/<campaign>_NN.png      screenshots in capture order
   derived/                       rebuilt by scripts only, never edited by hand
     descriptions.validated.json
@@ -62,3 +63,49 @@ Keep the two separate in naming too: if you ever load observed fields into a sha
 
 JSONL, one line per item: `{"item_id": "...", "declared_kind": "Game", "public": true, "adult": false}`. Export it from
 the site's source; the site profile says how.
+
+## Optional per-item review.json
+
+This file enriches the local `review_sheet.py` report; it does not change `playtest.json`, `description.json`, validation, or a database. Omit fields that have not been collected. The renderer shows them as **unknown**; an empty declared string is shown as **empty**. Copy declared values from a dated source snapshot, never infer them from play. Paths are relative to the item directory and must identify original local images.
+
+```json
+{
+  "declared": {
+    "source": "catalog export URI or file and row", "snapshot_date": "2026-10-03",
+    "title": "Creator title", "kind": "Game", "description": "",
+    "tags": ["puzzle"], "view_count": 123
+  },
+  "description_source": "description.json from campaign c1",
+  "languages": {
+    "db_locale": "en", "title": "unknown", "description": "unknown",
+    "content_ui": "en (shots/c1_03.png)", "subtitles": "unknown",
+    "heard_audio": "unknown", "generated_text": "en"
+  },
+  "devices": {
+    "declared": ["Desktop"], "tested": ["Desktop: Chrome on macOS"],
+    "unknown": ["HMD", "Android", "iOS"]
+  },
+  "coverage": {
+    "reached": ["gameplay overview: shots/c1_03.png"],
+    "missing": ["result screen"], "note": "one level reached"
+  },
+  "timing": {
+    "navigation": "2026-10-03T10:00:00Z",
+    "content_start": "2026-10-03T10:00:02Z",
+    "first_useful_content": "2026-10-03T10:00:06Z",
+    "first_interaction": "2026-10-03T10:00:09Z",
+    "loader_intervals": ["10:00:02–10:00:06 UTC"],
+    "ad_intervals": [], "method": "browser timestamps",
+    "environment": "Desktop Chrome, macOS; network/cache unknown"
+  },
+  "frames": [
+    {"ref": "shots/c1_01.png", "class": "loader"},
+    {"ref": "shots/c1_02.png", "class": "ad"},
+    {"ref": "shots/c1_03.png", "class": "content"}
+  ],
+  "representative_refs": ["shots/c1_03.png"],
+  "human_review": "pending"
+}
+```
+
+`frames[].class` is `content`, `loader`, `ad`, or `unknown`. Representative images appear only when explicitly listed, classified as content, and present in the selected campaign attempt's `shots`. The report excludes classified ads, keeps classified loaders in a collapsed diagnostic section, and keeps all other original attempt frames in a collapsed raw section. It warns and withholds description claims and citations when `description.json` names a different campaign; absent descriptions render as unknown so blocked items remain reviewable. Do not use platform shell, ads, or loaders as content evidence. `coverage.reached` and timing values require source references or timestamp evidence; omit them if unavailable. `human_review` is a status, not an inferred reliability score. Device emulation is not physical-device testing.

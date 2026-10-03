@@ -19,7 +19,7 @@ Optional: C9, CDP access for diagnostics.
 
 - C1 `page.goto(url)`; C2 `page.screenshot({path})`; C3 `page.mouse.move/down/up/click/wheel`; C4 `page.keyboard.down/up/press`.
 - C5 `page.cdp("Emulation.setFocusEmulationEnabled", {enabled: true})` after every `goto`.
-- C6 `page.snapshot()`. C8 one `taskSpace(name)` per player, then `finish({keep: []})` once.
+- C6 `page.snapshot()`. C8 follow the installed ego-browser skill: one orchestrator-owned TaskSpace per goal; allocate worker pages within it when supported. Do not create one TaskSpace per worker. Finish owned resources once.
 - When a browser permission prompt or hand-off appears, stop: the space moves to the user. Record
   `excluded_permission_prompt`.
 - **Gaps:**

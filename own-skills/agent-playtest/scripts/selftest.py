@@ -47,3 +47,28 @@ with tempfile.TemporaryDirectory() as ws:
     sc = json.load(open(os.path.join(ws, "archive/c1/spot_check.json")))
     assert sc["population_n"] == 1 and len(sc["sample"]) == 1
     print("selftest: OK")
+
+# Strict gate: provenance and audit must survive even when text length passes.
+from copy import deepcopy
+from validate_descriptions import check
+with tempfile.TemporaryDirectory() as ws:
+    item(ws, "a", "partial", "game", 250)
+    d = os.path.join(ws, "items", "a")
+    pt = json.load(open(os.path.join(d, "playtest.json")))
+    desc = json.load(open(os.path.join(d, "description.json")))
+    desc["campaign"] = "c1"
+    pt["attempts"][-1]["audit"] = {"verdict": "ok", "by": "test reviewer", "note": "scoped evidence"}
+    meta = {"a": {"public": True, "adult": False}}
+    assert not check(d, pt, desc, meta, strict=True)
+    for key, value, reason in [("evidence", [], "missing evidence"),
+                               ("campaign", "old", "description campaign mismatch"),
+                               ("item_id", "other", "description item mismatch")]:
+        bad = deepcopy(desc); bad[key] = value
+        assert reason in check(d, pt, bad, meta, strict=True)
+    bad = deepcopy(desc); bad["evidence"][0]["source_ref"] = "shots/other.png"
+    assert "evidence not in latest attempt shots" in check(d, pt, bad, meta, strict=True)
+    bad = deepcopy(pt); bad["attempts"][-1]["audit"] = None
+    assert "missing completed audit with reviewer and scope" in check(d, bad, desc, meta, strict=True)
+    assert "strict mode requires declared metadata" in check(d, pt, desc, None, strict=True)
+    assert "eligibility must be explicit public=true adult=false" in check(d, pt, desc, {"a": {}}, strict=True)
+    print("strict selftest: OK")

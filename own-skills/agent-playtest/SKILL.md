@@ -1,7 +1,6 @@
 ---
 name: agent-playtest
 description: "Run evidence-grounded simulated playtests of interactive web content (browser games, 3D worlds, galleries, interactive scenes) with parallel browser subagents. Each subagent plays closed-loop (look, act, verify), saves screenshots, logs every input, and writes a structured description backed by those screenshots. The orchestrator then audits the evidence, validates outputs, samples a human spot-check, and reports reliability. Browser-agnostic: ego-browser, Playwright (MCP or library), Chrome DevTools MCP, or any agent-friendly browser that can navigate, screenshot, and send mouse/keyboard input. Includes a human-demo mode in which a person plays while their local mouse/keyboard is recorded, and the agent compares that with its own attempt. Use for content audits, building synthetic description data, checking catalog labels against what is actually observed, or search/recommendation eval data. Trigger: /agent-playtest"
-trigger: /agent-playtest
 ---
 
 # Agent playtest: closed-loop play → screenshot evidence → described, audited data
@@ -25,6 +24,10 @@ plan  →  dispatch N player subagents  →  play (closed loop)  →  audit scre
 | **Orchestrator** | the calling session | writes the plan and brief, dispatches players, audits, validates, samples the spot-check, reports, keeps the blockers log |
 | **Player** | 1 subagent per slice of items (default ≤ 4 in parallel) | plays its items in order with one browser session, writes `playtest.json`, `shots/`, `description.json` |
 | **Human** | the person running it (optional) | spot-checks descriptions; plays hard items in human-demo mode |
+
+## Evidence contract
+
+Read `references/evidence-review.md` before capture or review: content-only screenshots, coverage by content type, declared/observed separation, timing limits, model roles and portable batches. It takes precedence over historical capture/report examples. Keep database schemas unchanged unless separately authorized.
 
 ## Before you start (orchestrator)
 
@@ -51,7 +54,7 @@ Follow `references/orchestration.md`. The short version:
 Read `references/play-protocol.md` and follow it exactly. Core rules:
 - **Closed loop**: screenshot → decide → act → screenshot. Never run a fixed script blind.
 - **Count only verified time.** A segment counts only when the screenshot shows real content *and* `scripts/frame_diff.py`
-  reports no stall. The default bar is 30 s verified. For no-goal scenes, 30 s must cover ≥ 2 distinct areas or objects.
+  reports no stall. For games, 30 s is the minimum, 45–60 s the normal target; extend only for a named evidence gap, to at most 90 s verified play. Time alone is insufficient: see the coverage and stop rules in `references/play-protocol.md`. For no-goal scenes, 30 s must cover ≥ 2 distinct areas or objects.
 - **Budget**: ≤ 15 rounds per item. Stop after 3 inputs with no effect. Never retry a stuck item in the same campaign.
 - **Exclude, don't force**: dead link, login, paywall, age gate, device gate (VR/camera/mic), browser permission prompt.
   Record `excluded_<reason>` and move on. Never grant a permission.
@@ -65,7 +68,7 @@ Read `references/play-protocol.md` and follow it exactly. Core rules:
 1. **Audit** with `scripts/contact_sheets.py`: first, middle and last screenshot per item. Mark items whose evidence
    shows only a loading screen, logo, menu, tutorial or frozen frame as `rejected_visual_audit`, and downgrade
    over-claimed seconds to `partial`.
-2. **Validate** with `scripts/validate_descriptions.py`. It rebuilds `derived/` and never needs hand edits.
+2. **Validate new campaigns** with `scripts/validate_descriptions.py --strict` and a declared metadata export (`--meta`). Legacy mode is compatibility only, not acceptance. It rebuilds `derived/` and never needs hand edits.
 3. **Mismatches** with `scripts/observed_kind_mismatches.py --meta <declared.jsonl>`. It lists items where what was
    observed differs from what was declared.
 4. **Spot-check**: `scripts/spot_check.py --campaign <id> --rate 0.1 --seed <n>`. A human compares each sampled
@@ -103,6 +106,7 @@ skill improves.
 
 | Path | What |
 |---|---|
+| `references/evidence-review.md` | coverage, content screenshots, provenance, review and portable batches |
 | `references/orchestration.md` | splitting, dispatch, parallelism, timeouts, ghost runs, merging results |
 | `references/browser-adapters.md` | capability contract and per-browser recipes, with known gaps |
 | `references/play-protocol.md` | screen states, input techniques, verification gates, budgets, exclusions |

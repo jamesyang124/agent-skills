@@ -4,10 +4,10 @@
 
 1. Read the item's declared metadata (title, tags, description) from the source named in the site profile. It hints
    at the controls. Do not trust it: tags and content types are often wrong.
-2. Navigate there, turn on focus emulation, and take a screenshot. That is round 1.
+2. Navigate, enable focus emulation when supported, and inspect the screen (round 1). Follow `evidence-review.md`: no delivered ad screenshots; at most one diagnostic loader image.
 3. Loop: classify the screen state, act, take a screenshot. Each screenshot you look at, plus the action that follows,
    is one round. **Max 15 rounds.**
-4. Stop when you have verified enough time, when the budget runs out, or when an exclusion applies.
+4. Stop when both the applicable time and coverage gates are met, or earlier when a budget, no-effect stop or exclusion applies. Record unmet gates; never extend a run merely to fill time or screenshot quotas.
 5. Append the attempt to `playtest.json`. Write `description.json` only when real content was seen (`played` or
    `partial`).
 
@@ -24,9 +24,11 @@
 | `modal` | reward, level complete, "continue" | press continue |
 | `gameplay` / `exploring` | player-controlled content that responds to input | play (see below) |
 
-Banner ads next to the content are normal. Ignore them.
+Exclude surrounding ads and recommendation UI from saved content evidence. Read `evidence-review.md` for coverage targets and cropping rules.
 
-## Input techniques (try these in order before counting an input as "no effect")
+## Input techniques (match a learned pattern first, then use fallbacks)
+
+Before guessing an input, consult the pattern table in `human-demo.md`. Match current visible controls, not the room title/tag. Execute one bounded attempt, inspect the result, then continue only if confirmed. Never replay old absolute coordinates or assume shared artwork means shared mechanics.
 
 1. **Press**: move → down → wait 120 ms → up. Canvas games often ignore a plain click.
 2. **Slow press**: hold for about 400 ms.
@@ -79,12 +81,23 @@ Play in segments of 6–10 s with a screenshot every 1.5–3 s, all inside one b
 
 | Content | `played` when |
 |---|---|
-| game (goal, score, win/lose) | ≥ 30 s verified gameplay |
+| game (goal, score, win/lose) | ≥ 30 s verified gameplay AND core action → observed result → subsequent gameplay loop evidenced |
 | interactive scene / world / gallery | ≥ 30 s verified movement or interaction covering ≥ 2 distinct areas or objects |
 | choice-based story | ≥ 3 real choices, each branching to new content |
 | video-only | not playable: write the description from what the video shows; outcome `partial` |
 
 Anything less is `partial`.
+
+### Small-game duration and stopping
+
+- Minimum: **30 s verified gameplay**. Normal acquisition target: **45–60 s**. End at 30 s if the core action, its visible result and a subsequent gameplay loop are already evidenced; do not wait mechanically for 60 s.
+- Extend beyond 60 s only to answer a named missing observation (for example another successful match or the next turn). Log the gap before extending. **90 s verified gameplay is the cap**, not a new default.
+- Time excludes loading, ads, menus, passive tutorial reading, agent deliberation and browser-tool startup. Preserve actual segment timestamps and verified intervals; do not substitute wall-clock session duration.
+- Before stopping check: did the core input succeed, did it cause an observable change, and did subsequent play confirm the mechanism? A timer alone cannot satisfy these gates. No requirement to win, finish all levels or see an ending.
+- The existing **15 decision-round budget**, exclusions and three-no-effect stop still apply and may end the attempt sooner. Do not reset a budget to reach 90 s. Dense frames inside a segment are not separate decision rounds.
+- A complete short round under 30 s keeps its actual duration and evidence; under the current schema mark `partial` and note that a complete short round was observed. Do not replay blindly to pad time.
+- These targets apply to games. Keep scene exploration, choice-story and video criteria above; video samples do not become full-film coverage at 45 or 90 s.
+- Preserve all original verification frames. Report representatives remain 8–12 for games/scenes (target 10), selected for coverage rather than increasing linearly with duration. Timed games keep their 3–5 s capture cadence; do not replay to fill the representative quota.
 
 ## Exclusions (leave after 1 round, no retries)
 

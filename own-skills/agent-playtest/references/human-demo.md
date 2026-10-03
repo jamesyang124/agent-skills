@@ -63,3 +63,20 @@ Typical causes found this way:
   game keys are kept by name and every other key is masked as `*`. Even so, do not type passwords while it runs.
 - If a recording captured text anyway, delete the key events from the file straight away and say so.
 - Delete demos that are no longer needed. Do not commit them to shared repositories.
+
+
+## Reusable operation patterns (consult before requesting a new demo)
+
+Derived from the historical four-room human review in `example-human-ai-review.md`. Timings are starting points, not guaranteed game rules; recompute coordinates from the current viewport/content. Old screenshots and human outcomes are hypotheses for a new room, never evidence of its observed behavior.
+
+| Pattern | Match only when visible | First bounded attempt | Success signal / stop condition |
+|---|---|---|---|
+| Select then target | Pieces and selectable destinations; selection produces a highlight | Zero-movement press around 100–120 ms, inspect highlights, then press visible rim of a legal target | Piece moves/removes and board/counter changes. No highlight: reconsider selection; never guess repeated targets. |
+| Connect adjacent tiles | Instructions or observed response indicate linking same-colour adjacent tiles | Hold and drag through one short visible adjacent path, then release | Linked tiles clear or score changes. No result: do not assume swapping is equivalent. |
+| Card drag/drop | Cards, hand/build/discard areas and compatible visible instructions | Hold around 400 ms, stepwise drag one candidate card to a plausible legal pile | Card remains there and pile/hand/stock changes. Failed drop is not proof the game is broken; inspect legality. |
+| Adjacent swap match-3 | Swappable grid and match-3 instruction | One adjacent swap using a deliberate drag; inspect board and score | Swap yields a match or visibly returns as invalid. Do not reuse connect-path logic. |
+| Timed puzzle | Visible countdown shorter than tool round-trip overhead | One bounded closed-loop browser call with readable visual/DOM state and 3–5 s evidence frames | Actual score/board progression within round; stop at result, not a fixed blind script. |
+
+Log pattern name, historical reference, current-match reason, attempted input and current evidence of success/failure. Three no-effect inputs and existing budgets still apply. Persist a new pattern only after demonstrated success with evidence; retain its scope and counterexamples. Store generic techniques in the skill, raw OS-input recordings only in the local campaign, never commit them to shared skill repos.
+
+When the core action, result and subsequent loop are already verified, stop rather than idle to pad time. Preserve actual verified seconds: below 30 s remains partial under the current outcome contract, with a note that core-mechanism coverage is complete. Whether to add a separate early-complete outcome is a future schema decision, not an implicit reinterpretation of played.

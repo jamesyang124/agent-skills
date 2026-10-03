@@ -5,19 +5,18 @@
 Run `python3 scripts/contact_sheets.py --base <workspace> --campaign <id> --out archive/<id>/contact_sheets`. Each item
 gets one row with its first, middle and last screenshot.
 
-- Accept an item when at least one screenshot shows live content (gameplay or exploring).
+- One live content frame proves content was reached only. Before audit ok, inspect claim evidence, coverage and time/input records per `evidence-review.md`; contact sheets alone are insufficient.
 - Reject (`rejected_visual_audit`) an item whose screenshots show only loading, a logo, a menu, a tutorial, a result
   screen or a frozen frame.
 - Downgrade `played` to `partial` when the claimed seconds are not supported. For example: an empty board, a score that
   never changes, or identical frames.
-- Check for templating: descriptions written by the same player should not read alike (pairwise similarity ≤ 0.1 is a
-  reasonable bar).
+- Check repetitive templates and unsupported claims. There is no calibrated similarity cutoff; do not apply a numeric threshold without defining and validating the metric.
 
 Write each verdict into that attempt's `audit` field.
 
 ## 2. Validation (`scripts/validate_descriptions.py`)
 
-A description is **valid** when all of these hold:
+The legacy validator checks structural compatibility only. For new campaigns use `--strict --meta <export>`; this also requires matching item/campaign, a completed non-rejecting audit, explicit eligibility and evidence membership in the latest attempt. Neither mode proves factual accuracy. Legacy checks:
 - the outcome is `played` or `partial`;
 - the audit did not reject it;
 - `summary` and `semantic_description` are present, and the description is ≥ 200 words (each CJK character counts as
@@ -49,7 +48,7 @@ Record them in `spot_check.json` under `verdicts`.
 | **audit rejection rate** | rejected_visual_audit ÷ reached content |
 | over-claim rate | downgraded played→partial ÷ claimed played |
 | valid descriptions | from `report.json` |
-| **spot-check accuracy** | (correct + minor) ÷ sampled; also report wrong + hallucinated separately |
+| **spot-check accuracy** | (correct + minor) ÷ human-reviewed; report reviewed/sample coverage and wrong + hallucinated separately; no reviewed items = unknown |
 | mismatches | from `observed_kind_mismatches.jsonl` |
 | blockers | lines in `blockers.md`, grouped |
 | needs a human | paywall, device gate, unresponsive-input items |

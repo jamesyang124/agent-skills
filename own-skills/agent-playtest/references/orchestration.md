@@ -20,8 +20,7 @@ content.
 - Have each player turn on **focus emulation** after every navigation. This is the CDP call
   `Emulation.setFocusEmulationEnabled {enabled: true}` (see `browser-adapters.md`). Without it, tabs in the background
   stall on loading.
-- Give each player one browser context or task space, created once and reused for all of its items, and closed exactly
-  once at the end.
+- The orchestrator owns browser allocation. Follow the adapter skill's TaskSpace rules; contexts, tabs and TaskSpaces are not interchangeable. Workers only close resources they own.
 - Players write only inside their own items' folders. Only the orchestrator writes `campaigns.json`, `plan.json`,
   `derived/` and `blockers.md`.
 
@@ -33,7 +32,7 @@ content.
    your list." A mid-tier model works for playing. Use the strongest model for auditing.
 4. Wait for completion notifications. Do not poll.
 5. When a player finishes, check that every item in its slice has an attempt for this campaign. Players skip items by
-   mistake; it has happened. Re-dispatch only the missing items.
+   mistake; it has happened. Re-dispatch only genuinely omitted, unstarted items after confirming no live worker owns them. Quota/crash leftovers stay incomplete for a separately scheduled batch, not a concurrent retry.
 
 ## Timeouts and ghost runs
 
