@@ -68,9 +68,10 @@ def render_item(item_dir, out_dir, sample, camp, number):
     timing = review.get("timing") or {}
     declared_rows = "".join(row(k, declared.get(k)) for k in ("title", "kind", "description", "tags", "view_count"))
     observed_rows = "".join(row(k, observed.get(k, attempt.get(k))) for k in ("observed_kind", "outcome", "verified_gameplay_total_s"))
-    observed_rows += "".join(row(k, desc.get(k)) for k in FIELDS)
+    observed_rows += "".join(row(k, desc.get(k)) for k in FIELDS if k != "semantic_description")
     observed_rows += row("confidence", description.get("confidence") if not stale else None)
-    observed_rows += row("evidence", description.get("evidence") if not stale else None)
+    observed_rows += '<tr><td colspan="2"><details><summary>Full semantic description (semantic_description)</summary><p>' + show(desc.get("semantic_description")) + '</p></details>'
+    observed_rows += '<details><summary>Evidence references</summary><pre>' + show(description.get("evidence") if not stale else None) + '</pre></details></td></tr>'
     language_rows = "".join(row(k, languages.get(k)) for k in LANGUAGES)
     device_rows = "".join(row(k, devices.get(k)) for k in ("declared", "tested", "unknown"))
     coverage_rows = "".join(row(k, coverage.get(k)) for k in ("reached", "missing", "note"))
@@ -113,13 +114,13 @@ def main():
         if not item_dir.is_relative_to(base.resolve()):
             raise ValueError(f"item ID escapes items directory: {iid}")
         parts.append(render_item(item_dir, out_dir, sample, camp, n))
-    page = f"""<!doctype html><meta charset="utf-8"><title>Spot-check review {html.escape(camp)}</title>
+    page = f"""<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Spot-check review {html.escape(camp)}</title>
 <style>body{{font:14px/1.5 system-ui,sans-serif;margin:16px;background:#f5f6f7;color:#1d2328}}section{{background:#fff;border:1px solid #d9dde1;border-radius:8px;padding:12px 16px;margin:0 0 16px}}
 h2{{margin:0 0 8px;font-size:17px}}h3{{margin:12px 0 3px}}small{{color:#66727d;font-weight:400}}.grid{{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px}}
  .warning{{color:#8a3100;background:#fff0e6;padding:8px}}
 th{{text-align:left;vertical-align:top;width:9em;color:#66727d;font-weight:500;padding:2px 8px 2px 0}}td{{padding:2px 0;overflow-wrap:anywhere}}table{{width:100%}}.v{{font-weight:600}}
 .shots{{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}}.shots a{{font-size:11px;color:#66727d;text-decoration:none}}.shots img{{width:100%;border:1px solid #d9dde1;border-radius:4px}}
-details{{margin:12px 0}}summary{{cursor:pointer}}@media(max-width:900px){{.grid{{grid-template-columns:1fr}}}}</style>
+pre{{white-space:pre-wrap;overflow-wrap:anywhere}}details{{margin:12px 0}}summary{{cursor:pointer}}@media(max-width:900px){{.grid{{grid-template-columns:1fr}}}}</style>
 <h1>Spot-check review — {html.escape(camp)} ({len(spot["sample"])} of {show(spot.get("population_n"))}, seed {show(spot.get("seed"))})</h1>
 <p>Compare each claim with the original content frames and input records. Unknown means the review notes do not establish that field.</p>{"".join(parts)}"""
     path = out_dir / "spot_check_review.html"
