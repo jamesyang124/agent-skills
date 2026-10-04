@@ -35,3 +35,7 @@ Concept ids are paths without `.md`, e.g. `concepts/idempotency-key`. Put a conc
 - Re-serialization (any `relate` call) turns a multi-item flow list in custom frontmatter into a quoted string; write custom lists as block lists.
 - `okf create ... --body` takes the whole body as one argument; build it in the generator.
 - `okf create --no-log` skips the log entry; add one summary line to `log.md` yourself afterwards.
+- Make the generator resumable: it can die midway (a source key missing from its table, a bad flag) and leave half-created concepts. Skip a concept whose file already has `evidence:`, patch one that exists without it, and let the relation step skip links that already exist.
+- Derive the topic tag from the topic name; do not hard-code it (a copied generator once tagged LLM concepts `payments`).
+- `okf relate` re-serializes the file, so normalize custom frontmatter (`scope` as a block list, `scope-X` tags) in a final pass after all relations are added, and re-run `validate --strict --drift`.
+- When a second topic reuses an idea from the first, link to the existing concept (for example function calling requires the idempotency key) rather than creating a duplicate: that is what makes the graph cross-topic.
