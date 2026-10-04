@@ -17,9 +17,12 @@
 - **Paywall**: "付費內容" or a VIVERSE Plus unlock screen that shows only key art or a trailer → `excluded_paywall`. List
   the room for a human who has the entitlement.
 - **Unsupported device**: a "不支援的裝置" banner with only a trailer → `excluded_unsupported_device` (VR-only).
-- **Mic and camera** are blocked in the player browser profile. Rooms that need them (webcam games, "raise hand to
-  start", voice-only play) → `excluded_needs_permission`. A browser permission prompt → `excluded_permission_prompt`.
-  Before mic/cam were blocked, prompts handed the player's session to the user and stalled the whole run.
+- **Mic and camera:** rooms that need them (webcam games, "raise hand to start", voice-only play) → `excluded_needs_permission`; a browser
+  permission prompt → `excluded_permission_prompt`. Do not assume the player profile blocks them: a camera prompt on load and a
+  microphone prompt ~30 s in each handed the space to the user once. Handling: `play-protocol.md`, Exclusions.
+- **Shell UI to ignore**: a 29 s pre-roll with no Skip control can precede a room (wait it out, never click or save it);
+  an "Are you sure you want to stop playing?" bar appears when the pointer nears the top of the page. Both are shell, so
+  keep them out of content evidence.
 - **Adult rooms** (`is_adult_only`) are never played.
 - **Tags are not proof of genre.** A "Stealth" room turned out to be a card-matching game. Many rooms typed "Experience"
   are games: 66 of the 74 tried in one campaign.
@@ -36,7 +39,6 @@ curl -s "localhost:9200/rooms/_search?size=10000&_source=hub_sid,content_type_na
 
 `declared_kind` → expected `observed_kind`: `Game` → game; `Experience` and `Templates` → interactive_scene or gallery;
 `Videos` → video. This is `observed_kind_mismatches.py`'s default map.
-
 
 ## Review HTML metadata adapter
 

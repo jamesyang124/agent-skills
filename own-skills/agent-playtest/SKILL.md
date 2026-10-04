@@ -57,7 +57,9 @@ Read `references/play-protocol.md` and follow it exactly. Core rules:
   reports no stall. For games, 30 s is the minimum, 45–60 s the normal target; extend only for a named evidence gap, to at most 90 s verified play. Time alone is insufficient: see the coverage and stop rules in `references/play-protocol.md`. For no-goal scenes, 30 s must cover ≥ 2 distinct areas or objects.
 - **Budget**: ≤ 15 rounds per item. Stop after 3 inputs with no effect. Never retry a stuck item in the same campaign.
 - **Exclude, don't force**: dead link, login, paywall, age gate, device gate (VR/camera/mic), browser permission prompt.
-  Record `excluded_<reason>` and move on. Never grant a permission.
+  Record `excluded_<reason>` and move on. Never grant a permission. If a room's permission is unresolved after 10 s, skip it
+  and record the reason (see `references/play-protocol.md`, Exclusions). A stuck room goes to the human to decide (intervene,
+  abandon, or accept partial for now); the intervention is recorded and written back into this skill.
 - **Log every input** (type, coordinates, hold time, keys) and what changed. Comparing these logs with human demos is
   how the protocol improves.
 - **Observed vs declared**: record `observed_kind` and other observed attributes in the attempt. Never edit the item's
@@ -121,3 +123,4 @@ skill improves.
 | `profiles/viverse.md` | worked example of a site profile |
 | `templates/agent_brief.md`, `templates/plan.example.json` | starting points for a campaign |
 | `scripts/` | `frame_diff.py`, `contact_sheets.py`, `validate_descriptions.py`, `observed_kind_mismatches.py`, `spot_check.py`, `review_sheet.py`, `record_input.py`, `selftest.py` |
+| `references/report-layout.md`, `assets/review/` | approved review-report layout, offline stylesheet, font and licenses |

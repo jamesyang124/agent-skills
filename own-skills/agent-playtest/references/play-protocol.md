@@ -4,7 +4,7 @@
 
 1. Read the item's declared metadata (title, tags, description) from the source named in the site profile. It hints
    at the controls. Do not trust it: tags and content types are often wrong.
-2. Navigate, enable focus emulation when supported, and inspect the screen (round 1). Follow `evidence-review.md`: no delivered ad screenshots; at most one diagnostic loader image.
+2. Navigate, enable focus emulation when supported, and inspect the screen (round 1). Follow `evidence-review.md`: no delivered ad screenshots; at most one diagnostic loader image. Take the first look at a pre-roll into the scratch directory, not the item's `shots/`; if an ad frame is saved anyway, classify it `ad` in `review.json`.
 3. Loop: classify the screen state, act, take a screenshot. Each screenshot you look at, plus the action that follows,
    is one round. **Max 15 rounds.**
 4. Stop when both the applicable time and coverage gates are met, or earlier when a budget, no-effect stop or exclusion applies. Record unmet gates; never extend a run merely to fill time or screenshot quotas.
@@ -105,6 +105,22 @@ Anything less is `partial`.
 (for example VR-only), `excluded_needs_permission` (the content asks for camera or mic), `excluded_permission_prompt`
 (a browser prompt appeared; never accept or dismiss it), `excluded_blank_frame` (still frozen after one 10 s wait),
 `excluded_unresponsive*` (3 inputs with no effect), `excluded_adult_only`.
+
+**Permission-gated rooms are skipped, never worked around.** Playtesting must stay a lightweight, unobtrusive way to enjoy a
+game: do not ask the user to change browser or profile permissions, grant camera/mic/location, or supply personal data to
+get past a gate. A prompt ends that item (`excluded_needs_permission` or `excluded_permission_prompt`), is logged in
+`blockers.md`, and the item is listed for a human who chooses to proceed. Do not describe a gated room's painting/hand-tracking
+or similar behaviour as unresponsive content; the missing input is unknown.
+
+**Pre-deny** (`browser-adapters.md`) is best effort only; known permission-gated rooms are not opened at all.
+
+**10-second permission rule.** If the room needs a permission (camera, mic, location, a device chooser) and the prompt, or
+a screen waiting on it, has not cleared within 10 s, stop that room at once: do not wait for it, retry, or look for another
+way past it. Record `excluded_needs_permission` (or `excluded_permission_prompt` if a browser prompt appeared) with the
+reason spelled out in the attempt and in `blockers.md`, for example `needs microphone permission, unresolved after 10 s,
+skipped`. Then move on to the next item. Use the same wording in the report's "needs a human" list.
+
+**When a room is stuck, bring in the human instead of waiting.** After 3 no-effect inputs, an unresolved permission prompt (10 s rule above), or a hand-off, stop and ask the human in one short message: which room, what happened, and the choices: (a) the human intervenes or plays it, (b) abandon the room with the reason recorded, (c) accept the current partial evidence for now. Never wait silently or keep retrying. Whatever the human does is recorded the way `human-demo.md` describes (input recording when it is granted, otherwise their one-sentence narration plus before/after screenshots and times), and the lesson is written into this skill (input techniques or the human-demo patterns) so the next similar case starts from it.
 
 ## observed_kind (every attempt)
 
