@@ -9,7 +9,7 @@ await page.goto("file://$abs");
 await page.waitForFunction(() => window.__done === true, undefined, { timeout: 30000 }).catch(()=>{});
 const r = await page.evaluate(() => {
   const blocks=[...document.querySelectorAll(".mermaid")];
-  return {done:window.__done===true, h2:document.querySelectorAll("h2").length, mermaid:blocks.length, svg:blocks.filter(b=>b.querySelector("svg")).length, errors:window.__errors};
+  return {done:window.__done===true, h2:document.querySelectorAll("h2").length, mermaid:blocks.length, svg:blocks.filter(b=>b.querySelector("svg")).length, errors:window.__errors||[], graph:window.__graph||null};
 });
 console.log("$f", JSON.stringify(r));
 await task.finish({ keep: [] });

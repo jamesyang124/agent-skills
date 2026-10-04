@@ -8,7 +8,7 @@ Roles decided with the user (2026-10-04); revisit when better tools appear.
 | 3-4 polished hero diagrams in the master | a diagram-design skill |
 | Hand-drawn whiteboard diagrams to memorize | an Excalidraw skill (`excalidraw-diagram-generator`; read its README/source before installing) |
 | Numeric charts (estimation, comparisons) | a data-chart skill such as lieflat-charts; NOT for architecture |
-| Knowledge base storage and agent recall | OKF (okf-agent-memory): Markdown+YAML concepts in git, bidirectional links, `okf validate`, `okf search`, MCP server. Spike on one topic before adopting widely; check whether links can carry a type (solves, requires, contradicts, alternative-to) and otherwise keep the type in each concept's YAML |
+| Knowledge base storage and agent recall | OKF (okf-agent-memory): Markdown+YAML concepts in git, bidirectional links, `okf validate`, `okf search`, MCP server. Spiked and adopted: links carry a type as a `type: text` prefix in the link description, validated with `okf validate --strict --drift` (details in okf.md); graph viewer is `scripts/okf_graph.py` |
 | Auto-built graph tools | graphify was judged unsuitable for this workflow |
 
 ## References

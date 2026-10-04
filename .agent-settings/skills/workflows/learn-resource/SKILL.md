@@ -17,6 +17,7 @@ Given a topic and a list of resources, produce for each resource a faithful, sca
     source.txt               raw extracted content + provenance header (backup)
     notes.md / notes.html    study notes
   ../_workflow/              (optional) shared scripts/templates if the project keeps local copies
+<root>/knowledge/            OKF bundle: concepts/ (shared) + <topic>/ (topic concepts) + graph.html
 ```
 
 `<root>` is the user's knowledge-base folder (ask once if unclear; default to the current repo's existing topic folders). Never write outside it.
@@ -26,7 +27,7 @@ Given a topic and a list of resources, produce for each resource a faithful, sca
 Work through these in order. Steps 2-4 run per source and are independent, so run one sub-agent per source in parallel (step 3), but do the fetching (step 2) yourself in one browser task space.
 
 ### 0. Agree scope (one short exchange)
-Confirm: topic name, `<root>`, docs language (default English; keep the original key term in parentheses for non-English sources), and whether to publish anything to the cloud (default: no, keep private). Also ask which framing the topic has if sources may mean different things by the same name (see master step).
+Confirm: topic name, `<root>`, docs language (default English; keep the original key term in parentheses for non-English sources), whether to use the OKF concept layer, and whether to publish anything to the cloud (default: no, keep private). Also ask which framing the topic has if sources may mean different things by the same name (see master step).
 
 ### 1. Intake - classify each URL
 YouTube, course lesson (login/quizzes), article/docs, shared AI chat, PDF, or other. Everything is fetched with ego-browser; use the faster shortcut for a type only when it exists (see `references/intake.md`). Use only the URLs the user gave; do not go hunting for more unless asked.
@@ -48,8 +49,8 @@ Sub-agent output can invent or drop points. Spot-check against `source.txt`: num
 ### 6. Master (write last)
 Use `references/master-template.md`. The master is not a concatenation: it frames what the topic's variants are, builds a comparison matrix across sources, separates agreements from disagreements (citing the source and timestamp of each side), and gives one canonical design/answer with hero diagrams, a numbers table, a cheat sheet and interview Q&A. Disagreements stay visible; do not average them away. Cite sources as `slug [m:ss]` with `video_sources` in the frontmatter so every citation becomes a clickable deep link.
 
-### 7. Index and optional knowledge layer
-Write `README.md` for the topic (sources table, status, link to master). If the project manages knowledge with OKF (okf-agent-memory), also create one concept file per reusable idea (taken from the `concepts:` frontmatter of the notes), link concepts to each other and to the source sections, and run `okf validate`. Treat this layer as optional until the user's project adopts it; `references/diagram-tools.md` lists the related tooling decisions.
+### 7. Index and knowledge layer (OKF)
+Write the topic `README.md` (sources table, link to master, gaps). Then, if the user uses OKF (default when the root already has a `knowledge/` bundle, otherwise ask in step 0), build the concept layer exactly as in `references/okf.md`: one concept file per reusable idea with per-source evidence and deep links, typed relations via `okf relate`, `okf validate --strict --drift` clean, then `scripts/okf_graph.py` for a clickable graph and a render check plus screenshot. Concepts shared across topics go in `concepts/`, topic-specific ones in `<topic>/`, so later topics link into the same graph.
 
 ### 8. Review gate
 Summarize for the user: what each source contributes, the disagreements found, what could not be captured, and open questions. Ask before moving to the next batch or publishing anywhere.

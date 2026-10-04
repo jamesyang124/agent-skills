@@ -19,7 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   per-resource `notes.md`/`notes.html` (Mermaid, clickable video timestamps), and a merged `master`
   that compares sources. Fetches through ego-browser, including logged-in pages. Bundles
   `scripts/build_html.py` (render + timestamp deep links), `scripts/check_html.sh` (Mermaid render
-  check) and reference templates for intake, notes, master and diagram-tool choices.
+  check), `scripts/okf_graph.py` (clickable typed concept graph from an OKF bundle) and reference
+  templates for intake, notes, master, the OKF knowledge layer and diagram-tool choices.
 
 ---
 
