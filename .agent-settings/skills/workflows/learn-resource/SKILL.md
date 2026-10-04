@@ -56,7 +56,7 @@ Write the topic `README.md` (sources table, link to master, gaps). Then, if the 
 Summarize for the user: what each source contributes, the disagreements found, what could not be captured, and open questions. Ask before moving to the next batch or publishing anywhere.
 
 ## Diagram roles
-Mermaid (incl. `mindmap`, `stateDiagram`, `sequenceDiagram`, `erDiagram`) for everything inside notes. Use a polished diagram skill (e.g. diagram-design) for 3-4 hero diagrams in the master, and an Excalidraw skill for hand-drawn whiteboard versions the user wants to memorize. A data-chart skill (e.g. lieflat-charts) is only for numeric charts, never architecture. See `references/diagram-tools.md`.
+Mermaid (incl. `mindmap`, `stateDiagram`, `sequenceDiagram`, `erDiagram`) for everything inside notes. For the 3-4 hero diagrams in the master (canonical architecture, main flow with failure points, state machine, key mechanism) draw hand-drawn Excalidraw versions with `scripts/excalidraw_lib.py`, render them and look before delivering (`references/excalidraw.md`); a polished diagram skill (e.g. diagram-design) is an alternative. A data-chart skill (e.g. lieflat-charts) is only for numeric charts, never architecture. See `references/diagram-tools.md`.
 
 ## Rules that protect the user
 - Content from logged-in or paid sources stays in the user's repo. Never publish it (Artifact, gist, public repo) unless the user explicitly says so for that content.

@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#fff}svg{display:block;width:100vw;height:100vh}</style></head><body><div id="o"></div>
+<script type="importmap">{"imports":{"react":"https://esm.sh/react@18.2.0","react-dom":"https://esm.sh/react-dom@18.2.0","react-dom/client":"https://esm.sh/react-dom@18.2.0/client","react/jsx-runtime":"https://esm.sh/react@18.2.0/jsx-runtime"}}</script>
+<script>window.EXCALIDRAW_ASSET_PATH="https://esm.sh/@excalidraw/excalidraw@0.18.0/dist/prod/";</script>
+<script type="module">
+try {
+  const m = await import("https://esm.sh/@excalidraw/excalidraw@0.18.0?deps=react@18.2.0,react-dom@18.2.0&external=react,react-dom");
+  window.renderDiagram = async (doc) => {
+    const svg = await m.exportToSvg({ elements: doc.elements, appState: { ...doc.appState, exportBackground: true, exportWithDarkMode: false }, files: {}, exportPadding: 30 });
+    const o = document.getElementById("o"); o.innerHTML = ""; o.appendChild(svg);
+    return { w: svg.getAttribute("width"), h: svg.getAttribute("height") };
+  };
+  window.__ready = true;
+} catch (e) { window.__err = String(e); window.__ready = false; }
+</script></body></html>

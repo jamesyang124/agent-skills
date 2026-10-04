@@ -7,7 +7,7 @@ The master is the document the user reads before an interview. It must be more u
 2. **Disagreements stay visible.** When sources differ (numbers, who does X, which design) put both sides in a table with citations, then add a short "how to answer in an interview" line. Never average them away.
 3. Tag anything not found in any source as **[extra]**. Keep it small.
 4. A number appears once in the numbers table with its source; contradictions are flagged `(to verify)` and, where possible, checked against official documentation.
-5. Diagrams: Mermaid for most; 3-4 hero diagrams drawn with a polished diagram skill (canonical architecture, main flow, state machine, failure/recovery flow). Label which are reconstructions.
+5. Diagrams: Mermaid for most; 3-4 hero diagrams as Excalidraw files embedded as SVG (canonical architecture, main flow with failure points, state machine, key mechanism), see `excalidraw.md`. Label which are reconstructions and mark extras inside the picture.
 6. Verify the html with `check_html.sh`; zero Mermaid errors.
 
 ## File layout

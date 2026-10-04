@@ -20,7 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that compares sources. Fetches through ego-browser, including logged-in pages. Bundles
   `scripts/build_html.py` (render + timestamp deep links), `scripts/check_html.sh` (Mermaid render
   check), `scripts/okf_graph.py` (clickable typed concept graph from an OKF bundle) and reference
-  templates for intake, notes, master, the OKF knowledge layer and diagram-tool choices.
+  templates for intake, notes, master, the OKF knowledge layer and diagram-tool choices, plus
+  `scripts/excalidraw_lib.py` and `scripts/excalidraw_render.html` for hand-drawn hero diagrams that are
+  rendered and checked before delivery.
 
 ---
 
