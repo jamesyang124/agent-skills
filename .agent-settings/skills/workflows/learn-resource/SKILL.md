@@ -46,7 +46,7 @@ For video sources the builder turns every `[m:ss]` into a deep link `...watch?v=
 Sub-agent output can invent or drop points. Spot-check against `source.txt`: numbers, names, any claim that sounds generic. Fix or mark with (to verify). Collect each agent's open questions.
 
 ### 6. Master (write last)
-Use `references/master-template.md`. The master is not a concatenation: it frames what the topic's variants are, builds a comparison matrix across sources, separates agreements from disagreements (citing the source and timestamp of each side), and gives one canonical design/answer with hero diagrams, a numbers table, a cheat sheet and interview Q&A. Disagreements stay visible; do not average them away.
+Use `references/master-template.md`. The master is not a concatenation: it frames what the topic's variants are, builds a comparison matrix across sources, separates agreements from disagreements (citing the source and timestamp of each side), and gives one canonical design/answer with hero diagrams, a numbers table, a cheat sheet and interview Q&A. Disagreements stay visible; do not average them away. Cite sources as `slug [m:ss]` with `video_sources` in the frontmatter so every citation becomes a clickable deep link.
 
 ### 7. Index and optional knowledge layer
 Write `README.md` for the topic (sources table, status, link to master). If the project manages knowledge with OKF (okf-agent-memory), also create one concept file per reusable idea (taken from the `concepts:` frontmatter of the notes), link concepts to each other and to the source sections, and run `okf validate`. Treat this layer as optional until the user's project adopts it; `references/diagram-tools.md` lists the related tooling decisions.

@@ -4,29 +4,42 @@ Usage: build_html.py path/to/notes.md"""
 import sys, re, pathlib
 
 def link_timestamps(md):
-    """YouTube notes: turn [m:ss] / [h:mm:ss] / [a-b] into deep links (idempotent, skips code fences)."""
+    """Deep-link timestamps (idempotent, skips code fences).
+    Single video: frontmatter source_url (YouTube) -> [m:ss] / [h:mm:ss] / [a-b] / [a, b] become links.
+    Multi video (master): frontmatter `video_sources: slug=VIDEOID, slug2=VIDEOID2` -> `slug [m:ss, m:ss]` becomes `slug` + deep links."""
     fm = re.match(r"\A---\n(.*?)\n---\n", md, flags=re.S)
     if not fm: return md
-    url = (re.search(r"^source_url:\s*(\S+)", fm[1], re.M) or [None, ""])[1]
-    vid = re.search(r"(?:v=|youtu\.be/)([\w-]{11})", url)
-    if not vid or "youtu" not in url: return md
-    base = "https://www.youtube.com/watch?v=" + vid[1]
+    head = fm[1]
+    ts = r"(?:\d+:)?\d{1,2}:\d{2}"
+    item = rf"{ts}(?:\s*[\u2013-]\s*{ts})?"
+    lst = rf"{item}(?:\s*,\s*{item})*"
     def secs(t):
         parts = [int(x) for x in t.split(":")]
         return sum(p * 60 ** i for i, p in enumerate(reversed(parts)))
-    ts = r"(?:\d+:)?\d{1,2}:\d{2}"
-    item = rf"{ts}(?:\s*[\u2013-]\s*{ts})?"
-    pat = re.compile(rf"\[({item}(?:\s*,\s*{item})*)\](?!\()")
-    def conv(m):
-        links = []
-        for it in re.split(r"\s*,\s*", m[1]):
-            start = re.match(ts, it)[0]
-            links.append(f"[{it}]({base}&t={secs(start)}s)")
-        return ", ".join(links)
+    def mk(base):
+        def conv(items):
+            return ", ".join(f"[{it}]({base}&t={secs(re.match(ts, it)[0])}s)" for it in re.split(r"\s*,\s*", items))
+        return conv
+    rules = []  # (compiled pattern, replacement fn)
+    vs = re.search(r"^video_sources:\s*(.+)$", head, re.M)
+    if vs:
+        ids = dict(x.strip().split("=", 1) for x in vs[1].split(",") if "=" in x)
+        for slug, vid in ids.items():
+            conv = mk("https://www.youtube.com/watch?v=" + vid.strip())
+            rules.append((re.compile(rf"\b{re.escape(slug)}\s+\[({lst})\](?!\()"),
+                          lambda m, conv=conv, slug=slug: f"{slug} " + conv(m[1])))
+    url = (re.search(r"^source_url:\s*(\S+)", head, re.M) or [None, ""])[1]
+    vid = re.search(r"(?:v=|youtu\.be/)([\w-]{11})", url)
+    if vid and "youtu" in url:
+        conv = mk("https://www.youtube.com/watch?v=" + vid[1])
+        rules.append((re.compile(rf"\[({lst})\](?!\()"), lambda m, conv=conv: conv(m[1])))
+    if not rules: return md
     out, fence = [], False
     for line in md.split("\n"):
         if line.startswith("```"): fence = not fence
-        out.append(line if fence else pat.sub(conv, line))
+        if not fence:
+            for pat, fn in rules: line = pat.sub(fn, line)
+        out.append(line)
     return "\n".join(out)
 
 p = pathlib.Path(sys.argv[1]); md = p.read_text()

@@ -3,7 +3,7 @@
 The master is the document the user reads before an interview. It must be more useful than any single source: framed, compared, and reconciled, with every claim traceable to a source and a timestamp. Build it only after all per-source notes are verified.
 
 ## Rules
-1. Cite every non-trivial claim as `(source-slug [m:ss])` - for video sources the timestamp links to the video; for others cite the section.
+1. Cite every non-trivial claim as `slug [m:ss]` (e.g. `hayk [23:38]`). Put `video_sources: slug=VIDEOID, slug2=VIDEOID2` in the frontmatter and `build_html.py` turns each citation into a deep link to that video moment (in md and html). For non-video sources cite the section as plain text (`edu P2 §4`).
 2. **Disagreements stay visible.** When sources differ (numbers, who does X, which design) put both sides in a table with citations, then add a short "how to answer in an interview" line. Never average them away.
 3. Tag anything not found in any source as **[extra]**. Keep it small.
 4. A number appears once in the numbers table with its source; contradictions are flagged `(to verify)` and, where possible, checked against official documentation.
@@ -17,6 +17,7 @@ The master is the document the user reads before an interview. It must be more u
 title: <Topic> - Master
 topic: <topic>
 sources: [<source-slug>, ...]
+video_sources: <short-slug>=<YouTube video id>, ...   # only for video sources
 built: YYYY-MM-DD
 ---
 
