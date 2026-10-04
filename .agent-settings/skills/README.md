@@ -65,6 +65,10 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 └── workflows/
     ├── goal-checkpoint/
     │   └── SKILL.md
+    ├── learn-resource/
+    │   ├── SKILL.md
+    │   ├── scripts/
+    │   └── references/
     ├── prd-to-sdd-spec/
     │   └── SKILL.md
     ├── sdd-qa-to-jira/
@@ -172,6 +176,7 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 - **sdd-qa-to-ticket** — Reads local SDD artifacts, derives BDD QA scenarios, and creates QA sub-tickets under the Jira root ticket.
 - **sdd-qa-to-jira** — Legacy spec-kit–specific variant of `sdd-qa-to-ticket`.
 - **goal-checkpoint** — Goal tracking with automatic checkpoint/resume. Commits state and writes `GOAL_STATE.md` near context limit.
+- **learn-resource** — Turns any resources (videos, course lessons, articles, chats) into per-resource study notes plus a merged master, read via ego-browser. Backs up raw sources, writes md+html notes with Mermaid and clickable video timestamps, and compares sources in a master.
 
 #### Playground (Experimental)
 

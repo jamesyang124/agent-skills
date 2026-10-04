@@ -160,6 +160,9 @@ These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow G
 *   **goal-checkpoint** — General-purpose goal tracking with automatic checkpoint/resume support. Commits current state and writes a `GOAL_STATE.md` snapshot when context usage approaches 90%, so the next session can restore and continue.
     [View Details](.agent-settings/skills/workflows/goal-checkpoint/SKILL.md)
 
+*   **learn-resource** — Turns any resources (videos, course lessons, articles, chats) into per-resource study notes plus a merged master, read via ego-browser. Includes raw-source backup, Mermaid diagrams, clickable video timestamps and a render check.
+    [View Details](.agent-settings/skills/workflows/learn-resource/SKILL.md)
+
 ### Utilities
 
 *   **sync-api-spec** — Scans all API routes in the project and maintains `docs/agents/api-spec.md` — a machine-readable API reference for agents, frontend, and product. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish step after local file is written. Use at the Implement & PR phase of the SDD workflow.
@@ -244,6 +247,7 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 │   │   │   └── sync-skills/
 │   │   ├── workflows/           # Multi-step, orchestrated pipeline skills
 │   │   │   ├── goal-checkpoint/
+│   │   │   ├── learn-resource/
 │   │   │   ├── prd-to-sdd-spec/
 │   │   │   ├── sdd-qa-to-jira/
 │   │   │   ├── sdd-qa-to-ticket/

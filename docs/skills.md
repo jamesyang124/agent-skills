@@ -64,6 +64,10 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 └── workflows/                      # Multi-step, orchestrated pipeline skills
     ├── goal-checkpoint/
     │   └── SKILL.md
+    ├── learn-resource/
+    │   ├── SKILL.md
+    │   ├── scripts/
+    │   └── references/
     ├── prd-to-sdd-spec/
     │   └── SKILL.md
     ├── sdd-qa-to-jira/
@@ -265,6 +269,7 @@ Current skills in `.agent-settings/skills/`:
 - **sdd-qa-to-ticket** - Derives BDD QA scenarios from SDD artifacts and creates QA sub-tickets in Jira
 - **sdd-qa-to-jira** - Legacy spec-kit–specific variant of `sdd-qa-to-ticket`
 - **goal-checkpoint** - Goal tracking with automatic checkpoint/resume at ~90% context usage
+- **learn-resource** - Resources (videos, lessons, articles, chats) to notes + merged master via ego-browser; Mermaid, clickable video timestamps, render check
 
 **Playground** (experimental):
 - **git-rebase-conflict-resolver** - Dry-run / Progressive / Auto modes for resolving git rebase conflicts

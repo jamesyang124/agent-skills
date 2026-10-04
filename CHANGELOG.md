@@ -11,6 +11,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - `own-skills/agent-playtest` — closed-loop agent playtests of web content → audited, evidence-cited observed descriptions; browser adapters, site profiles (VIVERSE example), human-demo recorder, validation / mismatch / spot-check scripts with a self-test
 
+## [2026-10-04]
+
+### Added
+- `learn-resource` (workflows) — turns any resources (YouTube, course lessons, articles, shared
+  chats, PDFs) into a durable topic knowledge base: raw `source.txt` backup with a provenance header,
+  per-resource `notes.md`/`notes.html` (Mermaid, clickable video timestamps), and a merged `master`
+  that compares sources. Fetches through ego-browser, including logged-in pages. Bundles
+  `scripts/build_html.py` (render + timestamp deep links), `scripts/check_html.sh` (Mermaid render
+  check) and reference templates for intake, notes, master and diagram-tool choices.
+
+---
+
 ## [2026-03-06]
 
 ### Added
