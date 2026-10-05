@@ -153,8 +153,10 @@ upd=lookup("Upd", f"{R}?['pullRequestId']")
 def after(prev): return {prev:["Succeeded"]}
 upd["Upd_ml"]={"runAfter":after("Upd_Find_root_post"),"type":"Compose","inputs":f"@toLower({MSGF})"}
 K="outputs('Upd_kind')"; ML="outputs('Upd_ml')"; STU=f"{R}?['status']"
-upd["Upd_kind"]={"runAfter":after("Upd_ml"),"type":"Compose","inputs":f"@if(equals({STU},'completed'),'merged',if(equals({STU},'abandoned'),'abandoned',if(contains({ML},'with suggestions'),'sugg',if(contains({ML},'approved'),'approved',if(contains({ML},'rejected'),'rejected',if(contains({ML},'waiting'),'waiting','other'))))))"}
-upd["Upd_base"]={"runAfter":after("Upd_kind"),"type":"Compose","inputs":f"@if(greater(indexOf({MSGF},' pull request'),0), substring({MSGF},0,indexOf({MSGF},' pull request')), {MSGF})"}
+upd["Upd_rv"]={"runAfter":after("Upd_name"),"type":"Query","inputs":{"from":f"@coalesce({R}?['reviewers'], json('[]'))","where":"@equals(item()?['displayName'], outputs('Upd_name'))"}}
+VT="coalesce(first(body('Upd_rv'))?['vote'], 99)"
+upd["Upd_kind"]={"runAfter":after("Upd_rv"),"type":"Compose","inputs":f"@if(equals({STU},'completed'),'merged',if(equals({STU},'abandoned'),'abandoned',if(contains({ML},'published the pull request'),'published',if(contains({ML},'with suggestions'),'sugg',if(contains({ML},'approved'),'approved',if(contains({ML},'rejected'),'rejected',if(contains({ML},'waiting'),'waiting',if(equals({VT},10),'approved',if(equals({VT},5),'sugg',if(equals({VT},-10),'rejected',if(equals({VT},-5),'waiting',if(and(contains({ML},' voted'),equals({VT},0)),'cleared','other'))))))))))))"}
+upd["Upd_base"]={"runAfter":after("Upd_ml"),"type":"Compose","inputs":f"@if(greater(indexOf({MSGF},' pull request'),0), substring({MSGF},0,indexOf({MSGF},' pull request')), {MSGF})"}
 B="outputs('Upd_base')"
 markers=[' approved',' rejected',' completed',' abandoned',' is waiting',' waiting',' voted',' updated',' set ',' published',' reactivated',' added',' removed',' changed',' marked']
 cands=",".join(f"if(greater(indexOf({B},'{m}'),0),indexOf({B},'{m}'),9999)" for m in markers)
@@ -164,15 +166,16 @@ def pick(table, default):
     e=f"'{default}'"
     for k,v in reversed(list(table.items())): e=f"if(equals({K},'{k}'),'{v}',{e})"
     return "@"+e
-upd["Upd_icon"]={"runAfter":after("Upd_name"),"type":"Compose","inputs":pick({"merged":"🎉","abandoned":"🗑️","sugg":"✅","approved":"✅","rejected":"💔","waiting":"⏳"},"🔔")}
-upd["Upd_phrase"]={"runAfter":after("Upd_icon"),"type":"Compose","inputs":pick({"merged":" merged it","abandoned":" abandoned this PR","sugg":" approved with suggestions","approved":" approved. Ship it!","rejected":" rejected this with a heavy heart","waiting":" is waiting for the author"}," updated this PR")}
+upd["Upd_icon"]={"runAfter":after("Upd_kind"),"type":"Compose","inputs":pick({"merged":"🎉","abandoned":"🗑️","sugg":"✅","approved":"✅","rejected":"💔","waiting":"⏳","cleared":"↩️","published":"🚀"},"🔔")}
+upd["Upd_phrase"]={"runAfter":after("Upd_icon"),"type":"Compose","inputs":pick({"merged":" merged it","abandoned":" abandoned this PR","sugg":" approved with suggestions","approved":" approved. Ship it!","rejected":" rejected this with a heavy heart","waiting":" is waiting for the author","cleared":" cleared their vote","published":" published this PR"}," updated this PR")}
 upd["Upd_md"]={"runAfter":after("Upd_phrase"),"type":"Compose","inputs":"@concat(outputs('Upd_icon'),' **',outputs('Upd_name'),'**',outputs('Upd_phrase'))"}
 upd["Upd_html"]={"runAfter":after("Upd_md"),"type":"Compose","inputs":"@concat(outputs('Upd_icon'),' <b>',outputs('Upd_name'),'</b>',outputs('Upd_phrase'))"}
 UA,ulast=builder("UpdR", R, "body('Upd_Find_root_post')", {"latest":lambda p:"@outputs('Upd_md')",**keep}, ('update',"@first(body('Upd_Find_root_post'))?['id']"))
 UA.update(reply("Upd_reply", ulast, "@first(body('Upd_Find_root_post'))?['id']", "@outputs('Upd_html')"))
 LA,_=builder("Late", R, None, {"latest":opened,**keep}, 'post')
-upd["Upd_Root_post_found"]={"runAfter":after("Upd_html"),"type":"If","expression":{"and":[{"greater":["@length(body('Upd_Find_root_post'))",0]}]},"actions":UA,
-  "else":{"actions":{"Published_or_unknown_active_PR":{"type":"If","expression":{"and":[{"equals":[f"@{R}?['status']","active"]},{"not":{"equals":[f"@coalesce({R}?['isDraft'], false)",True]}}]},"actions":LA,"else":{"actions":{}}}}}}
+NOT_OTHER={"not":{"equals":["@outputs('Upd_kind')","other"]}}   # push / reviewer-list / ref-update noise is ignored
+upd["Upd_Root_post_found"]={"runAfter":after("Upd_html"),"type":"If","expression":{"and":[{"greater":["@length(body('Upd_Find_root_post'))",0]},NOT_OTHER]},"actions":UA,
+  "else":{"actions":{"Published_or_unknown_active_PR":{"type":"If","expression":{"and":[NOT_OTHER,{"equals":[f"@{R}?['status']","active"]},{"not":{"equals":[f"@coalesce({R}?['isDraft'], false)",True]}}]},"actions":LA,"else":{"actions":{}}}}}}
 updated={"case":"git.pullrequest.updated","actions":upd}
 # ---- commented
 CMT=f"coalesce({R}?['comment']?['content'],'')"

@@ -8,9 +8,9 @@ Auth : export ADO_PAT=<personal access token with "Service Hooks: Read, write, &
   ado_hooks.py create --org ORG --project PROJ --webhook-url URL --repo NAME=BRANCH [--repo NAME=BRANCH ...]
   ado_hooks.py delete --org ORG --project PROJ --id SUBSCRIPTION_ID
 
-`create` makes 4 subscriptions per repo, all pointing at the same flow URL:
+`create` makes 3 subscriptions per repo, all pointing at the same flow URL:
   git.pullrequest.created (v1.0, target branch) | ms.vss-code.git-pullrequest-comment-event (v2.0, target branch)
-  git.pullrequest.updated StatusUpdateNotification (v1.0, target branch) | git.pullrequest.updated ReviewerVoteNotification (v1.0, target branch)
+  git.pullrequest.updated, notificationType Any (v1.0, target branch)
 Existing subscriptions for the same repo/event/branch/url are skipped (idempotent).
 """
 import argparse, base64, json, os, sys, urllib.request, urllib.error
@@ -29,8 +29,7 @@ def call(org, method, path, body=None):
 
 EVENTS=[('git.pullrequest.created','1.0',None,True),
         ('ms.vss-code.git-pullrequest-comment-event','2.0',None,True),
-        ('git.pullrequest.updated','1.0','StatusUpdateNotification',True),
-        ('git.pullrequest.updated','1.0','ReviewerVoteNotification',True)]
+        ('git.pullrequest.updated','1.0','',True)]   # notificationType Any: ADO sends 'published' with an empty type; the flow ignores push/ref noise
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument('cmd',choices=['list','create','delete'])

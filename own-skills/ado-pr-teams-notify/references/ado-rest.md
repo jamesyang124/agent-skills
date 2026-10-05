@@ -25,3 +25,6 @@ Prefer REST over the Service Hooks UI wizard: its dropdowns are virtualized list
 
 ## Backfilling an open PR
 `scripts/backfill_pr.py` fetches the PR and POSTs it to the webhook as a `created` event with `createdDate = creationDate`. PRs created before the hooks existed otherwise never get a card.
+
+
+**Draft to publish (verified 2026-10-05):** ADO sends `git.pullrequest.updated` with message `X published the pull request` and an EMPTY `notificationType`, so a hook filtered on StatusUpdate/ReviewerVote never sees it. Subscribe to `updated` with notificationType Any (3 hooks per repo: created, comment, updated) and let the flow ignore push / reviewer-list / ref-update / marked-as-draft events. Real vote events say only `voted on pull request`; read `resource.reviewers[].vote` (10, 5, 0, -5, -10).

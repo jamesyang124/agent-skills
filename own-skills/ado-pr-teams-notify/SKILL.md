@@ -8,7 +8,7 @@ trigger: /ado-pr-teams-notify
 
 ```
 Azure DevOps Service Hooks (4 per repo) ──HTTP POST──▶ Power Automate flow (Teams "webhook alerts" template, one URL)
-   created · commented · updated(Status) · updated(Votes)          │ Switch on eventType
+   created · commented · updated(any type)          │ Switch on eventType
                                                                    ├─ created   → post root card            (skip drafts)
                                                                    ├─ updated   → update root card + 1-line reply
                                                                    └─ commented → update root card + 1-line reply (quote)
