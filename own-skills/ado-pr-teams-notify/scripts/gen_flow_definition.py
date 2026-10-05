@@ -179,7 +179,7 @@ upd["Upd_Root_post_found"]={"runAfter":after("Upd_html"),"type":"If","expression
 updated={"case":"git.pullrequest.updated","actions":upd}
 # ---- commented
 CMT=f"coalesce({R}?['comment']?['content'],'')"
-flat=f"replace(replace({CMT},decodeUriComponent('%0D'),' '),{NL},' ')"
+flat=f"replace(replace(replace(replace(replace(replace({CMT},'#',''),'*',''),'`',''),decodeUriComponent('%0D'),' '),{NL},' '),'  ',' ')"
 CN=f"{R}?['comment']?['author']?['displayName']"
 cm=lookup("Cmt", f"{PRX}?['pullRequestId']")
 cm["Cmt_text"]={"runAfter":after("Cmt_Find_root_post"),"type":"Compose","inputs":f"@if(greater(length({flat}),200), concat(substring({flat},0,200),'…'), {flat})"}

@@ -18,3 +18,7 @@
 | `GET /hooks/subscriptions` CORS error in a browser | not on a `dev.azure.com` page; navigate there first, or use a PAT |
 | ADO UI hook list: "managed by the consumer service" | that row is a different consumer; right-click → Edit… on Web Hooks rows, or use REST |
 | Cannot delete bot posts | not possible in Teams or via the connector; channel owner/admin only |
+
+
+## After every flow import
+Importing a package turns the flow Off. Turn it On right away on the details page: while it is Off the webhook returns 400 `WorkflowTriggerIsNotEnabled`, ADO marks those deliveries failed and puts the hook on probation, and events in that window are lost (resend them from the hook's notification history).
