@@ -72,3 +72,23 @@ Open in the browser viewer and extract text, or `page.fetch(pdfUrl, { saveAs })`
 
 ## When blocked
 Login, captcha, permission prompt, or a chooser: `await task.handOff()`, tell the user what to do in the browser, end the round, resume the same space (`takeOverTaskSpace(id)`). Never retry around it or open a second space.
+
+## Course chapters: find the lessons, never trust a saved number
+Chapter numbers change when a course is restructured, and a progress file or a user's memory of the numbering can be stale. List a chapter's lessons from the live sidebar, matching by chapter name:
+```js
+const lines = (await page.snapshot({ scope: "full_page" })).split("\n");
+let on = false;
+for (const l of lines) {
+  const m = l.match(/chapter (\d+):\s*(.*?)"?$/i);
+  if (m) { on = m[1] === "43"; continue; }          // the chapter you were asked for
+  if (on) { const u = l.match(/url=(\S+?)[\],]/); if (u) console.log(u[1]); }
+}
+```
+When the user's number and your mapping disagree, re-read the live page before writing anything.
+
+## Interactive pages (mock interviews, AI-graded sessions)
+A page with a "Start Interview" or similar button is a live session, not lesson text: starting it can spend one of the user's limited attempts. Do not start it. Record it in the notes as a gap (format, limits, focus stated on the landing page) and tell the user.
+Such pages may have no `<main>`; `document.body.innerText` then returns the whole sidebar. Take the part after the last sidebar entry, or use the landing-page text only.
+
+## Long fetch loops
+Scrolling, revealing answers and downloading SVGs for several lessons can exceed the shell's 2-minute limit and get moved to the background. Wrap risky navigations in `timeout 100 ...`, print one line per lesson as it finishes, write each lesson's files before moving on, and re-run only the missing lesson in the same task space.
