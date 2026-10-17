@@ -2,7 +2,7 @@
 
 ## Overview
 
-Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with a title, summary, changes, technical details, and breaking changes.
+Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and fills the shared PR template (`.agent-settings/skills/tools/generate-pr-notes/references/pull_request_template.md`). The same template is used by `ado-open-pr` and can be copied into a repo as `.azuredevops/pull_request_template.md`.
 
 ## When to Use
 
@@ -29,20 +29,14 @@ After generation, the notes are:
 ## Output Structure
 
 ```markdown
-## Title
-[TICKET-ID] Short sentence describing the PR  ← Jira prefix only if provided
-
-## Summary
-2-4 sentences about what changed and why
-
-## Changes
-### ✨ New Features   (max 5 items)
-### 🐛 Bug Fixes
-### 🔧 Configuration
-
-## Technical Details  (max 5 items)
-
-## Breaking Changes   (if applicable)
+## Title            [TICKET-ID] sentence (≤128 chars) + Jira: link
+## Summary          2-4 sentences: what changed and why
+## Changes          at most 5 bullets: ✨ feature, 🐛 fix, 🔧 config
+## API impact       routes added / changed / removed, each backward compatible | potentially breaking | breaking
+## Compatibility    breaking-change evidence and the repo constitution check
+## Deploy notes     env vars, migrations, deploy order
+## Spec impact      specs updated, or why not
+## Tests            tests added, or why not
 ```
 
 ## Notes
@@ -50,4 +44,4 @@ After generation, the notes are:
 - Total output is capped at 3000 words — large diffs are summarized, not dumped
 - Each detail appears in only one section (no cross-section redundancy)
 - Remote branch is always preferred as the diff base (falls back to local with a warning)
-- Testing section is intentionally excluded from output
+- A checklist item is ticked only when the diff shows it is true

@@ -1,8 +1,8 @@
 ---
 name: generate-pr-notes
-description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and creates comprehensive PR descriptions with a title, summary, changes, technical details, and breaking changes. Use when creating a PR, writing PR description, summarizing changes for review, or asked to generate PR notes.
+description: Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and fills the shared PR template: title, summary, changes, API impact with compatibility classification, compatibility and constitution check, deploy notes, spec impact and tests. Use when creating a PR, writing PR description, summarizing changes for review, or asked to generate PR notes.
 argument-hint: "[base-branch]"
-allowed-tools: Bash(git *), Bash(uname *), Bash(pbcopy *), Bash(xclip *), Bash(xsel *), Bash(clip *), Write
+allowed-tools: Bash(git *), Bash(uname *), Bash(pbcopy *), Bash(xclip *), Bash(xsel *), Bash(clip *), Read, Write
 ---
 
 # Generate PR Notes
@@ -12,17 +12,17 @@ allowed-tools: Bash(git *), Bash(uname *), Bash(pbcopy *), Bash(xclip *), Bash(x
 Install once — available in all projects.
 
 ```bash
-# Claude
-mkdir -p ~/.claude/skills/generate-pr-notes
-cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
-   ~/.claude/skills/generate-pr-notes/SKILL.md
+# Claude (copy the whole folder: the PR template lives in references/)
+mkdir -p ~/.claude/skills
+cp -R <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes ~/.claude/skills/
 # Add to ~/.claude/CLAUDE.md: - **generate-pr-notes** (`~/.claude/skills/generate-pr-notes/SKILL.md`)
 
 # Copilot
-mkdir -p ~/.copilot/skills/generate-pr-notes
-cp <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes/SKILL.md \
-   ~/.copilot/skills/generate-pr-notes/SKILL.md
+mkdir -p ~/.copilot/skills
+cp -R <agent-settings-repo>/.agent-settings/skills/tools/generate-pr-notes ~/.copilot/skills/
 ```
+
+Or link it with `.agent-settings/skills/import-skills.sh --global claude generate-pr-notes`.
 
 ## Dependencies
 
@@ -116,36 +116,42 @@ You are a specialized agent for generating pull request notes. Follow these step
    - Identify the nature of changes (new features, bug fixes, refactoring, etc.)
    - Look for patterns and group related changes together
 
-4. **Generate comprehensive PR notes with the following sections:**
+4. **Fill the PR template.** Read `references/pull_request_template.md` in this skill's folder. It is the one
+   template for PR notes, for `ado-open-pr`, and for repos that copy it as `.azuredevops/pull_request_template.md`.
+   Keep every heading, its order and every checklist item word for word, and fill each section:
 
    **## Title**
-   - Provide a single short sentence that describes the overall change
-   - **Maximum 128 characters** (including any Jira prefix) — be concise and direct
-   - If a Jira ticket ID was provided, prefix the title with it in square brackets: `[TICKET-ID] Your title here`
-   - If no Jira ticket ID was provided, omit any prefix
+   - One short sentence that describes the overall change. **At most 128 characters**, Jira prefix included.
+   - With a Jira ticket, prefix it in square brackets (`[TICKET-ID] Your title here`) and fill the next line:
+     `Jira: https://your-org.atlassian.net/browse/TICKET-ID`. Without a ticket, drop the prefix and the `Jira:` line.
 
    **## Summary**
-   - Provide a concise overview of what changed and why (2-4 sentences)
-   - Focus on the "why" and business value, not just the "what"
+   - What changed and why, in 2-4 sentences. Focus on the "why" and the value, not only the "what".
 
    **## Changes**
-   - List key changes organized by category:
-     - ✨ New Features (maximum 5 items - prioritize the most impactful features)
-     - 🐛 Bug Fixes
-     - 🔧 Configuration
-   - Use only categories that are relevant
-   - Be specific but concise for each item
-   - Avoid redundant information that's already mentioned in other sections
+   - At most 5 bullets, the most important first, each starting with ✨ (feature), 🐛 (fix) or 🔧 (config / chore).
+   - Add a sub-bullet only for an implementation detail a reviewer needs: an architectural change, a new pattern,
+     a dependency added or updated.
 
-   **## Technical Details**
-   - Highlight important implementation details (maximum 5 items - prioritize the most critical technical updates)
-   - Note any architectural changes or patterns introduced
-   - Mention dependencies added or updated
-   - Do not repeat information already covered in the Changes section
+   **## API impact**
+   - Backend: every route the diff adds, changes or removes (router registrations, handlers, swagger, `api-spec.md`).
+   - Client app: every backend route the diff starts calling, calls differently, or stops calling.
+   - One sub-bullet per route: `` `METHOD /path` — added | changed | removed — what changed — classification ``.
+     Classification: **backward compatible** (every request accepted before is still accepted with the same meaning),
+     **potentially breaking** (an existing caller can get a new error or must send a new field or value), or
+     **breaking** (a request accepted before is now rejected, or its meaning changes).
 
-   **## Breaking Changes** (if applicable)
-   - Clearly call out any breaking changes
-   - Provide migration guidance if needed
+   **## Compatibility**
+   - Tick the item that matches the strongest classification in API impact. For potentially breaking or breaking,
+     write the affected consumers, before → after, deploy order, rollback, and the compatibility window or new version.
+   - If the repo has a constitution (`.specify/memory/constitution.md`, or `openspec/project.md`), read it and tick
+     the principles item: name each principle the diff touches (for example `Principle III`) and how it complies.
+     Without a constitution, leave that item unticked and add `(no constitution in this repo)`.
+
+   **## Deploy notes / ## Spec impact / ## Tests**
+   - Tick each item only when the diff shows it is true, and add sub-bullets with the evidence: env var names and
+     values per environment, migration scripts, deploy order, spec files changed, test files and the cases they cover.
+   - When a "No …" item applies, tick it and give the reason.
 
 5. **Format the output - CRITICAL FORMATTING REQUIREMENTS:**
 
@@ -155,38 +161,7 @@ You are a specialized agent for generating pull request notes. Follow these step
 
    **YOUR ENTIRE RESPONSE MUST BE WRAPPED IN A MARKDOWN CODE BLOCK:**
 
-   Output this exact structure:
-
-   ````
-   ```markdown
-   ## Title
-   [TICKET-123] Single sentence describing the PR  ← include Jira prefix if provided, omit entirely if not
-
-   ## Summary
-   [2-4 sentences about what changed and why]
-
-   ## Changes
-
-   ### ✨ New Features
-   - [item 1]
-   - [item 2]
-   - [maximum 5 items - only list the most important features]
-
-   ### 🐛 Bug Fixes
-   - [item]
-
-   ### 🔧 Configuration
-   - [item]
-
-   ## Technical Details
-   - [item 1]
-   - [item 2]
-   - [maximum 5 items - focus on critical technical updates, no repetition from Changes section]
-
-   ## Breaking Changes
-   [if applicable, otherwise omit this section entirely]
-   ```
-   ````
+   Output the filled template from step 4 inside one ```` ```markdown ```` block.
 
    **ABSOLUTE RULES - NO EXCEPTIONS:**
    - First line MUST be exactly: ````markdown`
@@ -194,10 +169,8 @@ You are a specialized agent for generating pull request notes. Follow these step
    - Last line MUST be exactly: ````
    - **TITLE LENGTH: The title line must NOT exceed 128 characters — use a short, direct sentence**
    - **STOP WRITING** immediately after the closing ```
-   - Use `##` for main sections (Title, Summary, Changes, Technical Details, Breaking Changes)
-   - Use `###` ONLY for change categories under Changes section
-   - New Features section must have AT MOST 5 items
-   - Technical Details section must have AT MOST 5 items
+   - Use exactly the `##` sections of the template, in its order. Do not add, rename or drop a section.
+   - Changes has AT MOST 5 bullets
    - Each piece of information should appear in only ONE section - no redundancy
    - **LINE LENGTH: Every line must NOT exceed 250 characters. If a sentence is too long, split it into two separate bullet points or shorten it.**
 
@@ -222,11 +195,10 @@ You are a specialized agent for generating pull request notes. Follow these step
 - Always read the actual diff before generating notes - never make assumptions
 - If the diff is very large, summarize thoughtfully rather than listing every change
 - **MANDATORY: The total output must not exceed 3000 words - be concise and prioritize the most important information**
-- **MANDATORY: New Features section must contain at most 5 items - focus on the most impactful features**
-- **MANDATORY: Technical Details section must contain at most 5 items - focus on the most critical technical updates**
+- **MANDATORY: Changes must contain at most 5 bullets - focus on the most important changes**
 - **MANDATORY: Avoid redundant information - each detail should appear in only ONE section**
 - **MANDATORY: Every line must NOT exceed 250 characters — split long sentences into separate bullet points or shorten them**
-- **DO NOT include a Testing section in the output**
+- **MANDATORY: Tick a checklist item only when the diff shows it is true**
 - Tailor the tone and detail level to the size and complexity of the changes
 - If there are no changes to analyze, inform the user clearly
 - Output must be clean markdown with no wrapper text for easy copy/paste
