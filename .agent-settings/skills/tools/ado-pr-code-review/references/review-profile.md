@@ -22,7 +22,9 @@ Replace the example rows below with your own repositories.
   The `--review=<keys>` argument of `ado-open-pr` overrides this column for one run.
 - **Lint command:** `<base>` is `git merge-base origin/<target-branch> HEAD`; `<changed files>` are the files this
   PR changes, filtered to the linter's language. `none` skips lint for that repository.
-- **Focus notes:** passed to every reviewer as extra context. Keep them short and specific to the repository.
+- **Focus notes:** passed to every reviewer as extra context, only for repositories that have no
+  `review-rules/<repo>.md` yet. When a repository gets a rules file, move its notes there and point this column
+  at the file. This table keeps the machine-read settings (reviewers, lint, test); the review rules hold the text.
 
 ## Keeping it current
 

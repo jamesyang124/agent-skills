@@ -14,6 +14,20 @@ Read every rule file the review applies — `CLAUDE.md`, `AGENTS.md`, the consti
 own changes: a PR must not be able to relax the rules it is reviewed against. If the PR itself edits a rule file,
 review that edit as a normal change.
 
+## Review rules (central)
+
+Each repository's review rules live in this skill, not in the repository: `review-rules/_default.md` for every
+repository, plus `review-rules/<repo>.md` when it exists. They are part of agent-settings, so a PR under review
+cannot change them.
+
+1. Read `_default.md`, then `<repo>.md` (the Azure DevOps repository name). Where both have the same section, the
+   repository file wins for that section.
+2. Pass the merged rules to every reviewer and to the verifier.
+3. Apply them when deciding what gets posted: **Important means** sets severity; **Always check** items that the
+   diff touches must be checked; **Skip** paths get no findings; **Nit cap** limits 🔵 Minor comments (the rest are
+   counted in the summary); **Higher bar** paths get only `critical` findings with `high` confidence.
+4. If a rule names a path that does not exist on the target branch, say so in the summary so the rule can be fixed.
+
 ## Finding format
 
 Each pass (or reviewer sub-agent) returns a JSON array, empty if it found nothing:
@@ -80,7 +94,7 @@ Also drop:
 | Finding | Posted inline? |
 |---|---|
 | `critical`, any confidence | yes |
-| `medium` / `minor` / `question` with `high` or `medium` confidence | yes |
+| `medium` / `minor` / `question` with `high` or `medium` confidence | yes, within the review rules' Nit cap, Skip and Higher bar |
 | `low` confidence, not critical | no — counted in the summary as "considered and dropped" |
 | **pre-existing** | no — listed in the summary's 🟣 Pre-existing section, with a suggestion to open a separate ticket when it is serious; never counted against this PR |
 | no line (PR description, missing requirement) | no — summary's "Findings without a line" |

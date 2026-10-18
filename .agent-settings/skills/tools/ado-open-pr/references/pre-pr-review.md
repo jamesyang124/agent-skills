@@ -8,7 +8,9 @@ builds each prompt from **Common rules** + the reviewer's brief + the run inputs
 - repository root and repository name
 - diff range: `origin/<target-branch>...HEAD` (three-dot; committed work only)
 - changed files: `git diff --name-only origin/<target-branch>...HEAD`
-- focus notes for this repository from `review-profile.md`, if any
+- this repository's review rules: `ado-pr-code-review/references/review-rules/_default.md` plus
+  `review-rules/<repo>.md` if it exists (see "Review rules" in `review-findings.md`), and the focus notes from
+  `review-profile.md` for repositories that have no rules file yet
 - the path of the sibling skill `ado-pr-code-review/SKILL.md` (same parent folder as `ado-open-pr`)
 - for `standards`: the Jira ticket key (and its description / acceptance criteria if the Jira MCP can read it), the
   spec folder that Step 1.5 resolved, and the **pre-sync commit** captured in Step 1 (read the spec as it was before

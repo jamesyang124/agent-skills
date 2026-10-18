@@ -69,7 +69,8 @@ https://{org}.visualstudio.com/{project}/_git/{repo}/pullrequest/{prId}
    On a re-review, do not raise a finding again if its thread is fixed, won't-fix or by-design, unless the
    fix is wrong or incomplete. Then say so in a new thread that names the old one.
 6. Read the repo's rule files (`CLAUDE.md`, `AGENTS.md`, constitution, `docs/agents/`) from the **target branch**,
-   as `references/review-findings.md` describes, and pass them to the passes that need them.
+   and this repo's central review rules (`references/review-rules/_default.md` + `references/review-rules/<repo>.md`),
+   as `references/review-findings.md` describes. Pass them to every pass and to the verifier.
 
 ## Comment Format
 
