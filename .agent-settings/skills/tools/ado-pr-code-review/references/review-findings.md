@@ -54,32 +54,93 @@ Each pass (or reviewer sub-agent) returns a JSON array, empty if it found nothin
 - **Severity:** `critical` = security hole, lost or wrong data, crash on a reachable path, broken contract, or a
   leak that grows with traffic. `medium` = a real defect with bounded impact. `minor` = clarity or maintainability.
   `question` = needs the author's answer before anyone can judge it.
-- **Confidence:** `high` = traced and it fails as described; `medium` = likely, depends on code or data not seen;
-  `low` = a suspicion.
+- **Confidence:** use the anchors in Verification layer 4 (`high` traced end to end, `medium` depends on
+  unseen code or data, `low` not traced). The verifier may change it.
 - A finding with no line (PR description, missing docs, missing requirement) uses `"file": "PR description"` (or the
   closest path) and `"line": 0`.
 
 ## Verification (before anything is posted or shown as a finding)
 
-The context that **verifies** is never the one that **found** the issue.
+The context that **verifies** is never the one that **found** the issue. Run the layers in order; cheap layers first,
+expensive layers only where they pay. Record the outcome and the evidence of each finding in its `verified` field.
 
-| Situation | Who verifies |
+### Layer 1 — Mechanical checks (always, every finding)
+
+1. **In scope:** the cited file and line are in the PR diff (added or changed lines, ± 3 lines of context). A finding
+   on unchanged code goes to layer 2, not straight to drop.
+2. **Anchor:** the quoted code really is at the cited line of the PR head. If it is a few lines off, fix the line;
+   if the quote is not in the file, **drop** (it is invented).
+3. **Symbol:** functions, fields and routes the finding names exist (grep the PR head). If not, **drop**.
+4. **Not a tool duplicate:** the same file, line and problem is not already reported by the repo's linter,
+   formatter or typechecker (the measurements, or what CI runs). If it is, **drop**.
+5. **Not a repeat:** it does not repeat an earlier review thread that is fixed, won't-fix or by-design, unless the
+   fix is wrong. If it does, **drop**.
+
+### Layer 2 — Pre-existing (always, for findings that touch code which may be unchanged)
+
+Read the same code on the target branch (`git show origin/<target-branch>:<path>`, or `git blame` against the
+merge-base). If the flaw is already there, the outcome is **pre-existing** — unless this PR makes it newly reachable
+(a new caller, a new public route, a removed guard). Then it is this PR's finding: **keep** it and say so.
+
+### Layer 3 — Precedents (always)
+
+Drop, or downgrade to `question` when borderline, these low-signal classes unless the finding shows a concrete,
+reachable impact in this repo:
+
+- React / JSX output treated as XSS without `dangerouslySetInnerHTML` or an equivalent raw-HTML sink;
+- environment variables, CLI flags and server config treated as attacker-controlled input;
+- generic "input not validated" or "add rate limiting / DoS protection" with no exploit path;
+- client-side checks reported as missing server-side auth when the server does check;
+- findings in docs, comments or test fixtures that do not change behavior.
+
+Do **not** add resource leaks to this list: leaks and unbounded growth are in scope (Step 4 of `ado-pr-code-review`).
+A repository's review rules (`review-rules/<repo>.md`) may add precedents.
+
+### Layer 4 — Independent disprover (every finding that survives layers 1–3)
+
+A fresh `general-purpose` sub-agent (without sub-agents: the orchestrator, and say so) receives the diff range, the
+repo path, the target branch, the review rules, and **one finding at a time** (findings may share one sub-agent to
+save cost, but each is judged on its own). It must **try to disprove** the finding by tracing callers, inputs and
+reachability with the repository's tools — not only by reading the cited line. It sets confidence from these anchors,
+never from its own sense of certainty:
+
+| Confidence | Anchor |
 |---|---|
-| 15 findings or fewer, none critical | the orchestrator, against the code |
-| more than 15, or any `critical` | one fresh `general-purpose` verifier sub-agent that receives only the diff range, the repo path, the target branch and the findings. Its job is to **try to disprove** each finding. Without sub-agents, the orchestrator does it and says so |
+| `high` | traced end to end: the triggering input reaches the cited line and the failure follows, or a command reproduced it |
+| `medium` | the cited code is wrong, but reaching it depends on code, data or config not seen |
+| `low` | plausible from reading alone; not traced |
 
-For each finding, decide one outcome and record why:
+Outcomes: disproved → **drop**; real with smaller impact or certainty → **downgrade**; verified and reachable →
+**keep**. A `critical` is downgraded, never dropped, unless it is disproved.
+
+### Layer 5 — Proof by test (`critical` only, where tests exist)
+
+For a kept `critical` in a package that already has tests, write the smallest test or script that fails because of
+the bug and run it locally (`go test -run`, `mix test <file>:<line>`, the repo's JS test runner). Do not commit it.
+Where the calling skill requires approval before running tests (`ado-open-pr`), ask first; a declined run counts as
+"cannot be built" below.
+
+- It fails as predicted → **keep**, `high`; say so in "How verified".
+- It cannot be built or does not reproduce, but the layer-4 reasoning holds → **downgrade** to `medium` severity
+  with `medium` confidence and say what blocked the proof.
+- No tests in that package, or the bug needs an external system → skip this layer and say so; keep the layer-4
+  result.
+
+### Layer 6 — Tie-break (optional, off by default)
+
+Only for a `critical` that is still at `medium` confidence after layers 4–5, and only when the user asks for it:
+re-derive the finding 2–3 times in fresh contexts with the diff files in a different
+order (or with a second model family). Most re-derivations agree → **keep**; otherwise **downgrade**. It costs 2–3
+extra reviewer runs per finding.
+
+### Outcomes
 
 | Outcome | When |
 |---|---|
-| **keep** | the code at the cited line does what the finding says, on a reachable path |
+| **keep** | verified and reachable in this PR |
 | **downgrade** | real, but the impact or the certainty is smaller than claimed (lower severity or confidence) |
-| **drop** | wrong, not reachable, already handled elsewhere, or outside this diff |
-| **pre-existing** | the same code already exists on the target branch (`git show origin/<target-branch>:<path>`, or `git blame` shows the lines predate the merge-base). Real, but not introduced by this PR |
-
-Also drop:
-- anything a linter or formatter in the repo would catch (formatting, line length, import order);
-- a finding that repeats an earlier review thread that is fixed, won't-fix or by-design, unless the fix is wrong.
+| **drop** | invented, wrong, unreachable, a tool duplicate, a precedent class, or a repeat |
+| **pre-existing** | already on the target branch and not made newly reachable by this PR |
 
 ## Merge
 

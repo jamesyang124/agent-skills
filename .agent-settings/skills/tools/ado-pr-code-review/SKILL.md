@@ -645,13 +645,13 @@ grows with traffic is 🔴 Critical; a defect with a bounded or rare impact is �
 
 Collect the candidate findings from Steps 2.5–5 and verify them with `references/review-findings.md`:
 
-1. Choose the verifier: yourself for 15 findings or fewer with no `critical`; otherwise one fresh verifier
-   sub-agent that tries to disprove each finding.
-2. Give every finding one outcome — keep, downgrade, drop, or pre-existing — with the reason. Check pre-existing
-   by reading the same code on the target branch.
-3. Drop linter- or formatter-catchable findings and repeats of resolved threads.
-4. Merge duplicates and sort.
-5. Apply the posting table: what is posted inline, what goes to the summary only, and what is counted as dropped.
+1. Run the verification layers of that file in order: mechanical checks (scope, anchor, symbol, tool duplicate,
+   repeat), pre-existing (target branch, unless this PR makes it newly reachable), precedents, the independent
+   disprover per finding with the confidence anchors, and proof by test for each kept `critical` where tests exist.
+   The tie-break layer runs only when the user asks.
+2. Give every finding one outcome — keep, downgrade, drop, or pre-existing — with the evidence in `verified`.
+3. Merge duplicates and sort.
+4. Apply the posting table: what is posted inline, what goes to the summary only, and what is counted as dropped.
 
 The provenance findings from Step 2.5 are verified too, but they always go to the summary, never inline.
 

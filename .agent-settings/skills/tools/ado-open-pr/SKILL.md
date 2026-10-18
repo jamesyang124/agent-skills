@@ -148,9 +148,9 @@ how much human review the PR still needs. The briefs, the finding format and the
    `references/pre-pr-review.md`. If the harness has no sub-agents, run the briefs one after another inline, and say
    in the report that the reviews did not have separate contexts.
 3. **Verify and merge the results** as `references/pre-pr-review.md` describes, with the shared rules in
-   `../ado-pr-code-review/references/review-findings.md`: a verifier that did not find the issue (you, or a fresh
-   verifier sub-agent for more than 15 findings or any critical), keep / downgrade / drop / pre-existing, linter-catchable
-   findings dropped, duplicates merged, `minimal` / `refactor` conflicts settled, sorted by severity.
+   `../ado-pr-code-review/references/review-findings.md`: its verification layers (mechanical checks, pre-existing,
+   precedents, an independent disprover per finding, proof by test for a kept critical — ask before running a test),
+   keep / downgrade / drop / pre-existing, duplicates merged, `minimal` / `refactor` conflicts settled, sorted by severity.
 4. **Show the findings to the user**, grouped by severity, with reviewer, confidence, file:line and the suggested fix.
    - **Critical findings:** stop and ask: fix them now, open the PR anyway, or stop without a PR.
    - **Non-interactive / headless run:** report the findings and apply no fixes. With a critical finding, do not
