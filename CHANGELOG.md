@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ado-pr-code-review/references/` — `branch-map.md` (PR target per repo) and `review-profile.md` (reviewers, lint and test commands per repo), with example rows
 
 ### Changed
+- `import-skills.sh` — `--global` installs into `~/.<agent>/skills`; every install checks for skills installed both globally and in the project and cleans them in one step (`--dedup`, `--yes`, `--pick`, `--project`); `--no-color` is accepted
 - `ado-open-pr` — uses the consolidated Azure DevOps MCP tools; target branch comes from the branch map, then the ADO default branch (no hard-coded `develop`)
 - `ado-pr-code-review` — adds commit provenance, runtime correctness and resource leaks, and standards / spec passes
 - `generate-pr-notes` — fills the shared template; the global install copies the whole folder
