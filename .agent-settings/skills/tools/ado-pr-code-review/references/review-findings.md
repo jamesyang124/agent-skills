@@ -101,8 +101,10 @@ A repository's review rules (`review-rules/<repo>.md`) may add precedents.
 A fresh `general-purpose` sub-agent (without sub-agents: the orchestrator, and say so) receives the diff range, the
 repo path, the target branch, the review rules, and **one finding at a time** (findings may share one sub-agent to
 save cost, but each is judged on its own). It must **try to disprove** the finding by tracing callers, inputs and
-reachability with the repository's tools — not only by reading the cited line. It sets confidence from these anchors,
-never from its own sense of certainty:
+reachability with the repository's tools — not only by reading the cited line. A claim that CI or a build will fail
+is checked against the pipeline that actually runs for the PR (pipeline definitions, the PR's builds, the review
+rules), never against a workflow file alone. It sets confidence from these anchors, never from its own sense of
+certainty:
 
 | Confidence | Anchor |
 |---|---|

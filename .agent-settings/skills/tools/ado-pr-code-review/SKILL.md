@@ -2,7 +2,7 @@
 name: ado-pr-code-review
 description: Review an Azure DevOps PR by URL and post inline LOC-level comments. Covers commit provenance (merge direction / target-branch warnings, merge commits smuggling other work in, lost work from force-pushes, rebases, dropped child PRs or overwritten conflict resolutions), security (PII exposure, input validation, error `code` field, OWASP Top 10, CWE Top 25, OWASP API/Mobile/IoT Top 10), runtime correctness and resource leaks (crashes, races, lost work, memory/connection/listener leaks, unbounded growth, in backend and frontend code), and repo standards and spec conformance via the code-review skill. Use when asked to review a PR, code review an ado PR, security review a pull request, find bugs or memory leaks in a PR, do a final/last review, or given an Azure DevOps PR URL.
 argument-hint: "<azure-devops-pr-url>"
-allowed-tools: Skill, Agent, Bash, Read, mcp__azure-devops-mcp__repo_repository, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_file, mcp__azure-devops-mcp__repo_pull_request_thread, mcp__azure-devops-mcp__repo_pull_request_thread_write
+allowed-tools: Skill, Agent, Bash, Read, mcp__azure-devops-mcp__repo_repository, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_file, mcp__azure-devops-mcp__repo_pull_request_thread, mcp__azure-devops-mcp__repo_pull_request_thread_write, mcp__azure-devops-mcp__pipelines_build, mcp__azure-devops-mcp__pipelines_definition
 ---
 
 # Azure DevOps PR Code Review
@@ -610,6 +610,12 @@ that are new on the PR. Use what the repo already has, for example `go vet` + `g
 frontend projects. A failure that also happens on the merge-base is pre-existing: mention it in the summary,
 not as a finding. Many frontend leaks only show at runtime (heap snapshots, detached DOM); if you suspect
 one you cannot confirm statically, raise it as a 🔍 Question and say how to measure it.
+
+**CI and build claims.** A finding that says CI, a build, or a deploy will fail must name the pipeline that actually
+runs for this repository and PR: an Azure DevOps pipeline definition or a build of this PR (`pipelines_build` for
+`refs/pull/{prId}/merge` or the source branch), or the repository's review rules. A workflow file alone
+(`.github/workflows/`, `.circleci/`) is not evidence: on an Azure DevOps repository it may be a leftover that never
+runs. Without that evidence, report the underlying defect at its own severity and leave the build claim out.
 
 Tag these findings `[runtime]`. Severity: lost data, lost work, a crash on a reachable path or a leak that
 grows with traffic is 🔴 Critical; a defect with a bounded or rare impact is 🟡 Medium.
