@@ -2,39 +2,16 @@
 name: ado-pr-resolve-comments
 description: Read active review comments on an Azure DevOps PR and resolve them by applying the suggested fixes with user consent. Trivial fixes are shown as before/after diffs for quick approval. Non-trivial changes produce a refactoring plan for user review before execution. Companion to ado-pr-code-review. Use when asked to resolve PR comments, apply review suggestions, fix PR feedback, or address code review findings.
 argument-hint: "<azure-devops-pr-url>"
-allowed-tools: mcp_azure_devops__repo_list_pull_request_threads, mcp_azure_devops__repo_list_pull_request_thread_comments, mcp_azure_devops__repo_get_file_content, mcp_azure_devops__repo_get_pull_request_by_id, mcp_azure_devops__repo_reply_to_comment, mcp_azure_devops__repo_update_pull_request_thread
+allowed-tools: Read, Edit, Skill, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_file, mcp__azure-devops-mcp__repo_pull_request_thread, mcp__azure-devops-mcp__repo_pull_request_thread_write
 ---
 
 # Azure DevOps PR — Resolve Review Comments
 
-## ⚙️ Required: install the `diagnose` skill
+## Companion skill (optional): `diagnosing-bugs`
 
-Install `diagnose` globally for your agent **once**, then it is available in all projects.
-
-### Claude (global)
-```bash
-mkdir -p ~/.claude/skills/diagnose
-curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnose/SKILL.md \
-  -o ~/.claude/skills/diagnose/SKILL.md
-# Then add to ~/.claude/CLAUDE.md:
-# - **diagnose** (`~/.claude/skills/diagnose/SKILL.md`) — bug diagnosis loop
-```
-
-### GitHub Copilot (global)
-```bash
-mkdir -p ~/.copilot/skills/diagnose
-curl -fsSL https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/diagnose/SKILL.md \
-  -o ~/.copilot/skills/diagnose/SKILL.md
-# Then reference it from your global Copilot instructions file.
-```
-
-### Via agent-settings import-skills.sh (project-local)
-```bash
-# If using this agent-settings repo, import it into a project:
-.agent-settings/skills/import-skills.sh claude diagnose     # Claude / Copilot
-```
-
-> The diagnose skill must be visible to your agent before proceeding.
+From `mattpocock/skills` (`skills/engineering/diagnosing-bugs/`). It replaces the older `diagnose`
+skill; do not reference `diagnose`. If it is not installed, skip the repro loop and mark each fix
+`⚠️ Unverified — static analysis only` (see the last section).
 
 ---
 
@@ -64,7 +41,7 @@ https://{org}.visualstudio.com/{project}/_git/{repo}/pullrequest/{prId}
 
 ## Step 2 — Fetch active comment threads
 
-Call `mcp_azure_devops__repo_list_pull_request_threads` with `status: Active`.
+Call `repo_pull_request_thread` with `{ action: "list", repositoryId, project, pullRequestId, status: "Active" }`.
 
 For each thread that has a `threadContext` (file + line), extract:
 - `filePath` — the file the comment is on
@@ -78,7 +55,7 @@ Skip system threads (reviewer added, branch updated, etc.) — only process huma
 
 ## Step 3 — Read file content for each thread
 
-For each active thread, call `mcp_azure_devops__repo_get_file_content` to get the current file at the PR's source branch. Extract the surrounding context (±20 lines around the flagged line).
+For each active thread, call `repo_file` with `{ action: "get_content", repositoryId, project, path, version: <source branch>, versionType: "Branch" }` to get the current file at the PR's source branch. Extract the surrounding context (±20 lines around the flagged line).
 
 ---
 
@@ -166,12 +143,12 @@ Apply this fix? (yes / skip)
 
 3. **Apply the change** using the file editing tool.
 
-4. **Reply to the ADO thread** using `mcp_azure_devops__repo_reply_to_comment`:
+4. **Reply to the ADO thread** using `repo_pull_request_thread_write` with `action: "reply"`, the `threadId` and the `content`:
 ```
 ✅ Fixed: {one-line description of what was applied}.
 ```
 
-5. **Mark the thread as resolved** using `mcp_azure_devops__repo_update_pull_request_thread` with `status: Fixed`.
+5. **Mark the thread as resolved** using `repo_pull_request_thread_write` with `action: "update_status"`, the `threadId` and `status: "Fixed"`.
 
 ---
 
@@ -267,11 +244,11 @@ All resolved threads have been marked as Fixed in the PR.
 
 ---
 
-## Using the `diagnose` skill before applying fixes
+## Using the `diagnosing-bugs` skill before applying fixes
 
-### When to invoke `diagnose`
+### When to invoke `diagnosing-bugs`
 
-Before applying any fix — trivial or non-trivial — use the `diagnose` skill when:
+Before applying any fix — trivial or non-trivial — use the `diagnosing-bugs` skill when:
 
 - The PR comment says the issue exists but the **root cause is unclear** from the comment alone
 - You are about to apply a fix but are **not confident** the suggestion fully addresses the underlying issue
@@ -281,14 +258,14 @@ Before applying any fix — trivial or non-trivial — use the `diagnose` skill 
 ### How to apply it
 
 **Before a trivial fix:**
-1. Run `diagnose` Phase 1 — build a minimal repro (e.g. a failing test or curl) that confirms the issue
-2. Run `diagnose` Phase 3 — confirm the fix addresses the right root cause, not a symptom
+1. Run `diagnosing-bugs` Phase 1 — build a minimal repro (e.g. a failing test or curl) that confirms the issue
+2. Run `diagnosing-bugs` Phase 3 — confirm the fix addresses the right root cause, not a symptom
 3. Proceed with the before/after diff and user consent as normal
 4. After applying, run the loop again to confirm the fix works (Phase 5)
 
 **Before a non-trivial refactoring plan:**
-1. Run `diagnose` Phase 1 — build a loop that reproduces the problem across the affected call sites
-2. Run `diagnose` Phase 3 — rank hypotheses for why the structural issue exists
+1. Run `diagnosing-bugs` Phase 1 — build a loop that reproduces the problem across the affected call sites
+2. Run `diagnosing-bugs` Phase 3 — rank hypotheses for why the structural issue exists
 3. Use the loop and hypotheses to build an accurate, scoped refactoring plan (Step 7b)
 4. Include the reproduction evidence in the plan so the user can verify it themselves
 

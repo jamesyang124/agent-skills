@@ -2,7 +2,7 @@
 name: ado-pr-code-review
 description: Review an Azure DevOps PR by URL and post inline LOC-level comments. Covers commit provenance (merge direction / target-branch warnings, merge commits smuggling other work in, lost work from force-pushes, rebases, dropped child PRs or overwritten conflict resolutions), security (PII exposure, input validation, error `code` field, OWASP Top 10, CWE Top 25, OWASP API/Mobile/IoT Top 10), runtime correctness and resource leaks (crashes, races, lost work, memory/connection/listener leaks, unbounded growth, in backend and frontend code), and repo standards and spec conformance via the code-review skill. Use when asked to review a PR, code review an ado PR, security review a pull request, find bugs or memory leaks in a PR, do a final/last review, or given an Azure DevOps PR URL.
 argument-hint: "<azure-devops-pr-url>"
-allowed-tools: Skill, Agent, Bash, mcp_azure_devops__repo_get_pull_request_by_id, mcp_azure_devops__repo_get_pull_request_changes, mcp_azure_devops__repo_get_file_content, mcp_azure_devops__repo_create_pull_request_thread, mcp_azure_devops__repo_list_pull_request_threads
+allowed-tools: Skill, Agent, Bash, Read, mcp__azure-devops-mcp__repo_repository, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_file, mcp__azure-devops-mcp__repo_pull_request_thread, mcp__azure-devops-mcp__repo_pull_request_thread_write
 ---
 
 # Azure DevOps PR Code Review
@@ -52,12 +52,14 @@ https://{org}.visualstudio.com/{project}/_git/{repo}/pullrequest/{prId}
 
 ## Step 2 — Fetch PR metadata and changed files
 
-1. Call `mcp_azure_devops__repo_get_pull_request_by_id` with `{org}`, `{project}`, `{repo}`, `{prId}`
-2. Call `mcp_azure_devops__repo_get_pull_request_changes` to get the list of changed files and their diffs
-3. For each changed file, call `mcp_azure_devops__repo_get_file_content` to get the full file content at the PR's source branch
+1. Call `repo_pull_request` with `{ action: "get", project: {project}, repositoryId: {repo}, pullRequestId: {prId}, includeChangedFiles: true }`
+2. Take the list of changed files from that response. For each file's diff, read both sides with `repo_file`
+   (`action: "get_content"`, `versionType: "Commit"`): the target side at `lastMergeTargetCommit` and the source
+   side at `lastMergeSourceCommit`. With a local clone, `git diff <target>...<source>` gives the same diff
+3. For each changed file, use the source-side `repo_file` content from step 2 as the full file at the PR's source branch
 4. If a local clone exists, `git fetch` the source and target branches and work from
    `git diff {target}...{source}` instead: the runtime pass needs to read callers and run tests.
-5. Call `mcp_azure_devops__repo_list_pull_request_threads` and note every earlier finding and its status.
+5. Call `repo_pull_request_thread` with `{ action: "list", repositoryId, project, pullRequestId }` and note every earlier finding and its status.
    On a re-review, do not raise a finding again if its thread is fixed, won't-fix or by-design, unless the
    fix is wrong or incomplete. Then say so in a new thread that names the old one.
 
@@ -179,7 +181,7 @@ Then compare it with the PR's `targetRefName` and `sourceRefName`:
 
 - **Target is `{target}`:** normal. Note `→ {target}` in the summary and continue.
 - **Target is an allowed other branch in the map:** fine. Put that row's note in the summary (for example
-  "`release/*`: a `[Backport] … → main` PR follows this one").
+  "`release/*`: the CI/CD pipeline opens the `[Backport] … → main` PR after this one merges").
 - **Target is anything else** (a feature, a stale `develop`, another person's branch): put a ⚠️ **Merge
   target warning** at the very top of the summary, above the verdict, stating:
   - the target branch, and that this work will **not** reach `{target}` when this PR completes;
@@ -221,7 +223,7 @@ rewritten away, and a commit that is still there but whose changes were undone b
 conflict resolution. Check all three, **by content**, not just by commit hash.
 
 **2a — Every head the branch ever had (catches force-push / rebase, with or without a PR).**
-1. List the PR threads with the full response (`repo_list_pull_request_threads`, `fullResponse: true`).
+1. List the PR threads with the full response (`repo_pull_request_thread`, `action: "list"`, `fullResponse: true`).
    Each push to the source branch is a system thread whose `properties.CodeReviewThreadType` is
    `RefUpdate`; read `CodeReviewRefNewHeadCommit` (the head after that push) and `CodeReviewRefNewCommits`
    (`;`-separated new commits) from it. In order, these give every head the branch had since the PR opened.
@@ -628,12 +630,13 @@ grows with traffic is 🔴 Critical; a defect with a bounded or rare impact is �
 
 Merge the findings from Steps 3–5 and deduplicate: one thread per line. For each finding:
 
-Call `mcp_azure_devops__repo_create_pull_request_thread` with:
+Call `repo_pull_request_thread_write` with:
+- `action`: `"create"`
 - `pullRequestId`: `{prId}`
-- `repositoryId` / `repositoryName`: `{repo}`
+- `repositoryId`: `{repo}`
 - `project`: `{project}`
-- Thread status: `active`
-- Thread context: `filePath`, `rightFileStartLine` and `rightFileEndLine` set to the finding's line number, `rightFileStartOffset: 1`, `rightFileEndOffset: 1`
+- `status`: `"Active"`
+- `filePath`, `rightFileStartLine` and `rightFileEndLine` set to the finding's line number, `rightFileStartOffset: 1`, `rightFileEndOffset: 1`
 - Comment `content`: formatted using the **Comment Format** template above
 
 Post **one thread per finding**. Do not batch multiple findings into one thread.
