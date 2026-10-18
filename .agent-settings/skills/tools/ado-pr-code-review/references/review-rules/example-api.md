@@ -29,3 +29,8 @@ At most **5** 🔵 Minor comments (same as default).
 ## Higher bar
 
 - `local/` (local stack, mock server, seed data): post only near-certain, severe findings.
+
+## Known pre-existing
+
+- The login callback redirects session tokens to the `callback` URL without a host allowlist
+  (`handler/oauth.go`). Listed in the summary of every PR that touches that file.

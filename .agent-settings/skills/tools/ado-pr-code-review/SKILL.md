@@ -29,8 +29,9 @@ PR review that posts inline LOC-level comments on the diff. It finds, verifies, 
 
 Findings use the format and rules in `references/review-findings.md`. Read it before Step 3. Run Steps 3, 4 and 5
 as separate fresh sub-agents in parallel when the agent supports them (one per pass, not forked from this context),
-each returning the JSON findings of that file. Without sub-agents, run them one after another and say so in the
-summary. The review never approves, votes, or completes the PR (see Notes).
+each returning the JSON findings of that file. For large or high-risk PRs, run a second group of the same passes
+("Finder coverage" in that file). Without sub-agents, run them one after another and say so in the summary. The
+review never approves, votes, or completes the PR (see Notes).
 
 ## Arguments
 
@@ -277,14 +278,30 @@ actually changed. Scope listed but not changed, or a child PR's changed files ab
 A squash merge on completion hides all of this afterwards, so run Check 2 **before** completion, and again
 on a re-review if new pushes arrived since the last one.
 
+### Check 3 — Has the target moved since the merge was computed?
+
+Azure DevOps computes `mergeStatus` against `lastMergeTargetCommit`, which can be weeks old. Compare it with the
+current target head (`git fetch` then `git rev-parse origin/{target}`). If the target has moved:
+
+1. Count how far: `git rev-list --count {lastMergeTargetCommit}..origin/{target}`.
+2. Test the merge against today's target: `git merge-tree --write-tree --name-only origin/{target} {lastMergeSourceCommit}`.
+   A non-zero exit lists the conflicting files.
+3. For each conflicting file, say what the target changed there since the merge-base (`git log
+   {merge-base}..origin/{target} -- <file>`), for example "master already added this file in PR N" or "the
+   constitution moved from 1.16 to 1.19".
+4. Conflicts make the PR **stale**: report them under Commit provenance as 🟡 Medium (🔴 Critical when the target
+   already contains a different implementation of the same change), and apply the stale-PR gating in
+   `references/review-findings.md`. A target that moved without conflicts is a one-line note.
+
 ### Output
 
 - Do **not** post a separate thread for this step. Its result goes in the `🚫 Commit provenance` section
   of the Step 7 summary: merge commits found, commits brought in by each, rewritten heads and whether
   their content survived, child PRs checked, and any unreachable PR. When clean, one line such as
   `✅ {n} linear commits, no merge commits, {k} rewritten heads (content preserved), no child PRs`.
-- Findings from this step are **Critical**: list them first in that section and count them under
-  🔴 Critical. While any remain, the Recommendation is never "ready for human review".
+- Findings from Checks 1 and 2 are **Critical**: list them first in that section and count them under
+  🔴 Critical. While any remain, the Recommendation is never "ready for human review". Check 3 uses the
+  severities it states.
 
 ---
 
@@ -691,6 +708,8 @@ its own inline thread. Format:
 
 {⚠️ Merge target warning from Check 0, only when the PR does not target the repo's PR target}
 
+{🔁 **Rebase first** — `{target}` moved {n} commits and the PR conflicts in {files}. Only verified critical findings and decisions a rebase will not change are posted inline; the rest is listed under "After the rebase". Request a full review after rebasing. (Check 3 conflicts only)}
+
 **Recommendation:** {ready for human review | fix {what} first | needs changes} — {one sentence why}. This is advice; the merge decision stays with the human reviewers.
 
 ### 🚫 Commit provenance
@@ -710,6 +729,12 @@ its own inline thread. Format:
 
 ### 📝 Findings without a line
 - {missing requirement / missing docs / PR description inaccuracy} {source tag}
+
+### 📚 Spec docs disagree with the code ({count}) — only when 3 or more
+- `{file}:{line}` — {what the doc says} vs {what the code does}
+
+### ⏳ After the rebase ({count}) — stale / conflicting PR only
+- `{file}:{line}` — {short title} {source tag}
 
 ### 🟣 Pre-existing ({count}) — not introduced by this PR
 - `{file}:{line}` — {short title} {source tag} — {also on `{target-branch}`; suggest a separate ticket when serious}

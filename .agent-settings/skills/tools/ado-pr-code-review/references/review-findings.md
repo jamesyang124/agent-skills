@@ -27,6 +27,22 @@ cannot change them.
    diff touches must be checked; **Skip** paths get no findings; **Nit cap** limits 🔵 Minor comments (the rest are
    counted in the summary); **Higher bar** paths get only `critical` findings with `high` confidence.
 4. If a rule names a path that does not exist on the target branch, say so in the summary so the rule can be fixed.
+5. **Known pre-existing issues** listed in the rules are added to the summary's 🟣 Pre-existing section by the
+   orchestrator itself, whether or not a finder reports them (finders tend to skip what the rules call "known").
+   Check each one still exists on the target branch; if it is gone, say so so the rule can be removed.
+
+## Finder coverage
+
+Run each finder pass once (one group). Run a **second group** — the same passes in fresh contexts, reading the
+changed files in reverse order and each file's hunks bottom-up — when any of these is true:
+
+- more than 400 changed code lines, not counting docs (`*.md`, `docs/`, `specs/`), generated files and lockfiles;
+- the diff touches authentication, OAuth or session handling, payments, PII, or the repository's constitution;
+- the user asks for a deep review.
+
+Merge both groups' findings before verification. A second group costs about twice the finder tokens; on measured
+PRs it found the serious, easy-to-miss items the first group did not (pre-existing token leaks, a constitution rule
+that broke existing routes).
 
 ## Finding format
 
@@ -162,6 +178,20 @@ extra reviewer runs per finding.
 | **pre-existing** | no — listed in the summary's 🟣 Pre-existing section, with a suggestion to open a separate ticket when it is serious; never counted against this PR |
 | no line (PR description, missing requirement) | no — summary's "Findings without a line" |
 | dropped | no — counted in the summary |
+
+**Spec and doc drift.** When 3 or more kept findings are only spec / doc mismatches (spec.md, plan.md, tasks.md,
+quickstart, contracts, API reference, swagger annotations disagreeing with the code), post none of them inline.
+List them as one item in the summary ("Spec docs disagree with the code in N places") with one line each.
+
+**Stale or conflicting PR (gated review).** When provenance finds that the PR conflicts with the current target
+(`ado-pr-code-review` Step 2.5 Check 3), a rebase will change lines and may change behavior. Post inline only:
+
+- verified `critical` findings;
+- decisions a rebase will not change: contract, auth or security choices, constitution or rule edits, and
+  questions the author must answer.
+
+Everything else stays in the summary as "after the rebase" items with file:line, and the summary's first line asks
+the author to rebase and request a full review.
 
 Every posted comment ends with one line that says how the finding was verified:
 

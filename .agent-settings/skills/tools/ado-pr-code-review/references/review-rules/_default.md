@@ -34,3 +34,8 @@ At most **5** 🔵 Minor comments per review. Pick the most useful ones and coun
 ## Higher bar
 
 None by default. A repository file can name paths where only near-certain, severe findings are posted.
+
+## Known pre-existing
+
+None by default. A repository file can list serious issues already on the target branch; the orchestrator adds
+them to the summary of every PR that touches the named files, so a finder that skips them does not hide them.
