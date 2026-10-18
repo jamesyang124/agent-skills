@@ -18,13 +18,19 @@ still runs: skip that part and say so in the summary.
 
 ---
 
-PR review that posts inline LOC-level comments on the diff. It runs five passes and posts one summary:
+PR review that posts inline LOC-level comments on the diff. It finds, verifies, then posts:
 
 1. Commit provenance (Step 2.5)
 2. Security lenses A–H (Step 3)
 3. Runtime correctness and resource leaks (Step 4)
 4. Standards and spec, via the `code-review` skill (Step 5)
-5. Post findings inline (Step 6), then one summary thread (Step 7)
+5. Verify every candidate finding (Step 5.5)
+6. Post the verified findings inline (Step 6), then one summary thread (Step 7)
+
+Findings use the format and rules in `references/review-findings.md`. Read it before Step 3. Run Steps 3, 4 and 5
+as separate fresh sub-agents in parallel when the agent supports them (one per pass, not forked from this context),
+each returning the JSON findings of that file. Without sub-agents, run them one after another and say so in the
+summary. The review never approves, votes, or completes the PR (see Notes).
 
 ## Arguments
 
@@ -62,6 +68,8 @@ https://{org}.visualstudio.com/{project}/_git/{repo}/pullrequest/{prId}
 5. Call `repo_pull_request_thread` with `{ action: "list", repositoryId, project, pullRequestId }` and note every earlier finding and its status.
    On a re-review, do not raise a finding again if its thread is fixed, won't-fix or by-design, unless the
    fix is wrong or incomplete. Then say so in a new thread that names the old one.
+6. Read the repo's rule files (`CLAUDE.md`, `AGENTS.md`, constitution, `docs/agents/`) from the **target branch**,
+   as `references/review-findings.md` describes, and pass them to the passes that need them.
 
 ## Comment Format
 
@@ -77,6 +85,8 @@ All inline comments must follow this structure, matching the project's existing 
 **Suggestion:** {Concrete fix or alternative approach. Always include either a corrected code block or a specific actionable change — not just "consider fixing this".}
 
 {Action statement: what the author should do or confirm.}
+
+How verified: {how Step 5.5 confirmed it — traced path / compared base and head / ran a command / inference}
 ```
 
 > **Rule**: Every comment **must** include a `**Suggestion:**` block with either a corrected code snippet or a specific recommended approach. A finding without a suggestion is incomplete — do not post it.
@@ -89,6 +99,7 @@ All inline comments must follow this structure, matching the project's existing 
 | 🟡 | Medium | Logic flaw, misleading behaviour, missing safeguard |
 | 🔵 | Minor | Code quality, unnecessary exposure, inconsistency |
 | 🔍 | Question | Clarification needed — not necessarily a bug |
+| 🟣 | Pre-existing | Real, but the same code is already on the target branch. **Summary only, never inline**, and never counted against this PR |
 
 **Source tag** (first token of the title line), so every comment shows which pass raised it:
 
@@ -183,7 +194,7 @@ Then compare it with the PR's `targetRefName` and `sourceRefName`:
 - **Target is an allowed other branch in the map:** fine. Put that row's note in the summary (for example
   "`release/*`: the CI/CD pipeline opens the `[Backport] … → main` PR after this one merges").
 - **Target is anything else** (a feature, a stale `develop`, another person's branch): put a ⚠️ **Merge
-  target warning** at the very top of the summary, above the verdict, stating:
+  target warning** at the very top of the summary, above the recommendation, stating:
   - the target branch, and that this work will **not** reach `{target}` when this PR completes;
   - whether the target branch itself has an open PR to `{target}` (link it), or none, in which case this
     work has no path to `{target}` yet;
@@ -272,7 +283,7 @@ on a re-review if new pushes arrived since the last one.
   their content survived, child PRs checked, and any unreachable PR. When clean, one line such as
   `✅ {n} linear commits, no merge commits, {k} rewritten heads (content preserved), no child PRs`.
 - Findings from this step are **Critical**: list them first in that section and count them under
-  🔴 Critical. Do not recommend approval while any remain.
+  🔴 Critical. While any remain, the Recommendation is never "ready for human review".
 
 ---
 
@@ -610,6 +621,7 @@ grows with traffic is 🔴 Critical; a defect with a bounded or rare impact is �
    invoke it for the PR range `{target-branch merge-base}..{lastMergeSourceCommit}`. It reviews on two axes
    in parallel sub-agents:
    - **Standards**: does the change follow this repo's documented coding standards (CLAUDE.md, constitution, `.agent-settings`)?
+     Give it the rule files read from the target branch (Step 2), not the PR's copies.
    - **Spec**: does the change match what the Jira ticket / PR description / linked spec asked for? Feed it the
      ticket key and PR description. This also cross-checks the scope check in Step 2.5.
 2. If the skill is not available (other agents, or not installed), do not fail the review: write
@@ -621,14 +633,32 @@ grows with traffic is 🔴 Critical; a defect with a bounded or rare impact is �
    - A finding without a `**Suggestion:**` is still not posted.
    - Anything without a file/line (a missing requirement, missing docs, an inaccurate PR description) goes in
      the summary's `Findings without a line` section.
+   - Compare the PR description with the **net** diff, as `references/review-findings.md` describes. When the PR
+     author is the current user, offer to update the description; change it only on approval.
 4. This pass **adds to** Steps 2.5, 3 and 4. It never replaces them, and its "no findings" result does not
    clear a PR that has findings from the other passes.
 
 ---
 
+## Step 5.5 — Verify the findings
+
+Collect the candidate findings from Steps 2.5–5 and verify them with `references/review-findings.md`:
+
+1. Choose the verifier: yourself for 15 findings or fewer with no `critical`; otherwise one fresh verifier
+   sub-agent that tries to disprove each finding.
+2. Give every finding one outcome — keep, downgrade, drop, or pre-existing — with the reason. Check pre-existing
+   by reading the same code on the target branch.
+3. Drop linter- or formatter-catchable findings and repeats of resolved threads.
+4. Merge duplicates and sort.
+5. Apply the posting table: what is posted inline, what goes to the summary only, and what is counted as dropped.
+
+The provenance findings from Step 2.5 are verified too, but they always go to the summary, never inline.
+
+---
+
 ## Step 6 — Post inline comments
 
-Merge the findings from Steps 3–5 and deduplicate: one thread per line. For each finding:
+Post the findings that Step 5.5 marked for inline posting: one thread per line. For each finding:
 
 Call `repo_pull_request_thread_write` with:
 - `action`: `"create"`
@@ -654,7 +684,7 @@ its own inline thread. Format:
 
 {⚠️ Merge target warning from Check 0, only when the PR does not target the repo's PR target}
 
-**Verdict:** {approve | approve after {what} | request changes} — {one sentence why}
+**Recommendation:** {ready for human review | fix {what} first | needs changes} — {one sentence why}. This is advice; the merge decision stays with the human reviewers.
 
 ### 🚫 Commit provenance
 {✅ {n} linear commits, no merge commits, no child PRs — or each finding}
@@ -674,13 +704,18 @@ its own inline thread. Format:
 ### 📝 Findings without a line
 - {missing requirement / missing docs / PR description inaccuracy} {source tag}
 
+### 🟣 Pre-existing ({count}) — not introduced by this PR
+- `{file}:{line}` — {short title} {source tag} — {also on `{target-branch}`; suggest a separate ticket when serious}
+
+Verification: {n} candidates · {kept} posted · {downgraded} downgraded · {dropped} dropped (wrong, unreachable, linter-catchable or already resolved) · {pre-existing} pre-existing
+
 ### ✅ Checked and clean
 - {one line per pass: what was traced or checked and found fine}
 - Tests: {commands run} — {new failures, or "same {n} failures as the merge-base, nothing new"}
 
 ---
 
-Passes: commit provenance · security lenses A–H · runtime correctness & leaks · standards · spec{ (skipped: …) where a pass did not run}
+Passes: commit provenance · security lenses A–H · runtime correctness & leaks · standards · spec · verify{ (skipped: …) where a pass did not run}
 ```
 
 Omit any section that has nothing in it, except Commit provenance, Checked and clean, and the Passes line.
@@ -693,7 +728,8 @@ confirmed fixed.
 - Step 4 (runtime) is never skipped either: it applies to every PR that changes code
 - Skip binary files, lock files (`*.lock`, `package-lock.json`), and generated files
 - If a file has no public-facing surface (e.g. internal utility with no HTTP/UI exposure), skip Lens A for that file but still apply relevant lenses (always B and C; plus D-H where applicable)
-- When in doubt about PII risk, **always** leave the comment — it is better to flag and let the author judge than to miss a leak
+- When in doubt about PII risk, keep it as a 🔍 Question with `medium` confidence rather than dropping it — it is better to ask the author than to miss a leak
+- **Never approve, vote, complete or set auto-complete on the PR,** and never bypass a branch policy. The summary's Recommendation is advice for the humans
 - Do not flag intentional internal IDs used only in backend-to-backend calls that never reach a client
 
 ---

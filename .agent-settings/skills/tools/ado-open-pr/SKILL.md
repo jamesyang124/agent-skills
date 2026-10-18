@@ -95,7 +95,7 @@ Keeps spec-driven docs from drifting behind the code that actually ships in this
 
 2. **Locate the working docs for THIS change** (the ones allowed to drift), plus the read-only rubric:
 
-   | SDD tool | Working docs — may be synced to code | Read-only rubric — flag violations, never edit |
+   | SDD tool | Working docs — may be synced to code | Read-only rubric — read from the target branch (`git show origin/<target-branch>:<path>`), flag violations, never edit |
    |---|---|---|
    | spec-kit | `specs/<NNN-name>/{spec,plan,tasks}.md` | `.specify/memory/constitution.md` |
    | openspec | `openspec/changes/<name>/{proposal.md,design.md,tasks.md}` and `openspec/changes/<name>/specs/` | `openspec/project.md` and the top-level `openspec/specs/` tree |
@@ -147,8 +147,10 @@ how much human review the PR still needs. The briefs, the finding format and the
    start clean. Build each prompt from the run inputs, the common rules and that reviewer's brief in
    `references/pre-pr-review.md`. If the harness has no sub-agents, run the briefs one after another inline, and say
    in the report that the reviews did not have separate contexts.
-3. **Merge the results** as `references/pre-pr-review.md` describes: check each finding against the code yourself,
-   drop the wrong ones, merge duplicates, settle `minimal` / `refactor` conflicts and sort by severity.
+3. **Verify and merge the results** as `references/pre-pr-review.md` describes, with the shared rules in
+   `../ado-pr-code-review/references/review-findings.md`: a verifier that did not find the issue (you, or a fresh
+   verifier sub-agent for more than 15 findings or any critical), keep / downgrade / drop / pre-existing, linter-catchable
+   findings dropped, duplicates merged, `minimal` / `refactor` conflicts settled, sorted by severity.
 4. **Show the findings to the user**, grouped by severity, with reviewer, confidence, file:line and the suggested fix.
    - **Critical findings:** stop and ask: fix them now, open the PR anyway, or stop without a PR.
    - **Non-interactive / headless run:** report the findings and apply no fixes. With a critical finding, do not

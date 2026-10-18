@@ -24,30 +24,10 @@ builds each prompt from **Common rules** + the reviewer's brief + the run inputs
 - **Evidence.** Each finding names a file and a line in the PR head, and quotes or describes the code it is about.
   If you are not sure, report it as a `question` instead of a finding.
 - **Do not repeat other reviewers.** Stay in your own area. Another reviewer covers the rest.
-- **Return only this JSON array** (empty array if you found nothing), no other text:
-
-```json
-[
-  {
-    "reviewer": "code | security | standards | tests | minimal | refactor",
-    "severity": "critical | medium | minor | question",
-    "file": "path/from/repo/root",
-    "line": 42,
-    "title": "short claim",
-    "problem": "what is wrong and why it matters",
-    "fix": "the concrete change you suggest",
-    "effort": "trivial | larger",
-    "confidence": "high | medium | low"
-  }
-]
-```
-
-Severity: `critical` = security hole, lost or wrong data, crash on a reachable path, or a leak that grows with
-traffic. `medium` = a real defect with bounded impact. `minor` = clarity or maintainability. `question` = needs
-the author's answer before anyone can judge it.
-
-Confidence (how sure you are that the finding is real): `high` = you traced the code path and it fails as
-described; `medium` = likely, but it depends on code or data you could not see; `low` = a suspicion worth a look.
+- **Return only a JSON array** in the finding format of the shared rules
+  `ado-pr-code-review/references/review-findings.md` (severity, confidence, `verified`, evidence), empty if you
+  found nothing, with no other text. Pass that section of the file into each reviewer's prompt.
+- **Rule files come from the target branch** (same file, "Repo rules come from the target branch").
 
 ## code — correctness and runtime
 
@@ -172,14 +152,11 @@ on with everything else. Then:
 
 1. Add the `lint` findings from the measurements. Parse each reviewer's JSON. A reviewer that fails or returns invalid JSON is reported as *"<reviewer> did not
    finish"*. The others still count.
-2. **Verify each finding** against the code at the stated file and line. Drop findings that are wrong or that point
-   at code the diff does not touch.
-3. **Merge duplicates** (same file, same line range, same problem) and keep the highest severity.
-4. **Conflicts between `minimal` and `refactor`:** when one says "inline / delete" and the other says "extract",
-   prefer `minimal`, unless the duplicate is introduced by this diff and occurs 3 or more times. Show both views to
-   the user when it is unclear.
-5. Sort by severity: critical, medium, minor, question. Inside one severity, put `high` confidence first.
-   Your own check in step 2 can raise or lower a finding's confidence.
+2. **Verify, merge and sort** with the shared rules in `ado-pr-code-review/references/review-findings.md`
+   (sections Verification, Merge, What gets posted): a verifier that did not find the issue, the keep / downgrade /
+   drop / pre-existing outcomes, linter-catchable findings dropped, duplicates merged, `minimal` vs `refactor`
+   conflicts settled. Here "posted" means "shown to the user as a finding to fix"; pre-existing ones are listed
+   separately and are not fixed in this PR unless the user asks.
 
 ## Orchestrator: review confidence (after fixes)
 
