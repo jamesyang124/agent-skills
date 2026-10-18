@@ -36,7 +36,7 @@ All optional, any order. Disambiguate each bare (unflagged) token as follows:
 | literally `draft` | open the PR as a draft |
 | anything else | target branch |
 
-Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo <name>`, `--no-sync-spec` (skip the Step 1.5 spec-alignment scan, which otherwise runs by default), `--no-review` (skip the Step 1.7 pre-PR review), `--review=<keys>` (run only these Step 1.7 reviewers, comma-separated from `code,security,standards,tests,minimal,refactor`), `--no-release-notes` (skip the Step 6.5 release-notes page update). Default target branch: see Step 1.4.
+Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo <name>`, `--no-sync-spec` (skip the Step 1.5 spec-alignment scan, which otherwise runs by default), `--no-review` (skip the Step 1.7 pre-PR review), `--review=<keys>` (run only these Step 1.7 reviewers, comma-separated from `code,security,standards,tests,minimal,refactor`), `--no-release-notes` (skip the Step 6.5 release-notes page update). Default target branch: see Step 1 item 4.
 
 ---
 
@@ -47,7 +47,9 @@ Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo
    fails, warn that remote refs may be stale, continue, and repeat the warning in the Step 7 report.
 2. **Abort** if the branch is empty, `main`, `master` or `develop` — a PR must come from a feature branch. Tell the user which branch they are on. A `release/*` or `hotfix/*` source is allowed: a backport PR (for example `release/20261015` → `main`) starts there.
 3. Check the working tree: `git status --porcelain=v1 -b`. If there are uncommitted changes, warn: *"The PR will only include committed work — uncommitted changes are not part of it."* Continue unless the user redirects.
-4. Resolve the **target branch**:
+4. **Resolve the Azure DevOps repository now** with Step 3 (it needs only the git remote): the default-branch lookup
+   below and the existing-PR check after it need the repository ID.
+   Then resolve the **target branch**:
    1. an explicit target branch arg wins;
    2. otherwise the repo's PR target from `references/branch-map.md` in the sibling `ado-pr-code-review` skill
       (same parent folder as this skill, e.g. `../ado-pr-code-review/references/branch-map.md`);
@@ -63,6 +65,16 @@ Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo
    - `origin/<target-branch>` does not exist (`git rev-parse --verify --quiet origin/<target-branch>` fails) — the
      target branch is not on the remote;
    - `git rev-list --count origin/<target-branch>..HEAD` is `0` — the branch has no commits to merge.
+
+   Then **stop if a PR already exists**, before any review or push. Call `repo_pull_request` with
+   `{ action: "list", repositoryId, project, status: "Active", sourceRefName: "refs/heads/<current-branch>", targetRefName: "refs/heads/<target-branch>" }`.
+   If it returns a PR:
+   - report its id, title and URL (built as in Step 7) — do not create a second PR, and do not change its
+     description or reviewers;
+   - if the local branch has commits that are not on `origin/<current-branch>`, ask whether to push them to that PR
+     (`git push origin HEAD:<current-branch>`), and push only on approval;
+   - suggest `ado-pr-code-review <PR URL>` to review the open PR, then **stop**. Skip Step 1.5, Step 1.7 and every
+     later step.
 5. Resolve the **Jira ticket** in this order — accept the first `[A-Z]+-\d+` match found:
    1. explicit ticket arg
    2. current branch name
@@ -183,7 +195,8 @@ Confirm the repo and capture its **repository ID** by calling `repo_repository` 
 
 **Abort** with a clear message if the Azure DevOps MCP is unavailable or the repo cannot be resolved.
 
-**Stop if a PR already exists.** Call `repo_pull_request` with `{ action: "list", repositoryId, project, status: "Active", sourceRefName: "refs/heads/<current-branch>", targetRefName: "refs/heads/<target-branch>" }`. If it returns a PR, report its id, title and URL (built as in Step 7) and **stop** — do not create a second PR. The Step 2 push already added the new commits to it. Do not change its description or reviewers.
+This step runs early, inside Step 1 item 4, so the existing-PR check happens before any review or push. When you
+reach this heading in order, reuse the values already resolved.
 
 ## Step 4 — Build the PR title and description
 
@@ -284,7 +297,7 @@ Adds the Jira ticket to this repo's row in a Confluence release-notes page (for 
 at runtime, because a PR can belong to the monthly page or to a specific release.
 
 **Skip** this step when any of these is true: `--no-release-notes` was passed; no Jira ticket was resolved in Step 1;
-this run stopped at the existing-PR check in Step 3; the run is non-interactive / headless (nobody can pick a page).
+this run stopped at the existing-PR check in Step 1; the run is non-interactive / headless (nobody can pick a page).
 
 Run `scripts/confluence_ticket_log.py` from this skill's folder. It needs the Confluence space, a phrase that the
 release-notes page titles contain, and the heading above the table with one row per service. Set them in the
