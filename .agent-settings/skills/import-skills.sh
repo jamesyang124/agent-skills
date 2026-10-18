@@ -26,6 +26,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENT_SETTINGS_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_ROOT="${PROJECT_ROOT:-$(dirname "$AGENT_SETTINGS_DIR")}"
 SKILLS_SOURCE="$SCRIPT_DIR"
+GLOBAL=false
+ORIG_PWD="$PWD"
+DEDUP_PROJECT=""
+PICK=false
 
 # Function to print colored output
 print_success() {
@@ -220,8 +224,8 @@ prompt_playground_skills() {
 resolve_agent_name() {
     local agent_name=$1
     case "$agent_name" in
-        copilot) echo "claude" ;;  # Copilot reads from .claude folder
-        *)       echo "$agent_name" ;;
+        copilot)     echo "claude" ;;  # Copilot reads from .claude folder
+        *)           echo "$agent_name" ;;
     esac
 }
 
@@ -231,6 +235,13 @@ get_agent_skills_dir() {
     local agent_name
     agent_name=$(resolve_agent_name "$1")
     echo "$PROJECT_ROOT/.$agent_name/skills"
+}
+
+# True if the symlink at $1 points into this repo's skills tree (i.e. we own it).
+is_owned_link() {
+    local resolved
+    resolved=$(cd "$(dirname "$1")" && cd "$(dirname "$(readlink "$1")")" 2>/dev/null && pwd -P)
+    [[ "$resolved" == "$(cd "$SKILLS_SOURCE" && pwd -P)"/* ]]
 }
 
 # Function to create symlink
@@ -267,6 +278,10 @@ create_skill_link() {
             print_info "Symlink already exists and is correct: $link_path"
             return 0
         else
+            if [ "$GLOBAL" = true ] && ! is_owned_link "$link_path"; then
+                print_warning "Skipping $skill_name: global link owned by something else ($current_target)"
+                return 0
+            fi
             print_warning "Symlink exists but points to wrong target: $link_path -> $current_target"
             print_info "Removing old symlink..."
             rm "$link_path"
@@ -302,7 +317,9 @@ import_all_skills() {
     if [ -d "$skills_dir" ]; then
         print_info "Removing existing skills from .$agent_name/skills..."
         for link in "$skills_dir"/*; do
-            [ -L "$link" ] && rm "$link"
+            if [ -L "$link" ]; then
+                if [ "$GLOBAL" != true ] || is_owned_link "$link"; then rm "$link"; fi
+            fi
         done
     fi
 
@@ -424,6 +441,10 @@ prune_agent_skills() {
         [ -e "$link" ] || [ -L "$link" ] || continue
         local skill_name
         skill_name=$(basename "$link")
+        # Global dirs hold other tools' skills: only prune symlinks that point into this repo.
+        if [ "$GLOBAL" = true ] && { [ ! -L "$link" ] || ! is_owned_link "$link"; }; then
+            continue
+        fi
 
         if [ -z "$(find_skill_path "$skill_name")" ]; then
             if [ -L "$link" ]; then
@@ -464,6 +485,81 @@ prune_agent_skills() {
     fi
 }
 
+# True if the symlink at $1 points into any agent-settings skills tree (this checkout or a repo's submodule copy).
+is_agent_settings_link() {
+    [ -L "$1" ] || return 1
+    local resolved
+    resolved=$(cd "$(dirname "$1")" && cd "$(readlink "$1")" 2>/dev/null && pwd -P) || return 1
+    [[ "$resolved" == */.agent-settings/skills/* ]]
+}
+
+# The project whose skills are compared with the global ones.
+dedup_project_root() {
+    if [ -n "$DEDUP_PROJECT" ]; then (cd "$DEDUP_PROJECT" && pwd -P); return; fi
+    if [ "$GLOBAL" = true ]; then git -C "$ORIG_PWD" rev-parse --show-toplevel 2>/dev/null; return; fi
+    (cd "$PROJECT_ROOT" && pwd -P)
+}
+
+# Remove skills that are installed both globally and in a project (both show up in the agent).
+# $2 = auto: clean without asking; ask: one Y/n for all; report: list only. --pick asks per skill.
+dedup_skills() {
+    local agent_name
+    agent_name=$(resolve_agent_name "$1")
+    local how=$2
+    local project
+    project=$(dedup_project_root)
+    local global_dir="$HOME/.$agent_name/skills"
+    [ -n "$project" ] && [ "$project" != "$(cd "$HOME" && pwd -P)" ] || return 0
+    local project_dir="$project/.$agent_name/skills"
+    [ -d "$global_dir" ] && [ -d "$project_dir" ] || return 0
+
+    local removable=() committed=() foreign=()
+    local link name
+    for link in "$project_dir"/*; do
+        [ -L "$link" ] || [ -e "$link" ] || continue
+        name=$(basename "$link")
+        [ -e "$global_dir/$name" ] || [ -L "$global_dir/$name" ] || continue
+        if ! is_agent_settings_link "$link" || ! is_agent_settings_link "$global_dir/$name"; then
+            foreign+=("$name")
+        elif git -C "$project" ls-files --error-unmatch ".$agent_name/skills/$name" >/dev/null 2>&1; then
+            committed+=("$name")
+        else
+            removable+=("$name")
+        fi
+    done
+    [ $((${#removable[@]} + ${#committed[@]} + ${#foreign[@]})) -gt 0 ] || return 0
+
+    echo ""
+    print_warning "Skills installed both globally (~/.$agent_name/skills) and in $project (they show up twice):"
+    [ ${#removable[@]} -gt 0 ] && print_info "  can clean (project link, not committed): ${removable[*]}"
+    [ ${#committed[@]} -gt 0 ] && print_info "  committed in the repo — remove them there in a PR: ${committed[*]}"
+    [ ${#foreign[@]} -gt 0 ] && print_info "  not agent-settings links, left alone: ${foreign[*]}"
+    [ ${#removable[@]} -gt 0 ] || return 0
+
+    if [ "$PICK" = true ] && [ -t 0 ]; then
+        for name in "${removable[@]}"; do
+            printf "  %s: keep (g)lobal, keep (p)roject — removes the global link for every repo — or (b)oth? [g] " "$name"
+            read -r answer
+            case "$answer" in
+                p|P) rm "$global_dir/$name"; print_success "Removed global link: $name" ;;
+                b|B) print_info "Kept both: $name" ;;
+                *)   rm "$project_dir/$name"; print_success "Removed project link: $name" ;;
+            esac
+        done
+        return 0
+    fi
+    if [ "$how" = ask ] && [ -t 0 ]; then
+        printf "Remove the %d project link(s) and keep the global ones? [Y/n] " "${#removable[@]}"
+        read -r answer
+        [[ "$answer" =~ ^[Nn] ]] && { print_info "Left as they are. Run --dedup later, or --dedup --pick to choose per skill."; return 0; }
+    elif [ "$how" != auto ]; then
+        print_info "Clean them with: $0 --dedup --yes $agent_name"
+        return 0
+    fi
+    for name in "${removable[@]}"; do rm "$project_dir/$name"; done
+    print_success "Removed ${#removable[@]} duplicate project link(s); the global ones stay"
+}
+
 # Function to show usage
 show_usage() {
     cat << EOF
@@ -472,15 +568,22 @@ Usage: $0 [OPTIONS] AGENT_NAME [SKILL_NAMES...]
 Automates importing skills from .agent-settings/skills/ to agent-specific folders.
 
 Arguments:
-  AGENT_NAME          Target agent folder name (e.g., claude, copilot)
+  AGENT_NAME          Target agent folder name: claude, copilot or codex
                       Note: 'copilot' is an alias for 'claude' (.claude/skills/)
 
 Options:
+  -g, --global       Install into ~/.<agent>/skills instead of the project (never touches
+                     links it does not own, so other global skills are safe)
   -a, --all          Import all available skills (default if no skills specified)
   -l, --list         List all available skills
   -v, --verify       Verify existing symlinks for the specified agent
   -p, --prune        Remove orphaned skills (interactively prompts per entry)
-  -y, --yes          Auto-confirm removals when used with --prune
+  -y, --yes          Auto-confirm removals (with --prune or --dedup)
+  -d, --dedup        Remove skills installed both globally and in a project (keeps the global link;
+                     one Y/n for all). Committed project links and other tools' links are left alone
+      --pick         With --dedup: choose per skill (keep global, keep project, or both)
+      --project PATH Project to compare with ~/.<agent>/skills (default: this project, or the git repo
+                     you run --global from)
   -h, --help         Show this help message
 
 Examples:
@@ -497,7 +600,7 @@ Examples:
   # Import specific skills to Claude agent
   $0 claude generate-pr-notes git-commit-conventional-strict
 
-  # Import all skills (covers both Claude and Copilot, both read from .claude/skills/)
+  # Claude covers Copilot too (both read from .claude/skills/)
   $0 claude
 
   # List available skills
@@ -511,6 +614,9 @@ Examples:
 
   # Prune without prompting (auto-remove all orphans)
   $0 --prune --yes claude
+
+  # Clean skills that show up twice (global + this project), no questions
+  $0 --dedup --yes claude
 
 EOF
 }
@@ -538,6 +644,11 @@ main() {
                 mode="verify"
                 shift
                 ;;
+            -g|--global)
+                GLOBAL=true
+                PROJECT_ROOT="$HOME"
+                shift
+                ;;
             -a|--all)
                 import_all=true
                 shift
@@ -549,6 +660,21 @@ main() {
             -y|--yes)
                 force=true
                 shift
+                ;;
+            -d|--dedup)
+                mode="dedup"
+                shift
+                ;;
+            --pick)
+                PICK=true
+                shift
+                ;;
+            --no-color)
+                shift
+                ;;
+            --project)
+                DEDUP_PROJECT="$2"
+                shift 2
                 ;;
             -*)
                 print_error "Unknown option: $1"
@@ -590,6 +716,15 @@ main() {
             fi
             prune_agent_skills "$agent_name" "$force"
             ;;
+        dedup)
+            if [ -z "$agent_name" ]; then
+                print_error "Agent name required for dedup mode"
+                echo ""
+                show_usage
+                exit 1
+            fi
+            if [ "$force" = true ]; then dedup_skills "$agent_name" auto; else dedup_skills "$agent_name" ask; fi
+            ;;
         import)
             if [ -z "$agent_name" ]; then
                 print_error "Agent name required"
@@ -598,10 +733,13 @@ main() {
                 exit 1
             fi
 
-            if [ "$agent_name" = "codex" ]; then
-                print_error "Codex is no longer supported. Use claude or copilot."
-                exit 1
-            fi
+            case "$agent_name" in
+                claude|copilot|codex) ;;
+                *)
+                    print_error "Unsupported agent: '$agent_name'. Supported agents: claude, copilot, codex."
+                    exit 1
+                    ;;
+            esac
 
             if [ ${#skills[@]} -eq 0 ] || [ "$import_all" = true ]; then
                 import_all_skills "$agent_name"
@@ -609,7 +747,10 @@ main() {
                 import_specific_skills "$agent_name" "${skills[@]}"
             fi
 
-            prompt_playground_skills "$agent_name"
+            [ -t 0 ] && prompt_playground_skills "$agent_name"
+
+            # The other side (global vs this project) may hold the same skills: offer to clean them once.
+            if [ "$force" = true ]; then dedup_skills "$agent_name" auto; else dedup_skills "$agent_name" ask; fi
 
             echo ""
             print_success "Import complete!"

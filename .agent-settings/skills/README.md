@@ -111,6 +111,24 @@ Use the `import-skills.sh` script to automatically create symlinks:
 - Verifies symlinks after creation
 - Prunes orphaned skill links
 
+**Global install (`-g, --global`):** links skills into `~/.<agent>/skills` (`~/.claude/skills`, `~/.codex/skills`)
+so they work in every repo. Global directories also hold other tools' skills; the script never removes or replaces a
+link it does not own. Global links point at the checkout you run it from, so use one that stays on `main`.
+
+```bash
+.agent-settings/skills/import-skills.sh --global claude
+```
+
+**Duplicates:** a skill installed both globally and in a project shows up twice. After every install the script
+checks the other side and asks once whether to clean them (it keeps the global link). `--dedup --yes` does it without
+asking, `--dedup --pick` asks per skill, `--project <path>` picks another repo. Only links into an agent-settings
+skills tree that are **not committed** in the repo are removed; committed links and other tools' links are listed and
+left alone.
+
+```bash
+.agent-settings/skills/import-skills.sh --dedup --yes claude
+```
+
 #### Manual Import
 
 If you prefer to create symlinks manually:
