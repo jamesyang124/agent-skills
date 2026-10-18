@@ -9,13 +9,15 @@ builds each prompt from **Common rules** + the reviewer's brief + the run inputs
 - diff range: `origin/<target-branch>...HEAD` (three-dot; committed work only)
 - changed files: `git diff --name-only origin/<target-branch>...HEAD`
 - this repository's review rules: `ado-pr-code-review/references/review-rules/_default.md` plus
-  `review-rules/<repo>.md` if it exists (see "Review rules" in `review-findings.md`), and the focus notes from
+  `review-rules/<repo>.md` if it exists (part 1 of `review-findings.md`), and the focus notes from
   `review-profile.md` for repositories that have no rules file yet
 - the path of the sibling skill `ado-pr-code-review/SKILL.md` (same parent folder as `ado-open-pr`)
 - for `standards`: the Jira ticket key (and its description / acceptance criteria if the Jira MCP can read it), the
   spec folder that Step 1.5 resolved, and the **pre-sync commit** captured in Step 1 (read the spec as it was before
   Step 1.5 synced it, with `git show <pre-sync commit>:<spec path>`)
-- for `refactor`: the complexity measurements (see **Orchestrator: measurements**)
+- for `code`, `standards` and the verifier, when Step 1 found conflicts: the target's diff in the conflicting files
+  and the instruction to check for collisions with it ("Target moved" in part 1 of `review-findings.md`)
+- for `minimal`: the complexity measurements (see **Orchestrator: measurements**)
 
 ## Common rules (every reviewer)
 
@@ -29,7 +31,9 @@ builds each prompt from **Common rules** + the reviewer's brief + the run inputs
 - **Return only a JSON array** in the finding format of the shared rules
   `ado-pr-code-review/references/review-findings.md` (severity, confidence, `verified`, evidence), empty if you
   found nothing, with no other text. Pass that section of the file into each reviewer's prompt.
-- **Rule files come from the target branch** (same file, "Repo rules come from the target branch").
+- **Sources and finders follow parts 1 and 2 of the same file:** rule files and reference data from the target
+  branch, read-only (no `checkout`, `switch`, `stash`, `reset`, `pull`), at most 6 sub-agents at once, the
+  deep review, and the rule-file-edit check for the `standards` reviewer.
 
 ## code — correctness and runtime
 
@@ -66,8 +70,8 @@ review this diff on both axes yourself (do not invoke another skill):
   implement.
 
 Severity: a breach of a documented standard is `medium` (`critical` if it breaks behavior); a judgment call is
-`minor`; a spec requirement missing or implemented wrongly is `medium` or `critical` by impact. Start each title with
-`[standards]` or `[spec]`.
+`minor`; a spec requirement missing or implemented wrongly is `medium` or `critical` by impact. Set `reviewer` to
+`standards` or `spec`.
 
 ## security — vulnerabilities and data exposure
 
@@ -88,33 +92,27 @@ For each behavior the diff adds or changes, find the test that covers it. Report
 For each gap, `fix` names the test file and describes the test case to add (inputs and expected result).
 Do not write the test code. Use `minor` for gaps on low-risk code.
 
-## minimal — scope and over-engineering
+## minimal — scope, over-engineering and duplication
 
-If the `ponytail-review` skill is available, read it and apply it to this diff. Otherwise use these rules:
+If the `ponytail-review` skill is available, read it and apply it to this diff as well. Only inside the scope of
+this diff, report:
 
 - changes that the PR's purpose does not need (unrelated renames, formatting, drive-by refactors);
 - abstractions with one user: an interface with one implementation, a factory for one product, config for a
   value that never changes;
-- new code that the standard library, the platform or an installed dependency already provides;
-- a new dependency for something a few lines can do;
-- dead code, unused parameters, scaffolding "for later".
+- new code that the standard library, the platform or an installed dependency already provides, or a new
+  dependency for something a few lines can do;
+- dead code, unused parameters, scaffolding "for later";
+- code the diff adds that duplicates existing code or repeats itself in the diff, and helpers, constants or types
+  the diff re-implements: name the existing one, or one shared function and where it lives;
+- magic numbers and strings (timeouts, limits, sizes, status codes, keys) without a name. A literal is fine when
+  its meaning is obvious in place (`0`, `1`, `-1`, an index) or it is used once next to a comment that explains it;
+- each changed function in the complexity measurements: whether it should be split and how — or whether a smaller
+  change brings it back under the threshold.
 
-`fix` says what to delete or inline. Do not suggest new abstractions; that is the `refactor` reviewer's job.
-
-## refactor — duplication and magic values
-
-Only inside the scope of this diff. Start from the complexity measurements in the run inputs: for each changed
-function over the threshold, say whether it should be split and how.
-
-- code the diff adds that duplicates existing code, or that copies the same logic in several places in the diff:
-  suggest one shared function and where it should live;
-- the diff re-implements a helper, constant or type that already exists in the repository: name the existing one;
-- magic numbers and strings (timeouts, limits, sizes, status codes, keys) used without a name: suggest a named
-  constant, or a config value if it differs per environment. A literal is fine when its meaning is obvious in place,
-  such as `0`, `1`, `-1`, an index, or a value used once next to a comment that explains it.
-
-Do not suggest repository-wide refactors, new layers or patterns the diff does not need. A suggestion must make
-the diff smaller or simpler, or remove a real duplicate.
+`fix` says what to delete, inline or share. Prefer deleting over extracting; suggest an extraction only when the
+diff itself adds the same code 3 or more times. No repository-wide refactors, new layers or patterns the diff does
+not need: a suggestion must make the diff smaller or simpler.
 
 ## Orchestrator: measurements (before the reviewers)
 
@@ -133,60 +131,30 @@ Let `BASE` be `git merge-base origin/<target-branch> HEAD`.
 Each problem becomes a finding with `reviewer: "lint"`: an error is `medium`, a warning is `minor`, `effort: trivial`,
 `confidence: high`. Never run a fix mode (`--fix`, `mix format` without `--check-formatted`) here.
 
-**Function complexity** — `uvx lizard --csv <changed source files>` at HEAD, and the same on the `BASE` version of
-those files (write them to a scratch folder with `git show $BASE:<path>`). lizard reads Go, TypeScript and JavaScript;
-it does not read Elixir, so skip `.ex` / `.exs`. CSV columns: NLOC, CCN, tokens, params, length, location, file,
-function, signature, start line, end line. Leave out docs, generated files and test fixtures. Match functions
-by file and name, and keep those that are **new or grew** (higher CCN or more lines) and are over the threshold:
-**CCN above 15, or more than 80 lines**. Pass this list to the `refactor` reviewer, and count it in the complexity
-score below. A `lizard` already on `PATH` works the same as `uvx lizard`.
+**Function complexity** — run `python3 -I scripts/complexity.py --base $BASE --repo <repo root>` from this skill's
+folder. It measures the changed Go, TypeScript and JavaScript files at HEAD and at `BASE` (in a temp folder; it
+changes no file), leaves out tests, docs and generated code, and prints the functions that are **new or grew** and
+are over the threshold: **CCN above 15, or more than 80 lines**. Pass the list to the `minimal` reviewer and count
+it in the complexity score. It does not read Elixir.
 
-**lizard not available** (no `uvx` and no `lizard`, or the first download fails): skip only this measurement and go
-on with everything else. Then:
-- tell the user how to install it: `brew install uv` (then `uvx lizard` works), or `pipx install lizard`;
-- ask whether to install it now and measure before the reviewers start, or to continue without it;
-- when continuing without it, write `function complexity not measured (lizard not installed)` in the complexity line
-  of the report and of the PR's Pre-PR Review section, so a reader knows the score is missing a signal;
-- after the PR exists, if the user installs lizard later in this run, offer to measure then and update the PR
-  description's Pre-PR Review section (`repo_pull_request_write` with `action: "update"` and the new `description`).
+**lizard not available** (the script exits `3`): ask the user to approve installing it, with the first that applies:
+`brew install uv` (the script then uses `uvx lizard`), else `pipx install lizard`. On approval, install, run the script
+again and go on. When the user declines, neither installer exists, or the run is non-interactive, go on without it
+and write `function complexity not measured (lizard not installed)` in the complexity line of the report and of the
+PR's Pre-PR Review section. Never install without approval.
 
 ## Orchestrator: merge the results
 
 1. Add the `lint` findings from the measurements. Parse each reviewer's JSON. A reviewer that fails or returns invalid JSON is reported as *"<reviewer> did not
    finish"*. The others still count.
 2. **Verify, merge and sort** with the shared rules in `ado-pr-code-review/references/review-findings.md`
-   (sections Verification, Merge, What gets posted): a verifier that did not find the issue, the keep / downgrade /
-   drop / pre-existing outcomes, linter-catchable findings dropped, duplicates merged, `minimal` vs `refactor`
+   (parts 4 and 5): a verifier that did not find the issue, the keep / downgrade /
+   drop / pre-existing outcomes, linter-catchable findings dropped, duplicates merged, delete-vs-extract
    conflicts settled. Here "posted" means "shown to the user as a finding to fix"; pre-existing ones are listed
    separately and are not fixed in this PR unless the user asks.
 
 ## Orchestrator: review confidence (after fixes)
 
-Rate how much a human reviewer must check, after the user has accepted or declined each fix.
-
-**Complexity score.** Add 1 point for each signal the diff shows:
-
-| Signal | Examples |
-|---|---|
-| API contract added or changed | new route; request or response field, status code or validation changed |
-| Data shape changed | new table or column, DB migration, CMS or schema-registry change |
-| Async or concurrent work | new background job, worker, goroutine, scheduler, queue consumer |
-| New external dependency | third-party service, AWS resource, new Redis key space, new package |
-| New config | env var, feature flag |
-| Wide change | 3 or more top-level modules or packages touched |
-| Complex function | a new or grown function over the lizard threshold (CCN above 15, or more than 80 lines) |
-| Large change | more than 400 changed lines or 20 files, **not counting** docs (`*.md`, `docs/`, `specs/`), generated files (swagger, mocks, lockfiles) and test fixtures |
-
-Complexity: 0–1 = low, 2–3 = medium, 4 or more = high.
-
-**Level.** Use the first level whose condition is true:
-
-| Level | Condition | Human review |
-|---|---|---|
-| **Low** | an unresolved `critical`; an unresolved `medium` with `high` confidence; a reviewer did not finish; a **potentially breaking or breaking** API change; the diff changes auth, permissions, payments, PII handling, DB migrations or infra/deploy config; or **high** complexity | **Required.** Ask a reviewer to read the whole diff, and point them at the unresolved findings. |
-| **Medium** | other unresolved `medium` findings or `question`s; new or changed behavior with an unresolved `tests` gap; or **medium** complexity | **Recommended.** A reviewer should check the listed areas. |
-| **High** | none of the above: all reviewers finished, only `minor` findings remain, and complexity is low | **Light review is enough.** Branch policies and required reviewers still apply. |
-
-State the level, the one or two reasons that decided it, the complexity score with its signals, and the counts of
-resolved and unresolved findings.
-The level is advice for the humans. It never removes required reviewers or bypasses a branch policy.
+Rate it with "Review confidence" in part 5 of `ado-pr-code-review/references/review-findings.md`, after the user has
+accepted or declined each fix. Open findings are the ones not fixed; the function-complexity signal uses the lizard
+measurements above.

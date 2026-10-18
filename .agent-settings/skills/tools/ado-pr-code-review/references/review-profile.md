@@ -4,8 +4,8 @@ Which pre-PR reviewers run for each repository, and what they should know about 
 
 - `ado-open-pr` — Step 1.7 (pre-PR review)
 
-Reviewer keys: `code`, `security`, `standards`, `tests`, `minimal`, `refactor`. A repository that is not listed runs
-all six. The orchestrator runs the lint command on the changed code (new problems only). The test command is a
+Reviewer keys: `code`, `security`, `standards`, `tests`, `minimal` (`refactor` is an old name for `minimal`). A
+repository that is not listed runs all five. The orchestrator runs the lint command on the changed code (new problems only). The test command is a
 reference for the author after fixes are applied; nothing runs it without approval.
 
 Replace the example rows below with your own repositories.

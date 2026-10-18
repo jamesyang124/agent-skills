@@ -1,8 +1,8 @@
 ---
 name: ado-open-pr
-description: Create an Azure DevOps pull request for the current branch using the Azure DevOps MCP. Pushes the branch, generates the description via the generate-pr-notes contract, opens the PR against a target branch (default: the repo's PR target from the shared branch map, else the repo's ADO default branch), and adds reviewers resolved from teams or explicit emails. By default (opt out with --no-sync-spec) scans the committed diff against spec-kit/openspec docs and syncs drifted docs to match the code before opening the PR. Also by default (opt out with --no-review) runs a pre-PR review with lint and function-complexity measurements plus parallel clean-context reviewers (code, security, standards and spec, test coverage, minimal change, refactor), fixes accepted findings with the user, and rates how much human review the PR needs. Use when asked to open a PR, create an Azure DevOps PR, raise a pull request, or ship the current branch for review.
-argument-hint: "[target-branch] [draft] [team] [reviewer-email...] [TICKET-123] [--title <text>] [--ado-project <name>] [--ado-repo <name>] [--no-sync-spec] [--no-review] [--review=<keys>] [--no-release-notes]"
-allowed-tools: Bash(git *), Bash(az *), Bash(python3 *), Bash(uvx lizard *), Bash(golangci-lint *), Bash(pnpm exec eslint *), Bash(npx eslint *), Bash(mix format *), Read, Edit, Agent, mcp__azure-devops-mcp__repo_repository, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_pull_request_write, mcp__azure-devops-mcp__core_get_identity_ids
+description: Create an Azure DevOps pull request for the current branch using the Azure DevOps MCP. Pushes the branch, generates the description via the generate-pr-notes contract, opens the PR against a target branch (default: the repo's PR target from the shared branch map, else the repo's ADO default branch), and adds reviewers resolved from teams or explicit emails. By default (opt out with --no-sync-spec) scans the committed diff against spec-kit/openspec docs and syncs drifted docs to match the code before opening the PR. Also by default (opt out with --no-review) runs a pre-PR review with lint and function-complexity measurements plus parallel clean-context reviewers (code, security, standards and spec, test coverage, minimal change and duplication), fixes accepted findings with the user, and rates how much human review the PR needs. Use when asked to open a PR, create an Azure DevOps PR, raise a pull request, or ship the current branch for review.
+argument-hint: "[target-branch] [draft] [team] [reviewer-email...] [TICKET-123] [--title <text>] [--ado-project <name>] [--ado-repo <name>] [--no-sync-spec] [--no-review] [--review=<keys>] [--deep] [--no-release-notes] [--choice=<preview|fix|auto-fix|open>] [--fast] [--yes]"
+allowed-tools: Bash(git *), Bash(az *), Bash(python3 *), Bash(uvx lizard *), Bash(lizard *), Bash(brew install uv), Bash(pipx install lizard), Bash(golangci-lint *), Bash(pnpm exec eslint *), Bash(npx eslint *), Bash(mix format *), Read, Edit, Agent, mcp__azure-devops-mcp__repo_repository, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_pull_request_write, mcp__azure-devops-mcp__core_get_identity_ids
 ---
 
 # Create Azure DevOps Pull Request
@@ -36,7 +36,24 @@ All optional, any order. Disambiguate each bare (unflagged) token as follows:
 | literally `draft` | open the PR as a draft |
 | anything else | target branch |
 
-Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo <name>`, `--no-sync-spec` (skip the Step 1.5 spec-alignment scan, which otherwise runs by default), `--no-review` (skip the Step 1.7 pre-PR review), `--review=<keys>` (run only these Step 1.7 reviewers, comma-separated from `code,security,standards,tests,minimal,refactor`), `--no-release-notes` (skip the Step 6.5 release-notes page update). Default target branch: see Step 1 item 4.
+Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo <name>`, `--no-sync-spec` (skip the Step 1.5 spec-alignment scan, which otherwise runs by default), `--no-review` (skip the Step 1.7 pre-PR review), `--review=<keys>` (run only these Step 1.7 reviewers, comma-separated from `code,security,standards,tests,minimal`; `refactor` is an old name for `minimal`), `--deep` (deep review: run all Step 1.7 reviewers twice and the layer-6 tie-break), `--no-release-notes` (skip the Step 6.5 release-notes page update), `--choice=<preview|fix|auto-fix|open>` (answer the
+Step 1.7 question in advance), `--fast` (fast path, below), `--yes` (with `--fast`: skip the final confirmation).
+Default target branch: see Step 1 item 4.
+
+**Fast path (`--fast`).** Choices that change nothing outside this machine take the recommended default without
+asking. Every outward action of the run (push, PR create or update, reviewers, posted comments or replies, thread
+status, a Confluence write) is collected and confirmed **once**, at the end, in one list (*"Do all of these? (yes /
+pick / no)"*). `--yes` skips that one confirmation too. A flag that names a choice always wins over `--fast`. Never
+automatic, even with `--fast --yes`: resolving a rebase conflict, a force-push, and anything in a non-interactive /
+headless run, which still behaves as a preview. For this skill, `--fast` means:
+
+| Decision | Default with `--fast` |
+|---|---|
+| Step 1.5 doc edits | trivial edits applied and committed; larger rewrites listed, not applied |
+| Step 1.7 choice | **auto-fix** (trivial fixes applied and committed); larger and critical findings stay unresolved and go into the PR's Pre-PR Review section. With a critical finding, the final confirmation says so first |
+| Step 1.7 tests | the review profile's test command runs (it is local) |
+| Push, PR create (draft only with `draft`), reviewers | in the final confirmation |
+| Step 6.5 release-notes page | skipped unless `--release-page=<id>` names the page; then the write is in the final confirmation |
 
 ---
 
@@ -65,6 +82,14 @@ Flags: `--title <text>` (explicit PR title), `--ado-project <name>`, `--ado-repo
    - `origin/<target-branch>` does not exist (`git rev-parse --verify --quiet origin/<target-branch>` fails) — the
      target branch is not on the remote;
    - `git rev-list --count origin/<target-branch>..HEAD` is `0` — the branch has no commits to merge.
+
+   Then check, **as a warning only**, whether the branch would conflict with today's target:
+   `git merge-tree --write-tree --name-only origin/<target-branch> HEAD` (in memory; it changes no file). On a
+   non-zero exit, tell the user, for example *"⚠️ `<target-branch>` moved {n} commits since this branch was cut,
+   and merging now would conflict in {files}"* ({n} from `git rev-list --count $(git merge-base origin/<target-branch> HEAD)..origin/<target-branch>`),
+   and repeat it in the Step 7 report. Do not stop, do not ask, and do not rebase: whether to rebase first is the
+   user's choice. Keep `git diff $(git merge-base origin/<target-branch> HEAD) origin/<target-branch> -- <conflicting files>`
+   for the Step 1.7 reviewers ("Target moved" in part 1 of `../ado-pr-code-review/references/review-findings.md`).
 
    Then **stop if a PR already exists**, before any review or push. Call `repo_pull_request` with
    `{ action: "list", repositoryId, project, status: "Active", sourceRefName: "refs/heads/<current-branch>", targetRefName: "refs/heads/<target-branch>" }`.
@@ -113,7 +138,7 @@ Keeps spec-driven docs from drifting behind the code that actually ships in this
 5. **Report and sync (code → doc), with consent** — mirror the `ado-pr-resolve-comments` model:
    - No drift → report *"spec docs aligned"* and continue to Step 2.
    - Before editing a drifted doc, check `git status --porcelain -- <doc-path>`; if it already has uncommitted changes, **skip that doc** and report it — never fold the user's pre-existing WIP into the sync commit.
-   - Trivial doc edits → show each as a before/after diff and apply on approval (`Edit`).
+   - Trivial doc edits → show each as a before/after diff and apply on approval (`Edit`); with `--fast`, apply them and list them.
    - Larger rewrites → present an update plan and apply on approval.
    - **Fix every occurrence.** If an inconsistency appears in more than one place within this change's spec docs (across `spec.md` / `plan.md` / `tasks.md` or several sections), update **all** of them — a partial fix leaves the doc self-contradictory. Keep this bounded to **this change's** spec folder; propagating a fix across every spec in the repo is `spec-recalibrate`'s job.
    - **Non-interactive / headless run:** report the drift but apply **no** edits — treat the absence of an approver as no approval and never block on a consent prompt, so a headless run never hangs.
@@ -132,16 +157,20 @@ how much human review the PR still needs. The briefs, the finding format and the
 
 **Skip** this step with `--no-review`.
 
-1. **Choose the reviewers.** The keys are `code`, `security`, `standards`, `tests`, `minimal`, `refactor`.
+1. **Choose the reviewers.** The keys are `code`, `security`, `standards`, `tests`, `minimal`.
    Use the first one that applies:
    1. `--review=<keys>`;
    2. this repo's row in `references/review-profile.md` in the sibling `ado-pr-code-review` skill
       (`../ado-pr-code-review/references/review-profile.md`), which also gives focus notes, the lint command and the
       test command;
-   3. all six.
+   3. all five.
+
+   There is no automatic second look. With `--deep`, run every chosen reviewer twice (the second time reading the
+   files in reverse order) and allow the layer-6 tie-break (part 2 of `../ado-pr-code-review/references/review-findings.md`).
 2. **Measure, then run the reviewers in parallel.** First run the lint and function-complexity measurements in
-   `references/pre-pr-review.md` yourself (best-effort; skip a tool that is missing and say so). Lint problems become
-   findings; the complexity list goes to the `refactor` reviewer and into the complexity score.
+   `references/pre-pr-review.md` yourself (`scripts/complexity.py`; best-effort: a missing linter is skipped and
+   named, a missing lizard is offered for install). Lint problems become findings; the complexity list goes to the
+   `minimal` reviewer and into the complexity score.
    Then start one fresh `general-purpose` sub-agent per reviewer, all started in the same message
    (the **Agent** tool; **Task** in older harnesses). Do not fork your own context into them: each reviewer must
    start clean. Build each prompt from the run inputs, the common rules and that reviewer's brief in
@@ -150,25 +179,39 @@ how much human review the PR still needs. The briefs, the finding format and the
 3. **Verify and merge the results** as `references/pre-pr-review.md` describes, with the shared rules in
    `../ado-pr-code-review/references/review-findings.md`: its verification layers (mechanical checks, pre-existing,
    precedents, an independent disprover per finding, proof by test for a kept critical — ask before running a test),
-   keep / downgrade / drop / pre-existing, duplicates merged, `minimal` / `refactor` conflicts settled, sorted by severity.
-4. **Show the findings to the user**, grouped by severity, with reviewer, confidence, file:line and the suggested fix.
-   - **Critical findings:** stop and ask: fix them now, open the PR anyway, or stop without a PR.
-   - **Non-interactive / headless run:** report the findings and apply no fixes. With a critical finding, do not
-     open the PR: stop after the report.
-5. **Fix with the user, one finding at a time** (the same model as Step 1.5 and `ado-pr-resolve-comments`):
-   - `trivial` → show a before/after diff and apply it on approval.
+   keep / downgrade / drop / pre-existing, duplicates merged, delete-vs-extract conflicts settled, sorted by severity.
+4. **Show the findings to the user**, grouped by severity: `file:line — short title (reviewers)`, then the
+   confidence and the suggested fix, in the same reviewer names as `ado-pr-code-review`.
+   When Step 1 warned of a conflict and a kept `critical` or `medium` finding is in one of the conflicting files,
+   start with *"Rebase first: {files} conflict with `<target-branch>` and hold {n} of these findings; fixing them
+   before the rebase may be redone."* It is advice: do not rebase, and continue as the user decides.
+   Then **always ask what to do**, whether or not there is a critical finding:
+
+   | Choice | What happens |
+   |---|---|
+   | **Preview only** | No edits, no push, no PR. Write the findings to `.git/pre-pr-review/<branch>.md` so the user can come back to them, and stop. |
+   | **Fix together** | Step 5 one finding at a time, each on approval. |
+   | **Auto-fix** | Apply every `trivial` fix at once, show the combined diff, and commit only after one approval (Step 6). `larger` and `critical` findings still go one at a time with the user. |
+   | **Open the PR anyway** | No fixes. Continue to Step 2; the unresolved findings go into the PR's Pre-PR Review section. With a `critical` finding, ask once more before going on. |
+
+   After fixing, ask again whether to continue to push and open the PR; never continue on your own.
+   - **Non-interactive / headless run:** behave as **Preview only**.
+5. **Fix** (Fix together and Auto-fix; the same model as Step 1.5 and `ado-pr-resolve-comments`):
+   - `trivial` → show a before/after diff and apply it on approval (Auto-fix: all at once, one combined diff).
    - `larger` → show a short plan and apply it on approval.
    - Before you edit a file, check `git status --porcelain -- <path>`. If it has uncommitted changes, skip that fix
      and say so. Never fold the user's work in progress into a review commit.
    - The user may decline any finding. Keep it in the list as unresolved.
-   - After the fixes, offer to run the repo's test command from the review profile. Do not run it without approval.
+   - After the fixes, offer to run the repo's test command from the review profile. Do not run it without approval
+     (`--fast` runs it).
 6. **Commit the fixes** so the PR carries them: `git add` only the paths you edited, then
    `git commit -m "<type>(<scope>): address pre-PR review" -- <those paths>`, with a Conventional Commit type that
    fits the fixes (`fix`, `refactor`, `test`). The PR title still comes from the title candidate captured in Step 1.
-7. **Rate the review confidence** (High / Medium / Low) with the table in `references/pre-pr-review.md`, and keep
+7. **Rate the review confidence** (High / Medium / Low) with "Review confidence" in part 5 of
+   `../ado-pr-code-review/references/review-findings.md`, and keep
    the level, its reasons and the unresolved findings for Step 4 and Step 7.
 
-Apart from the critical-finding stop in step 4, this step is **best-effort**: if a reviewer fails, report it, count
+Apart from the choice in step 4, this step is **best-effort**: if a reviewer fails, report it, count
 it in the confidence rating, and continue.
 
 ## Step 2 — Push the branch
@@ -243,7 +286,7 @@ is created in the web UI, not through the API, so this skill applies it itself.
    ## Pre-PR Review
    Confidence: **Low** — human review required (unresolved critical in auth middleware)
    Complexity: high (4) — new route, migration, background job, new env var
-   Reviewers: code, security, standards, tests, minimal, refactor + lint, lizard · fixed 5 · unresolved 2
+   Reviewers: code, security, standards, tests, minimal + lint, lizard · fixed 5 · unresolved 2
    - 🔴 src/auth/session.go:88 — token not checked for expiry (security)
    - 🟡 api/rooms.go:140 — no test for an empty filter (tests)
    ```
@@ -298,7 +341,7 @@ Adds the Jira ticket to this repo's row in a Confluence release-notes page (for 
 `2026-10XX Release Notes` or `2026-1019 Release Notes`). The user picks the page
 at runtime, because a PR can belong to the monthly page or to a specific release.
 
-**Skip** this step when any of these is true: `--no-release-notes` was passed; no Jira ticket was resolved in Step 1;
+**Skip** this step when any of these is true: `--no-release-notes` was passed; `--fast` without `--release-page=<id>`; no Jira ticket was resolved in Step 1;
 this run stopped at the existing-PR check in Step 1; the run is non-interactive / headless (nobody can pick a page).
 
 Run `scripts/confluence_ticket_log.py` from this skill's folder. It needs the Confluence space, a phrase that the
@@ -346,7 +389,9 @@ Then report:
 - reviewers **added** and reviewers **skipped** (with the reason for each)
 - if no reviewer config was found and a team arg was given, note it (team args produced no reviewers)
 - the PR template used (repo template path, or the shared generate-pr-notes template)
-- pre-PR review: the reviewers that ran (and any that did not finish), findings fixed and unresolved, and the
+- the conflict warning from Step 1, if any (target moved {n} commits; conflicting files), and the rebase-first
+  advice when findings sit in those files
+- pre-PR review: the choice made in Step 1.7 (preview only stops here and reports the path of the saved findings), the reviewers that ran (and any that did not finish), findings fixed and unresolved, and the
   **review confidence** level with its reasons and what a human reviewer should check (or *"skipped"* with the reason)
 - release-notes page: the page and version written, "already present", skipped (with the reason), or the error.
   If a new month's page was created, say that its title still has last month's sprint number and must be updated by hand.

@@ -1,7 +1,7 @@
 ---
 name: ado-pr-code-review
-description: Review an Azure DevOps PR by URL and post inline LOC-level comments. Covers commit provenance (merge direction / target-branch warnings, merge commits smuggling other work in, lost work from force-pushes, rebases, dropped child PRs or overwritten conflict resolutions), security (PII exposure, input validation, error `code` field, OWASP Top 10, CWE Top 25, OWASP API/Mobile/IoT Top 10), runtime correctness and resource leaks (crashes, races, lost work, memory/connection/listener leaks, unbounded growth, in backend and frontend code), and repo standards and spec conformance via the code-review skill. Use when asked to review a PR, code review an ado PR, security review a pull request, find bugs or memory leaks in a PR, do a final/last review, or given an Azure DevOps PR URL.
-argument-hint: "<azure-devops-pr-url>"
+description: Review an Azure DevOps PR by URL and post inline LOC-level comments. Covers commit provenance (merge direction / target-branch warnings, merge commits smuggling other work in, lost work from force-pushes, rebases, dropped child PRs or overwritten conflict resolutions), security (PII exposure, input validation, error `code` field, OWASP Top 10, CWE Top 25, OWASP API/Mobile/IoT Top 10), runtime correctness and resource leaks (crashes, races, lost work, memory/connection/listener leaks, unbounded growth, in backend and frontend code), and repo standards and spec conformance; every finding is verified before it is posted. Use when asked to review a PR, code review an ado PR, security review a pull request, find bugs or memory leaks in a PR, do a final/last review, or given an Azure DevOps PR URL.
+argument-hint: "<azure-devops-pr-url> [--deep] [--preview] [--fast]"
 allowed-tools: Skill, Agent, Bash, Read, mcp__azure-devops-mcp__repo_repository, mcp__azure-devops-mcp__repo_pull_request, mcp__azure-devops-mcp__repo_file, mcp__azure-devops-mcp__repo_pull_request_thread, mcp__azure-devops-mcp__repo_pull_request_thread_write, mcp__azure-devops-mcp__pipelines_build, mcp__azure-devops-mcp__pipelines_definition
 ---
 
@@ -12,7 +12,7 @@ allowed-tools: Skill, Agent, Bash, Read, mcp__azure-devops-mcp__repo_repository,
 Both come from `mattpocock/skills` (`skills/engineering/<name>/`). If one is not installed, the review
 still runs: skip that part and say so in the summary.
 
-- **`code-review`** — the standards and spec pass (Step 5).
+- **`code-review`** — optional help for the standards and spec pass (Step 5); the pass runs without it.
 - **`diagnosing-bugs`** — the repro loop for findings whose cause is unclear (see the last section).
   It replaces the older `diagnose` skill; do not reference `diagnose`.
 
@@ -23,21 +23,26 @@ PR review that posts inline LOC-level comments on the diff. It finds, verifies, 
 1. Commit provenance (Step 2.5)
 2. Security lenses A–H (Step 3)
 3. Runtime correctness and resource leaks (Step 4)
-4. Standards and spec, via the `code-review` skill (Step 5)
-5. Verify every candidate finding (Step 5.5)
-6. Post the verified findings inline (Step 6), then one summary thread (Step 7)
+4. Standards and spec (Step 5)
+5. Test coverage (Step 5.1) and impact outside the diff (Step 5.2)
+6. Verify every candidate finding (Step 5.5)
+7. Post the verified findings inline (Step 6), then one summary thread (Step 7)
 
-Findings use the format and rules in `references/review-findings.md`. Read it before Step 3. Run Steps 3, 4 and 5
+Findings use the format and rules in `references/review-findings.md`. Read it before Step 3. Run Steps 3, 4, 5, 5.1 and 5.2
 as separate fresh sub-agents in parallel when the agent supports them (one per pass, not forked from this context),
-each returning the JSON findings of that file. For large or high-risk PRs, run a second group of the same passes
-("Finder coverage" in that file). Without sub-agents, run them one after another and say so in the summary. The
-review never approves, votes, or completes the PR (see Notes).
+each returning the JSON findings of that file. That file's part 1 says what to read and from where, part 2 how the
+passes run (at most 6 sub-agents at once, the second look for large or high-risk PRs, read-only, model, rule-file edits), part 4 how findings are
+verified, and part 5 what is posted. Without sub-agents, run the passes one after another and say so in the
+summary. The review never approves, votes, or completes the PR (see Notes).
 
 ## Arguments
 
 | Token | Meaning |
 |---|---|
 | an Azure DevOps PR URL | **required** — the PR to review; parsed in Step 1 |
+| `--preview` | run every step up to Step 5.5, then show the inline comments and the summary exactly as they would be posted, and call no write tool. Post them only if the user then says so |
+| `--fast` | ask nothing during the run: the PR-description update becomes a summary item, not an offer. Posting still follows `--preview` |
+| `--deep` | deep review: always run the second look and the tie-break layer for criticals left at `medium` confidence (`references/review-findings.md` parts 2 and 4) |
 
 No URL → ask for one before doing anything else.
 
@@ -69,29 +74,37 @@ https://{org}.visualstudio.com/{project}/_git/{repo}/pullrequest/{prId}
 5. Call `repo_pull_request_thread` with `{ action: "list", repositoryId, project, pullRequestId }` and note every earlier finding and its status.
    On a re-review, do not raise a finding again if its thread is fixed, won't-fix or by-design, unless the
    fix is wrong or incomplete. Then say so in a new thread that names the old one.
-6. Read the repo's rule files (`CLAUDE.md`, `AGENTS.md`, constitution, `docs/agents/`) from the **target branch**,
-   and this repo's central review rules (`references/review-rules/_default.md` + `references/review-rules/<repo>.md`),
-   as `references/review-findings.md` describes. Pass them to every pass and to the verifier.
+6. Read the repo's rule files (`CLAUDE.md`, `AGENTS.md`, constitution, `docs/agents/`) and the reference data
+   findings rely on (schemas, contracts, API reference) from the **target branch**, and this repo's central review
+   rules (`references/review-rules/_default.md` + `references/review-rules/<repo>.md`), as part 1 of
+   `references/review-findings.md` describes. Pass them to every pass and to the verifier.
 
 ## Comment Format
 
-All inline comments must follow this structure, matching the project's existing review style:
+Short enough to read in the PR page. The title, the reviewers line, the impact and the Fix must stand on
+their own; keep a blank line between them, or the PR page joins them into one line:
 
 ```
-{optional source tag} {severity_emoji} **{Severity} — {Short title}**
+{severity_emoji} **{Severity} — {short title}**
 
-{1-3 sentence explanation of the finding and its risk.}
+Reviewers: {reviewer} · {reviewer}
 
-{Optional: code block showing the problematic code snippet for context.}
+{One sentence: the case that triggers it and its concrete impact.}
 
-**Suggestion:** {Concrete fix or alternative approach. Always include either a corrected code block or a specific actionable change — not just "consider fixing this".}
+**Fix:** {one line: the change to make — or, for a 🔍 Question, `**Q:**` and the question to answer}
 
-{Action statement: what the author should do or confirm.}
+{Optional: a code block of at most 10 lines with the fix, only when the one-line Fix is not enough.}
 
 How verified: {how Step 5.5 confirmed it — traced path / compared base and head / ran a command / inference}
 ```
 
-> **Rule**: Every comment **must** include a `**Suggestion:**` block with either a corrected code snippet or a specific recommended approach. A finding without a suggestion is incomplete — do not post it.
+> **Rule**: Every comment **must** have a `**Fix:**` (or `**Q:**`) line that names a concrete change or question —
+> "consider fixing this" is not one. A finding without it is incomplete; do not post it.
+
+- Title at most 80 characters. Use backticks for symbols, paths and code.
+- Do not open with filler ("Note:", "Please", "Additionally", "However") and do not restate the code.
+- The whole comment stays under 15 lines. More context belongs in the code block or not at all.
+- The lens templates below give the wording for their findings; fit them to this shape.
 
 **Severity levels:**
 
@@ -103,69 +116,62 @@ How verified: {how Step 5.5 confirmed it — traced path / compared base and hea
 | 🔍 | Question | Clarification needed — not necessarily a bug |
 | 🟣 | Pre-existing | Real, but the same code is already on the target branch. **Summary only, never inline**, and never counted against this PR |
 
-**Source tag** (first token of the title line), so every comment shows which pass raised it:
+**Reviewers line** (its own line under the title, so the title stays short): every pass that raised the finding,
+by name, joined with ` · `. Every comment has one, security findings included.
 
-| Tag | Pass |
+| Name | Pass |
 |---|---|
-| none | Security lenses A–H (they end with a `CWE Mapping:` line instead) |
-| `[runtime]` | Runtime correctness and resource leaks (Step 4) |
-| `[standards]` | Repo standards, from the `code-review` skill (Step 5) |
-| `[spec]` | Spec / ticket conformance, from the `code-review` skill (Step 5) |
+| `provenance` | Commit provenance (Step 2.5) — summary only |
+| `security` | Security lenses A–H (these also end with a `CWE Mapping:` line) |
+| `runtime` | Runtime correctness and resource leaks (Step 4) |
+| `standards` | Repo standards (Step 5) |
+| `spec` | Spec / ticket conformance (Step 5) |
+| `tests` | Test coverage (Step 5.1) |
+| `impact` | Impact outside the diff (Step 5.2) |
 
-When two passes hit the same line, post one comment and list both tags.
+When several passes hit the same line, post one comment and name them all. In the summary and in `ado-open-pr`'s
+list, a finding ends with its reviewers in brackets instead: `— {short title} (runtime, standards)`.
 
-**Examples from this project:**
-
-```
-🔴 **Critical — PII exposed in public API response**
-
-`accountId` is serialised directly into the response body of a public-facing endpoint.
-This field can identify a specific user and must not be exposed without access control.
-
-**Suggestion:** Remove `accountId` from the response DTO, or replace it with an
-opaque token/alias that cannot be reverse-mapped to a real account without server-side context.
-If the field is required by a specific consumer, move the endpoint behind authentication
-and document the access requirement.
-```
+**Examples:**
 
 ```
-🟡 **Medium — No empty-string guard on `sceneSID`**
+🔴 **Critical — `accountId` returned by a public endpoint**
 
-If a caller sends `{ "sceneSID": "" }`, this passes the `required` binding check
-but will produce an empty FQDN downstream, causing a Route53 error.
+Reviewers: security
 
-**Suggestion:** Add `min=1` to the binding tag to reject empty strings at the handler boundary:
+Any caller can read the account id of every user in the list, which identifies them.
+
+**Fix:** Drop `accountId` from the response DTO, or move the endpoint behind authentication.
+
+How verified: traced the route → handler → DTO; no auth middleware on the route (static).
+```
+
+```
+🟡 **Medium — Empty `sceneSID` passes binding**
+
+Reviewers: security
+
+`{ "sceneSID": "" }` passes `required` and builds an empty FQDN, so Route53 returns an error.
+
+**Fix:** Add `min=1` to the binding tag.
+
 ```go
 SceneSID string `json:"sceneSID" binding:"required,min=1"`
 ```
+
+How verified: ran the handler test with an empty value on head (fails as described).
 ```
 
 ```
-🔵 **Minor — Raw AWS struct serialised in response**
+🔍 **Question — Is an empty `values` array valid?**
 
-`"record": r` leaks internal AWS routing fields that callers don't need.
+Reviewers: security
 
-**Suggestion:** Project only the fields consumers actually need:
-```go
-return gin.H{
-    "fqdn":   fqdn,
-    "domain": strings.TrimSuffix(fqdn, "."),
-    "type":   aws.StringValue(r.Type),
-}
-```
-```
+`{ "values": [] }` passes binding and reaches the update with nothing to write.
 
-```
-🔍 **Question — Is an empty `values` array valid by design?**
+**Q:** Is this a valid caller intent? If not, add `min=1`; if so, say why in a code comment.
 
-The `values` field accepts an empty slice after binding.
-Is `{ "values": [] }` a valid caller intent, or should it be rejected early?
-
-**Suggestion:** If empty is invalid, add `min=1` to the binding tag:
-```go
-Values []string `json:"values" binding:"required,min=1"`
-```
-If it is valid, add a code comment explaining the design intent so future reviewers understand the choice.
+How verified: inference — not traced.
 ```
 
 ---
@@ -288,7 +294,8 @@ current target head (`git fetch` then `git rev-parse origin/{target}`). If the t
    A non-zero exit lists the conflicting files.
 3. For each conflicting file, say what the target changed there since the merge-base (`git log
    {merge-base}..origin/{target} -- <file>`), for example "master already added this file in PR N" or "the
-   constitution moved from 1.16 to 1.19".
+   constitution moved from 1.16 to 1.19". Keep `git diff {merge-base} origin/{target} -- <conflicting files>` and pass it
+   to Steps 4 and 5 and to Step 5.5 ("Target moved" in part 1 of `references/review-findings.md`).
 4. Conflicts make the PR **stale**: report them under Commit provenance as 🟡 Medium (🔴 Critical when the target
    already contains a different implementation of the same change), and apply the stale-PR gating in
    `references/review-findings.md`. A target that moved without conflicts is a one-line note.
@@ -374,7 +381,7 @@ The table below lists **minimum required fields to check**. It is **not exhausti
 `{fieldName}` may expose {pii type}, which is regulated under {GDPR / CCPA / ISO 27001}.
 Exposing this without lawful basis, access control, or explicit disclosure may constitute a compliance violation.
 
-**Suggestion:** {Choose one based on context:}
+**Fix:** {Choose one based on context:}
 - Remove the field from the response DTO if it is not needed by callers.
 - Replace with a masked/truncated value (e.g. last 4 digits, first letter of email domain).
 - Move the field to an authenticated-only endpoint and document the lawful basis / access requirement.
@@ -413,7 +420,7 @@ For each null/empty finding, **ask the author** whether the empty/nil state is i
 `{parameter/field}` is user-supplied with no visible type/length/format constraint.
 This may allow unexpected values that could lead to XSS or injection.
 
-**Suggestion:** Add validation appropriate to the framework, e.g.:
+**Fix:** Add validation appropriate to the framework, e.g.:
 ```{language}
 {concrete corrected declaration with validation annotation or binding tag}
 ```
@@ -426,7 +433,7 @@ If validation exists elsewhere in the call chain, add a comment pointing to it.
 
 `{field}` can be {nil/null/empty} here with no guard before use.
 
-**Suggestion:** If this state is invalid, add an explicit guard:
+**Fix:** If this state is invalid, add an explicit guard:
 ```{language}
 {concrete nil/empty check with early return or error}
 ```
@@ -462,7 +469,7 @@ Flag when:
 This error response does not include a `code` field. Callers must be able to identify
 error types via a stable `code` (not `message`, which can change with copy/i18n).
 
-**Suggestion:** Add a `code` field at the root or a known nested path:
+**Fix:** Add a `code` field at the root or a known nested path:
 ```{language}
 {concrete corrected error response construction with code field added}
 ```
@@ -628,53 +635,88 @@ frontend projects. A failure that also happens on the merge-base is pre-existing
 not as a finding. Many frontend leaks only show at runtime (heap snapshots, detached DOM); if you suspect
 one you cannot confirm statically, raise it as a 🔍 Question and say how to measure it.
 
-**CI and build claims.** A finding that says CI, a build, or a deploy will fail must name the pipeline that actually
-runs for this repository and PR: an Azure DevOps pipeline definition or a build of this PR (`pipelines_build` for
-`refs/pull/{prId}/merge` or the source branch), or the repository's review rules. A workflow file alone
-(`.github/workflows/`, `.circleci/`) is not evidence: on an Azure DevOps repository it may be a leftover that never
-runs. Without that evidence, report the underlying defect at its own severity and leave the build claim out.
+A claim that CI, a build or a deploy fails needs the pipeline that actually runs (`pipelines_build` for
+`refs/pull/{prId}/merge` or the source branch, pipeline definitions, or the review rules) — `review-findings.md`
+part 4, layer 4.
 
-Tag these findings `[runtime]`. Severity: lost data, lost work, a crash on a reachable path or a leak that
+Name these findings `runtime`. Severity: lost data, lost work, a crash on a reachable path or a leak that
 grows with traffic is 🔴 Critical; a defect with a bounded or rare impact is 🟡 Medium.
 
 ---
 
-## Step 5 — Standards and spec, with the `code-review` skill
+## Step 5 — Standards and spec
 
-1. If the `code-review` skill is available (Claude Code: `Skill` tool with `code-review`; or `/code-review`),
-   invoke it for the PR range `{target-branch merge-base}..{lastMergeSourceCommit}`. It reviews on two axes
-   in parallel sub-agents:
-   - **Standards**: does the change follow this repo's documented coding standards (CLAUDE.md, constitution, `.agent-settings`)?
-     Give it the rule files read from the target branch (Step 2), not the PR's copies.
+1. The standards pass reviews the PR range `{target-branch merge-base}..{lastMergeSourceCommit}` on two axes itself:
+   - **Standards**: does the change follow this repo's documented coding standards (CLAUDE.md, constitution,
+     `.agent-settings`, the central review rules), read from the target branch (Step 2)? When the PR edits a rule
+     file, also check that code already on the target branch still complies (`review-findings.md` part 2).
    - **Spec**: does the change match what the Jira ticket / PR description / linked spec asked for? Feed it the
      ticket key and PR description. This also cross-checks the scope check in Step 2.5.
-2. If the skill is not available (other agents, or not installed), do not fail the review: write
-   `standards and spec: skipped (code-review skill unavailable)` in the summary and continue.
-3. Map its results onto the same comment format:
+2. The `code-review` skill, when installed, may be used for either axis; it is optional and never a reason to skip
+   the pass.
+3. Map the results onto the same comment format:
    - A breach of a documented standard is 🟡 Medium (🔴 Critical if it breaks behaviour); a judgement call
      (code smell) is 🔵 Minor. A spec requirement implemented wrongly is 🟡 Medium or 🔴 Critical by impact.
-   - Tag each comment `[standards]` or `[spec]`.
-   - A finding without a `**Suggestion:**` is still not posted.
+   - Name each finding's reviewer `standards` or `spec`.
+   - A finding without a `**Fix:**` is still not posted.
    - Anything without a file/line (a missing requirement, missing docs, an inaccurate PR description) goes in
      the summary's `Findings without a line` section.
    - Compare the PR description with the **net** diff, as `references/review-findings.md` describes. When the PR
-     author is the current user, offer to update the description; change it only on approval.
+     author is the current user, offer to update the description; change it only on approval. With `--fast`, list the
+     suggested description change in the summary instead of asking.
 4. This pass **adds to** Steps 2.5, 3 and 4. It never replaces them, and its "no findings" result does not
    clear a PR that has findings from the other passes.
 
 ---
 
+## Step 5.1 — Test coverage
+
+For each behavior the diff adds or changes — including changed error codes, status codes and response bodies — find
+the test that covers it. Report:
+
+- new or changed behavior with no test, and changed contracts (codes, bodies) that no test pins;
+- error paths, edge cases and boundary values (empty, null, zero, maximum, duplicates, concurrency, timeouts,
+  cancellation) that the tests do not reach;
+- tests that pass without checking the behavior: no assertion, an assertion on a constant or a mock only, a test
+  named after a handler that never calls it, a shape check that the old shape also passes;
+- tests changed so that they no longer check what they checked before, or that pin the new wrong value.
+
+`**Fix:**` names the test file and the case to add (inputs and expected result); do not write the test. Name
+the reviewer `tests`. Severity: a changed contract or a security/data path with no test is 🟡 Medium; a gap on low-risk code is
+🔵 Minor.
+
+---
+
+## Step 5.2 — Impact outside the diff
+
+The other passes read the diff; this one looks at what the diff can break **where it does not look**.
+
+1. List every exported symbol the diff renames, removes, or changes the type, signature or meaning of (functions,
+   vars, constants, types, error values, config keys, routes, DB columns). For each, `git grep` every use in the
+   whole repository at the PR head — **not only the changed files** — and report uses the diff did not update. A use
+   that still compiles but now means something else is the worst case (for example a var renamed and its old name
+   reused for a function: `json.Marshal` of a func value sends an empty body).
+2. Do the same on the target branch head for code added there since the merge-base (`git grep` on
+   `origin/{target}`): it merges without a conflict and breaks after the merge.
+3. When Step 2.5 Check 3 found conflicts, check the target's diff in the conflicting files for collisions ("Target
+   moved" in part 1 of `references/review-findings.md`): the same code, constant, name, route or migration number used
+   for something else.
+
+Name the reviewer `impact`. Severity: a reachable broken caller or a public collision is 🔴 Critical; a broken caller on a rare
+path is 🟡 Medium.
+
+---
+
 ## Step 5.5 — Verify the findings
 
-Collect the candidate findings from Steps 2.5–5 and verify them with `references/review-findings.md`:
+Collect the candidate findings from Steps 2.5–5.2 and verify them with `references/review-findings.md`:
 
-1. Run the verification layers of that file in order: mechanical checks (scope, anchor, symbol, tool duplicate,
-   repeat), pre-existing (target branch, unless this PR makes it newly reachable), precedents, the independent
-   disprover per finding with the confidence anchors, and proof by test for each kept `critical` where tests exist.
-   The tie-break layer runs only when the user asks.
+1. Verify with part 4 of that file: reuse earlier outcomes for unchanged code, then the layers in order
+   (mechanical checks, pre-existing, precedents, the independent disprover, proof by test for a kept `critical`;
+   the tie-break only when the user asks).
 2. Give every finding one outcome — keep, downgrade, drop, or pre-existing — with the evidence in `verified`.
-3. Merge duplicates and sort.
-4. Apply the posting table: what is posted inline, what goes to the summary only, and what is counted as dropped.
+3. Merge, sort and apply the posting rules of part 5 (including doc drift and stale-PR gating).
+4. Check the clones you used are unchanged (part 2, read-only).
 
 The provenance findings from Step 2.5 are verified too, but they always go to the summary, never inline.
 
@@ -682,7 +724,9 @@ The provenance findings from Step 2.5 are verified too, but they always go to th
 
 ## Step 6 — Post inline comments
 
-Post the findings that Step 5.5 marked for inline posting: one thread per line. For each finding:
+With `--preview`, skip Steps 6 and 7: show each inline comment with its `file:line`, then the summary, and stop
+until the user asks to post. Otherwise post the findings that Step 5.5 marked for inline posting: one thread per
+line. For each finding:
 
 Call `repo_pull_request_thread_write` with:
 - `action`: `"create"`
@@ -712,32 +756,36 @@ its own inline thread. Format:
 
 **Recommendation:** {ready for human review | fix {what} first | needs changes} — {one sentence why}. This is advice; the merge decision stays with the human reviewers.
 
+**Review confidence:** {Low — human review required | Medium — check {areas} | High — light review} — {one or two reasons} · complexity {low|medium|high} ({n}: {signals}) · {open} open / {resolved} resolved findings (`references/review-findings.md` part 5)
+
+{✂️ Large PR — {n} code lines; consider splitting into {suggested split}. (only above 1500 code lines)}
+
 ### 🚫 Commit provenance
 {✅ {n} linear commits, no merge commits, no child PRs — or each finding}
 
 ### 🔴 Critical ({count})
-- `{file}:{line}` — {short title} {source tag}
+- `{file}:{line}` — {short title} ({reviewers})
 
 ### 🟡 Medium ({count})
-- `{file}:{line}` — {short title} {source tag}
+- `{file}:{line}` — {short title} ({reviewers})
 
 ### 🔵 Minor ({count})
-- `{file}:{line}` — {short title} {source tag}
+- `{file}:{line}` — {short title} ({reviewers})
 
 ### 🔍 Questions ({count})
-- `{file}:{line}` — {short title} {source tag}
+- `{file}:{line}` — {short title} ({reviewers})
 
 ### 📝 Findings without a line
-- {missing requirement / missing docs / PR description inaccuracy} {source tag}
+- {missing requirement / missing docs / PR description inaccuracy} ({reviewers})
 
 ### 📚 Spec docs disagree with the code ({count}) — only when 3 or more
 - `{file}:{line}` — {what the doc says} vs {what the code does}
 
 ### ⏳ After the rebase ({count}) — stale / conflicting PR only
-- `{file}:{line}` — {short title} {source tag}
+- `{file}:{line}` — {short title} ({reviewers})
 
 ### 🟣 Pre-existing ({count}) — not introduced by this PR
-- `{file}:{line}` — {short title} {source tag} — {also on `{target-branch}`; suggest a separate ticket when serious}
+- `{file}:{line}` — {short title} ({reviewers}) — {also on `{target-branch}`; suggest a separate ticket when serious}
 
 Verification: {n} candidates · {kept} posted · {downgraded} downgraded · {dropped} dropped (wrong, unreachable, linter-catchable or already resolved) · {pre-existing} pre-existing
 
@@ -747,7 +795,7 @@ Verification: {n} candidates · {kept} posted · {downgraded} downgraded · {dro
 
 ---
 
-Passes: commit provenance · security lenses A–H · runtime correctness & leaks · standards · spec · verify{ (skipped: …) where a pass did not run}
+Passes: commit provenance · security lenses A–H · runtime correctness & leaks · standards · spec · tests · impact · verify{ (skipped: …) where a pass did not run}
 ```
 
 Omit any section that has nothing in it, except Commit provenance, Checked and clean, and the Passes line.
@@ -772,7 +820,7 @@ For any finding in Lens B (validation), Lens C (error contract) or Step 4 (runti
 
 1. **Phase 1** — build a minimal feedback loop to confirm the vulnerability or broken contract is actually reachable (e.g. craft a curl that triggers the missing validation, or a test that reproduces the missing `code` field)
 2. **Phase 3** — generate 2–3 ranked hypotheses for _why_ the issue exists (missing middleware? wrong layer? copy-paste pattern?)
-3. Use the confirmed reproduction and ranked hypotheses to make the comment's **Suggestion** block concrete and accurate — not speculative
+3. Use the confirmed reproduction and ranked hypotheses to make the comment's **Fix** line concrete and accurate — not speculative
 
 If you cannot build a feedback loop (e.g. the code path requires a running external service), note this explicitly in the comment:
 ```

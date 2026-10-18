@@ -18,6 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ado-open-pr` — uses the consolidated Azure DevOps MCP tools; target branch comes from the branch map, then the ADO default branch (no hard-coded `develop`)
 - `ado-pr-code-review` — adds commit provenance, runtime correctness and resource leaks, and standards / spec passes
 - `generate-pr-notes` — fills the shared template; the global install copies the whole folder
+- `ado-pr-code-review` — five passes (security, runtime, standards and spec, tests, impact outside the diff) with a second look for large or high-risk PRs, at most six sub-agents at once; the target's diff in conflicting files goes to the finders and the verifier; `--preview`, `--deep`, `--fast`; short comments with a `Reviewers:` line
+- `ado-open-pr` — five reviewers (`minimal` absorbs `refactor`); after every review choose preview only / fix together / auto-fix / open anyway (`--choice`, `--fast`, `--yes`); merge-tree conflict warning with rebase-first advice; `scripts/complexity.py` with an approved lizard install
+- `ado-pr-resolve-comments` — checks that each finding holds before fixing (outcome *not reproducible* with evidence), reads the short comment format, treats renames as non-trivial with a repo-wide impact check, runs lint and tests before pushing; `--auto-trivial`, `--fast`, `--yes`
 
 ## [2026-10-03]
 
