@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ado-pr-code-review/references/` — `branch-map.md` (PR target per repo) and `review-profile.md` (reviewers, lint and test commands per repo), with example rows
 
 ### Removed
+- `config/`: its only file, `reviewers.example.json`, moved to `ado-open-pr/references/pr-tools.example.json` (the schema of `.github/config/pr-tools.json`: `jiraBaseUrl`, `teams`, `releaseNotes`). `ado-open-pr` no longer reads a local `config/reviewers.json` fallback; the per-repo `.github/config/pr-tools.json` is the only source, and a missing file still degrades to explicit reviewer args.
 - `external/` and `skills-lock.json`: all 14 vendored `mattpocock/skills` copies (`setup-matt-pocock-skills`, `caveman`, `to-prd`, `to-issues`, `triage`, `diagnose`, `improve-codebase-architecture`, `prototype`, `tdd`, `zoom-out`, `handoff`, `write-a-skill`, `grill-me`, `grill-with-docs`). Nothing in `.agent-settings/` used them and `import-skills.sh` never installed them. The issue-tracker skills (`to-prd`, `to-issues`, `triage`) depended on the setup skill and target GitHub/GitLab trackers. `grill-me` and `grill-with-docs` are listed under Planned in the README.
 - `graphify-monitor`, `btw` (the whole `knowledge-graph/` category) and the external `graphify` skill, with their README and docs entries, the `skills-lock.json` entry, the `graphify-out/` and `KNOWLEDGE_SUMMARY.md` ignore rules and the `GOAL_STATE.md` verification record. `btw` only read graphify's output, so it could not work without it.
 

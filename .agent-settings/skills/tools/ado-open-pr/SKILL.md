@@ -32,7 +32,7 @@ All optional, any order. Disambiguate each bare (unflagged) token as follows:
 |---|---|
 | matches `[A-Z]+-\d+` | Jira ticket |
 | contains `@` | reviewer email / unique name |
-| matches a team key under `teams` in the reviewer config | reviewer team |
+| matches a team key under `teams` in the PR tools config | reviewer team |
 | literally `draft` | open the PR as a draft |
 | anything else | target branch |
 
@@ -104,7 +104,7 @@ headless run, which still behaves as a preview. For this skill, `--fast` means:
    1. explicit ticket arg
    2. current branch name
    3. latest commit subject (`git log --format=%s -1`)
-6. **Load the reviewer config** now (the merged sources in Step 6) so a bare token can be recognized as a team key during argument parsing. A missing or malformed config is fine here — it just means no team keys are known yet.
+6. **Load the PR tools config** now (`.github/config/pr-tools.json`, see Step 6) so a bare token can be recognized as a team key during argument parsing. A missing or malformed config is fine here — it just means no team keys are known yet.
 7. **Capture the title candidate now** — `git log --format=%s -1` — and hold it for Step 4, together with the **pre-sync commit** `git rev-parse HEAD` (the Step 1.7 `standards` reviewer reads the spec as it was at that commit). Do this before Step 1.5 can add a `docs(spec): sync to code` commit on top of `HEAD`; otherwise that commit would become the PR title.
 
 ## Step 1.5 — Spec/doc alignment (on by default)
@@ -274,8 +274,8 @@ is created in the web UI, not through the API, so this skill applies it itself.
    - **Return ONLY the filled markdown body** — no ```` ```markdown ```` fence, no commentary. Skip generate-pr-notes'
      interactive questions and its `/tmp` write, `uname` and clipboard steps.
 
-   Resolve `JIRA_BASE_URL` from `.github/config/pr-tools.json` (key `jiraBaseUrl`) → `config/reviewers.json`
-   (key `jiraBaseUrl`) → default `https://your-org.atlassian.net/browse/`.
+   Resolve `JIRA_BASE_URL` from `.github/config/pr-tools.json` (key `jiraBaseUrl`) → default
+   `https://your-org.atlassian.net/browse/`.
 
 3. If the returned body is unexpectedly fenced, strip **only** a leading line exactly equal to ```` ```markdown ````
    and a final line exactly equal to ```` ``` ````. Do not remove first/last lines unconditionally.
@@ -319,11 +319,9 @@ Capture the returned `pullRequestId`. **The PR now exists** — everything in St
 
 ## Step 6 — Add reviewers (best-effort)
 
-1. **Load reviewer config** and merge, guarding each read so a missing or malformed file degrades to "no config" (never aborts):
-   - `.github/config/pr-tools.json` (consuming repo) — primary
-   - `config/reviewers.json` (a **local, user-provided** fallback; this shared repo intentionally ships only `config/reviewers.example.json`, never a real `reviewers.json`)
+1. **Load the PR tools config**: `.github/config/pr-tools.json` in the consuming repo (keys and an example: `references/pr-tools.example.json`). Guard the read so a missing or malformed file degrades to "no config" (never aborts):
    - Team keys are the top-level keys under `teams`.
-   - If neither file is found, skip team expansion and use only explicit reviewer args; record that no config was found for the Step 7 report.
+   - If the file is not found, skip team expansion and use only explicit reviewer args; record that no config was found for the Step 7 report.
 2. **Expand** each requested team via `teams.<team-key>`. If a named team key is absent from the config, record *"team `<key>` not found — skipped"* and continue.
 3. **Merge** expanded team members with explicit reviewer args into one set; de-duplicate case-insensitively.
 4. **String pre-filter** — resolve the current user via `az account show --query user.name -o tsv` (fallback `git config user.email`) and drop any case-insensitive string match from the set. This is a cheap first pass, not the sole exclusion (see step 6).
@@ -346,7 +344,7 @@ this run stopped at the existing-PR check in Step 1; the run is non-interactive 
 
 Run `scripts/confluence_ticket_log.py` from this skill's folder. It needs the Confluence space, a phrase that the
 release-notes page titles contain, and the heading above the table with one row per service. Set them in the
-reviewer config (Step 6) and pass them as `--space`, `--title-contains` and `--heading` on every call below.
+PR tools config (the `releaseNotes` key, see `references/pr-tools.example.json`) and pass them as `--space`, `--title-contains` and `--heading` on every call below.
 Without this key, skip this step:
 
 ```json
@@ -387,7 +385,7 @@ Then report:
 - source branch → target branch
 - draft status
 - reviewers **added** and reviewers **skipped** (with the reason for each)
-- if no reviewer config was found and a team arg was given, note it (team args produced no reviewers)
+- if no PR tools config was found and a team arg was given, note it (team args produced no reviewers)
 - the PR template used (repo template path, or the shared generate-pr-notes template)
 - the conflict warning from Step 1, if any (target moved {n} commits; conflicting files), and the rebase-first
   advice when findings sit in those files

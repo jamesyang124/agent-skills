@@ -245,8 +245,6 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 │   │   │   └── tech-plan-to-wiki/
 │   │   └── import-skills.sh     # Scans all subdirs, installs flat
 │   └── mcps/                    # MCP server configurations
-├── config/
-│   └── reviewers.example.json   # Team → reviewer-email roster (used by ado-open-pr)
 └── (AI Agent config folders)    # e.g., .claude/, .github/
     └── skills/                  # Symlinked skills (flat, by skill name)
 ```
