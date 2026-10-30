@@ -16,7 +16,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ```
 .agent-settings/skills/
 ├── import-skills.sh (skill management script)
-├── playground/                     # Experimental skills (empty for now)
 ├── tools/                          # Atomic, single-purpose skills
 │   ├── ado-open-pr/
 │   │   └── SKILL.md
@@ -162,8 +161,6 @@ ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/
    mkdir -p .agent-settings/skills/tools/my-new-skill
    # For an orchestrated pipeline:
    mkdir -p .agent-settings/skills/workflows/my-new-skill
-   # For experimental skills:
-   mkdir -p .agent-settings/skills/playground/my-new-skill
    # Then create SKILL.md inside it
    ```
 

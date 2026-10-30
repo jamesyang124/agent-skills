@@ -17,7 +17,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 .agent-settings/skills/
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
-├── playground/ (experimental skills, empty for now)
 ├── tools/
 │   ├── ado-open-pr/
 │   │   └── SKILL.md

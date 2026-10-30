@@ -82,7 +82,7 @@ find_skill_path() {
     echo "$result"
 }
 
-# Function to get all available skills (excludes playground/)
+# Function to get all available skills
 get_available_skills() {
     if [ ! -d "$SKILLS_SOURCE" ]; then
         print_error "Skills directory not found: $SKILLS_SOURCE"
@@ -90,134 +90,7 @@ get_available_skills() {
     fi
 
     find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d \
-        ! -path "$SKILLS_SOURCE/playground/*" \
         -exec basename {} \;
-}
-
-# Function to get playground skills only
-get_playground_skills() {
-    local playground_dir="$SKILLS_SOURCE/playground"
-    if [ ! -d "$playground_dir" ]; then
-        return
-    fi
-    find "$playground_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;
-}
-
-# Interactively prompt the user to multi-select playground skills via checkbox menu
-# Navigation: ↑/↓ to move cursor, space to toggle, a=all, n=none, Enter=confirm, q=skip
-prompt_playground_skills() {
-    local agent_name=$1
-    local playground_skills=()
-    while IFS= read -r line; do
-        [ -n "$line" ] && playground_skills+=("$line")
-    done < <(get_playground_skills)
-
-    if [ ${#playground_skills[@]} -eq 0 ]; then
-        return
-    fi
-
-    local count=${#playground_skills[@]}
-    local checked=()
-    local cursor=0
-    local i=0
-    while [ $i -lt $count ]; do
-        checked+=("0")
-        i=$((i + 1))
-    done
-
-    # Fixed menu height: 8 lines of chrome + count skill lines
-    # (blank + sep + title + sep + blank + N skills + blank + legend + blank)
-    local menu_height=$((count + 8))
-
-    _print_playground_menu() {
-        echo ""
-        printf "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-        printf "${YELLOW}  Playground Skills (experimental / opt-in)${NC}\n"
-        printf "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-        echo ""
-        local j=0
-        while [ $j -lt $count ]; do
-            local box="[ ]"
-            [ "${checked[$j]}" = "1" ] && box="[✓]"
-            if [ "$j" = "$cursor" ]; then
-                printf "  ${BLUE}▶ %s %s${NC}\n" "$box" "${playground_skills[$j]}"
-            else
-                printf "    %s %s\n" "$box" "${playground_skills[$j]}"
-            fi
-            j=$((j + 1))
-        done
-        echo ""
-        printf "  ${BLUE}↑/↓${NC}=move  ${BLUE}space${NC}=toggle  ${BLUE}a${NC}=all  ${BLUE}n${NC}=none  ${BLUE}Enter${NC}=confirm  ${BLUE}q${NC}=skip\n"
-        echo ""
-    }
-
-    _print_playground_menu
-
-    while true; do
-        IFS= read -r -s -n 1 key
-
-        if [[ "$key" = $'\e' ]]; then
-            # Arrow key escape sequence: read remaining 2 bytes of ESC [ A/B
-            IFS= read -r -s -n 2 seq
-            case "$seq" in
-                "[A") [ "$cursor" -gt 0 ] && cursor=$((cursor - 1)) ;;
-                "[B") [ "$cursor" -lt $((count - 1)) ] && cursor=$((cursor + 1)) ;;
-            esac
-        elif [[ "$key" = " " ]]; then
-            if [ "${checked[$cursor]}" = "1" ]; then
-                checked[$cursor]="0"
-            else
-                checked[$cursor]="1"
-            fi
-        elif [[ "$key" = "a" ]] || [[ "$key" = "A" ]]; then
-            local j=0
-            while [ $j -lt $count ]; do
-                checked[$j]="1"
-                j=$((j + 1))
-            done
-        elif [[ "$key" = "n" ]] || [[ "$key" = "N" ]]; then
-            local j=0
-            while [ $j -lt $count ]; do
-                checked[$j]="0"
-                j=$((j + 1))
-            done
-        elif [[ "$key" = "" ]]; then
-            # Enter key — confirm
-            break
-        elif [[ "$key" = "q" ]] || [[ "$key" = "0" ]]; then
-            printf "\033[%dA\033[J" "$menu_height"
-            print_info "Skipping playground skills."
-            return
-        fi
-
-        # Redraw in-place: move up menu_height lines, clear to bottom, reprint
-        printf "\033[%dA\033[J" "$menu_height"
-        _print_playground_menu
-    done
-
-    # Clear the menu before showing import results
-    printf "\033[%dA\033[J" "$menu_height"
-
-    # Collect confirmed selections
-    local selected_skills=()
-    local j=0
-    while [ $j -lt $count ]; do
-        [ "${checked[$j]}" = "1" ] && selected_skills+=("${playground_skills[$j]}")
-        j=$((j + 1))
-    done
-
-    if [ ${#selected_skills[@]} -eq 0 ]; then
-        print_info "No playground skills selected."
-        return
-    fi
-
-    echo ""
-    print_info "Importing ${#selected_skills[@]} playground skill(s)..."
-    echo ""
-
-    for skill in "${selected_skills[@]}"; do
-        create_skill_link "$agent_name" "$skill"
-    done
 }
 
 # Resolve the canonical agent name (handles aliases).
@@ -746,8 +619,6 @@ main() {
             else
                 import_specific_skills "$agent_name" "${skills[@]}"
             fi
-
-            [ -t 0 ] && prompt_playground_skills "$agent_name"
 
             # The other side (global vs this project) may hold the same skills: offer to clean them once.
             if [ "$force" = true ]; then dedup_skills "$agent_name" auto; else dedup_skills "$agent_name" ask; fi
