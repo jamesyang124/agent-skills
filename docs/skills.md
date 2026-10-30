@@ -16,11 +16,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ```
 .agent-settings/skills/
 ├── import-skills.sh (skill management script)
-├── knowledge-graph/                # Knowledge graph skills
-│   ├── btw/
-│   │   └── SKILL.md
-│   └── graphify-monitor/
-│       └── SKILL.md
 ├── playground/                     # Experimental skills
 │   ├── git-rebase-conflict-resolver/
 │   │   └── SKILL.md
@@ -173,8 +168,6 @@ ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/
    mkdir -p .agent-settings/skills/tools/my-new-skill
    # For an orchestrated pipeline:
    mkdir -p .agent-settings/skills/workflows/my-new-skill
-   # For knowledge graph related:
-   mkdir -p .agent-settings/skills/knowledge-graph/my-new-skill
    # For experimental skills:
    mkdir -p .agent-settings/skills/playground/my-new-skill
    # Then create SKILL.md inside it
@@ -246,10 +239,6 @@ file .claude/skills/skill-name
 ### Available Skills
 
 Current skills in `.agent-settings/skills/`:
-
-**Knowledge Graph**:
-- **btw** - Appends a timestamped knowledge snapshot from `graphify-out/graph.json` to `KNOWLEDGE_SUMMARY.md`. Append-only evidence log.
-- **graphify-monitor** - Installs graphify, builds an initial knowledge graph, then runs auto-update every 120 seconds in a background subagent
 
 **Tools** (atomic, single-purpose):
 - **setup-project-config** - One-time setup that scans the codebase and generates `.agent-settings/project-config.md` — the shared config read by all Atlassian/ADO skills

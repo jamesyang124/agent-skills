@@ -17,11 +17,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 .agent-settings/skills/
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
-├── knowledge-graph/
-│   ├── btw/
-│   │   └── SKILL.md
-│   └── graphify-monitor/
-│       └── SKILL.md
 ├── playground/
 │   ├── git-rebase-conflict-resolver/
 │   │   └── SKILL.md
@@ -168,11 +163,6 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 **Invocation:** In Copilot Chat, type `#` to reference a skill from `.claude/skills/`.
 
 ### Available Skills
-
-#### Knowledge Graph
-
-- **btw** — Appends a timestamped knowledge snapshot from `graphify-out/graph.json` to `KNOWLEDGE_SUMMARY.md`. Append-only evidence log.
-- **graphify-monitor** — Installs graphify, builds an initial knowledge graph, then runs auto-update every 120 seconds in a background subagent. Supports `stop` argument.
 
 #### Tools
 

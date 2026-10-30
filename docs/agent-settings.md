@@ -17,7 +17,6 @@ The `.agent-settings` directory serves as a shared repository for:
 .agent-settings/
 ├── skills/                                # Skills for AI agents
 │   ├── import-skills.sh                   # Skill management script
-│   ├── knowledge-graph/                   # Knowledge graph skills
 │   ├── playground/                        # Experimental skills
 │   ├── tools/                             # Atomic, single-purpose skills
 │   └── workflows/                         # Multi-step, orchestrated pipeline skills

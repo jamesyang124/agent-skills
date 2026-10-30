@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `generate-pr-notes/references/pull_request_template.md` — one shared PR template with API impact (compatibility class per route), compatibility and constitution check, deploy notes, spec impact and tests
 - `ado-pr-code-review/references/` — `branch-map.md` (PR target per repo) and `review-profile.md` (reviewers, lint and test commands per repo), with example rows
 
+### Removed
+- `graphify-monitor`, `btw` (the whole `knowledge-graph/` category) and the external `graphify` skill, with their README and docs entries, the `skills-lock.json` entry, the `graphify-out/` and `KNOWLEDGE_SUMMARY.md` ignore rules and the `GOAL_STATE.md` verification record. `btw` only read graphify's output, so it could not work without it.
+
 ### Changed
 - `own-skills/` removed: `agent-playtest` and `ado-pr-teams-notify` moved to `.agent-settings/skills/tools/` and rewritten to the tools conventions (short description, `argument-hint`, When to Use and Arguments sections; the non-standard `trigger:` key is gone). `import-skills.sh` only discovers skills under `.agent-settings/skills/<category>/`, so both now install like every other skill (project, `--global`, `--dedup`). The 2026-10-03 entry below keeps the old path as history.
 - `import-skills.sh` — `--global` installs into `~/.<agent>/skills`; every install checks for skills installed both globally and in the project and cleans them in one step (`--dedup`, `--yes`, `--pick`, `--project`); `--no-color` is accepted
