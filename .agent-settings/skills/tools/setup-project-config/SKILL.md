@@ -33,7 +33,7 @@ No external skills or MCPs required. Only needs read access to the project codeb
 Generates `.agent-settings/project-config.md` — the shared per-project config file. Consumers and the
 sections they read are listed authoritatively in
 `references/config-output-format.md` (currently `sync-api-spec`, `ado-open-pr`, `tech-plan-to-wiki`,
-`sdd-qa-to-ticket`, `install-external-skills`).
+`sdd-qa-to-ticket`).
 
 **Detect mode automatically** based on whether `.agent-settings/project-config.md` already exists:
 - **No file** → Mode A: Initial Setup

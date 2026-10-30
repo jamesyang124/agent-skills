@@ -16,13 +16,7 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ```
 .agent-settings/skills/
 ├── import-skills.sh (skill management script)
-├── playground/                     # Experimental skills
-│   ├── git-rebase-conflict-resolver/
-│   │   └── SKILL.md
-│   ├── git-stale-branch-cleanup/
-│   │   └── SKILL.md
-│   └── install-external-skills/
-│       └── SKILL.md
+├── playground/                     # Experimental skills (empty for now)
 ├── tools/                          # Atomic, single-purpose skills
 │   ├── ado-open-pr/
 │   │   └── SKILL.md
@@ -267,11 +261,6 @@ Current skills in `.agent-settings/skills/`:
 - **sdd-qa-to-ticket** - Derives BDD QA scenarios from SDD artifacts and creates QA sub-tickets in Jira
 - **sdd-qa-to-jira** - Legacy spec-kit–specific variant of `sdd-qa-to-ticket`
 - **goal-checkpoint** - Goal tracking with automatic checkpoint/resume at ~90% context usage
-
-**Playground** (experimental):
-- **git-rebase-conflict-resolver** - Dry-run / Progressive / Auto modes for resolving git rebase conflicts
-- **git-stale-branch-cleanup** - Scans and optionally deletes stale remote branches with intent analysis
-- **install-external-skills** - Interactive installer for external skill registries
 
 ---
 

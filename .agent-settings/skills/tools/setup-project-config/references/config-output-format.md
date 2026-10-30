@@ -127,7 +127,6 @@ API Spec: {METHOD} {path}
   | `ado-open-pr` | SDD Tool |
   | `tech-plan-to-wiki` | SDD Tool |
   | `sdd-qa-to-ticket` | SDD Tool |
-  | `install-external-skills` | whole file (derives skill recommendations) |
 
   > Keep this table in sync with reality: it is the authoritative consumer list. When a skill starts or stops
   > reading `project-config.md`, update this row. Verify with:

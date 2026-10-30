@@ -17,13 +17,7 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 .agent-settings/skills/
 ├── README.md (this file)
 ├── import-skills.sh (skill management script)
-├── playground/
-│   ├── git-rebase-conflict-resolver/
-│   │   └── SKILL.md
-│   ├── git-stale-branch-cleanup/
-│   │   └── SKILL.md
-│   └── install-external-skills/
-│       └── SKILL.md
+├── playground/ (experimental skills, empty for now)
 ├── tools/
 │   ├── ado-open-pr/
 │   │   └── SKILL.md
@@ -193,12 +187,6 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 - **sdd-qa-to-ticket** — Reads local SDD artifacts, derives BDD QA scenarios, and creates QA sub-tickets under the Jira root ticket.
 - **sdd-qa-to-jira** — Legacy spec-kit–specific variant of `sdd-qa-to-ticket`.
 - **goal-checkpoint** — Goal tracking with automatic checkpoint/resume. Commits state and writes `GOAL_STATE.md` near context limit.
-
-#### Playground (Experimental)
-
-- **git-rebase-conflict-resolver** — Dry-run / Progressive / Auto modes for resolving git rebase conflicts. All modes generate a report.
-- **git-stale-branch-cleanup** — Scans and optionally deletes stale remote branches with intent analysis and Jira detection.
-- **install-external-skills** — Interactive installer for external skill registries (supabase, vercel-labs, terraform).
 
 ### Adding New Skills
 
