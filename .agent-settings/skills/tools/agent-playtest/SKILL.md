@@ -1,6 +1,7 @@
 ---
 name: agent-playtest
-description: "Run evidence-grounded simulated playtests of interactive web content (browser games, 3D worlds, galleries, interactive scenes) with parallel browser subagents. Each subagent plays closed-loop (look, act, verify), saves screenshots, logs every input, and writes a structured description backed by those screenshots. The orchestrator then audits the evidence, validates outputs, samples a human spot-check, and reports reliability. Browser-agnostic: ego-browser, Playwright (MCP or library), Chrome DevTools MCP, or any agent-friendly browser that can navigate, screenshot, and send mouse/keyboard input. Includes a human-demo mode in which a person plays while their local mouse/keyboard is recorded, and the agent compares that with its own attempt. Use for content audits, building synthetic description data, checking catalog labels against what is actually observed, or search/recommendation eval data. Trigger: /agent-playtest"
+description: Run evidence-grounded simulated playtests of interactive web content (browser games, 3D worlds, galleries) with parallel browser subagents that play closed-loop, save screenshots and log every input, then audit, validate and spot-check the descriptions they write. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); includes a human-demo recording mode. Use for content audits, synthetic description data, checking catalog labels against what is observed, or search and recommendation eval data.
+argument-hint: "[campaign-id or items to playtest] [site profile] [browser adapter]"
 ---
 
 # Agent playtest: closed-loop play → screenshot evidence → described, audited data
@@ -9,6 +10,18 @@ Many catalog entries (rooms, games, worlds, apps) have publisher text that is wr
 **observed** description: an agent actually opens each item, plays it, records what it saw, and writes a description in which
 every claim cites a screenshot. The output stays separate from the publisher's **declared** data and never overwrites it.
 Disagreements are recorded and handed to whoever owns the catalog.
+
+## When to Use
+
+- A catalog of interactive web items (rooms, games, worlds, apps) has publisher text that is wrong, empty or templated and you want **observed** descriptions backed by screenshots.
+- You need synthetic description data, or evaluation data for search or recommendation.
+- You want to check declared labels (kind, tags) against what an agent actually saw.
+
+Not for load or security testing, and not for gated content: login, paywall, age and device gates are excluded by design (see Hard boundaries).
+
+## Arguments
+
+None are required. Invoke `/agent-playtest` with the items or campaign; the skill asks for whatever is missing: browser adapter, site profile (`profiles/<site>.md`), item list and number of players (default at most 4 in parallel). All paths below are relative to this skill's folder.
 
 Every item goes through this pipeline:
 

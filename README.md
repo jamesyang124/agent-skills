@@ -117,7 +117,7 @@ This project provides a collection of specialized skills to enhance your AI agen
     [View Details](.agent-settings/skills/tools/ado-open-pr/SKILL.md)
 
 *   **ado-pr-teams-notify** — Azure DevOps pull-request notifications in a Microsoft Teams channel through one Power Automate flow: one color-coded Adaptive Card per PR (state chip, reviewers, Jira link, Summary, stacked Activity, latest comment) and a one-line thread reply per event so active PRs float to the bottom; draft PRs skipped; many repos/branches into one flow. Covers the Teams Workflows template, export/edit/import of the flow package (generator script), Service Hook subscriptions via REST, end-to-end state tests, backfilling an open PR, adding repos or switching channels, and the gotchas. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); REST steps also run with a PAT only.
-    [View Details](own-skills/ado-pr-teams-notify/SKILL.md)
+    [View Details](.agent-settings/skills/tools/ado-pr-teams-notify/SKILL.md)
 
 ### Spec-Driven Development (SDD) Workflow
 
@@ -181,7 +181,7 @@ These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow G
     [View Details](.agent-settings/skills/tools/explain-diff-html/SKILL.md)
 
 *   **agent-playtest** — Evidence-grounded simulated playtests of interactive web content (games, 3D worlds, galleries) with parallel browser subagents: closed-loop play, screenshot evidence, structured observed descriptions kept separate from declared metadata, screenshot audit, validation, human spot-check and reliability report. Browser-agnostic (ego-browser, Playwright, MCP browsers); includes a human-demo mode that records local mouse/keyboard to compare with the agent's attempt.
-    [View Details](own-skills/agent-playtest/SKILL.md)
+    [View Details](.agent-settings/skills/tools/agent-playtest/SKILL.md)
 
 ### Playground (Experimental)
 
@@ -232,6 +232,8 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 │   │   │   ├── ado-open-pr/
 │   │   │   ├── ado-pr-code-review/
 │   │   │   ├── ado-pr-resolve-comments/
+│   │   │   ├── ado-pr-teams-notify/
+│   │   │   ├── agent-playtest/
 │   │   │   ├── api-spec-to-confluence/
 │   │   │   ├── explain-diff-html/
 │   │   │   ├── generate-pr-notes/

@@ -35,6 +35,17 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   │   └── SKILL.md
 │   ├── ado-pr-resolve-comments/
 │   │   └── SKILL.md
+│   ├── ado-pr-teams-notify/
+│   │   ├── SKILL.md
+│   │   ├── references/
+│   │   └── scripts/
+│   ├── agent-playtest/
+│   │   ├── SKILL.md
+│   │   ├── assets/
+│   │   ├── profiles/
+│   │   ├── references/
+│   │   ├── scripts/
+│   │   └── templates/
 │   ├── api-spec-to-confluence/
 │   │   └── SKILL.md
 │   ├── explain-diff-html/
@@ -252,6 +263,8 @@ Current skills in `.agent-settings/skills/`:
 - **ado-open-pr** - Opens an Azure DevOps PR for the current branch: pushes, generates the description, and adds reviewers. Requires Azure DevOps MCP.
 - **api-spec-to-confluence** - Publishes a local API spec file to Confluence (local-only variant of `sync-api-spec`'s publish step).
 - **explain-diff-html** - Renders the current diff (or a PR's diff) as a standalone, browsable HTML explainer.
+- **ado-pr-teams-notify** - Azure DevOps PR notifications in a Teams channel through one Power Automate flow: one updating card per PR plus a thread reply per event. Includes the flow generator, Service Hook scripts, state tests and gotchas.
+- **agent-playtest** - Evidence-grounded simulated playtests of interactive web content with parallel browser subagents: closed-loop play, screenshot evidence, audit, validation, human spot-check and a human-demo mode.
 - **sync-api-spec** - Scans all API routes and maintains `docs/agents/api-spec.md`. Incremental: only re-scans changed routes. Optional Confluence publish.
 - **install-sentry-mcp** - Install and configure the Sentry MCP server for error-monitoring lookups.
 - **spec-recalibrate** - Re-syncs local spec-kit/openspec docs against the committed diff when they've drifted from the code.

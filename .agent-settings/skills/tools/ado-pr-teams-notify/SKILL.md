@@ -1,7 +1,7 @@
 ---
 name: ado-pr-teams-notify
-description: "Set up and operate Azure DevOps pull-request notifications in a Microsoft Teams channel via one Power Automate flow: one color-coded Adaptive Card per PR (state chip, reviewers, Jira link, Summary, stacked Activity, latest comment), a one-line thread reply per event so active PRs float to the bottom, draft PRs skipped, many repos and branches into one flow. Covers the whole path: Teams channel Workflows template, export/edit/import of the flow package, Azure DevOps Service Hook subscriptions (REST), end-to-end state tests, backfilling an already-open PR, adding repos, switching channels, and the Teams/Power Automate gotchas. Browser-agnostic: ego-browser, Playwright, Chrome DevTools MCP, or any agent-friendly browser; REST parts also run browserless with a PAT. Trigger: /ado-pr-teams-notify"
-trigger: /ado-pr-teams-notify
+description: Set up and operate Azure DevOps pull-request notifications in a Microsoft Teams channel through one Power Automate flow - one updating Adaptive Card per PR plus a one-line thread reply per event, drafts skipped, many repos and branches into one flow. Covers the Teams Workflows template, flow package export/edit/import, Service Hook subscriptions (REST), end-to-end state tests, backfilling an open PR, adding repos, switching channels and the known gotchas. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); the REST steps also run with a PAT only. Use when asked to send Azure DevOps PR activity to Teams.
+argument-hint: "[setup | test | backfill-pr <N> | add-repo <repo=branch> | switch-channel]"
 ---
 
 # ADO pull requests → one card per PR in a Teams channel
@@ -17,6 +17,17 @@ Azure DevOps Service Hooks (4 per repo) ──HTTP POST──▶ Power Automate 
 Result in Teams: **one main card per PR** (updated in place) + **one short reply per event** (bumps the thread to the bottom
 of the channel and notifies). The card shows what a reader needs without opening the thread. Layout and exact copy:
 `references/card-and-copy-spec.md`. Architecture and the reasoning behind each choice: `references/architecture.md`.
+
+## When to Use
+
+- Set up PR notifications from Azure DevOps to a Teams channel (one card per PR, one reply per event).
+- Operate an existing setup: backfill an open PR, add a repo, remove old hooks, change card layout, move to another channel, or find out why someone cannot see the cards.
+
+Not for GitHub or GitLab PRs, or for Teams notifications from other sources.
+
+## Arguments
+
+Invoke `/ado-pr-teams-notify` with the task (`setup`, `test`, `backfill-pr <N>`, `add-repo <repo=branch>`, `switch-channel`) and the inputs listed below; the skill asks for what is missing. All paths below are relative to this skill's folder.
 
 ## What you need before starting (ask the user for anything missing)
 

@@ -9,12 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
-- `own-skills/agent-playtest` — closed-loop agent playtests of web content → audited, evidence-cited observed descriptions; browser adapters, site profiles (VIVERSE example), human-demo recorder, validation / mismatch / spot-check scripts with a self-test
+- `agent-playtest` — closed-loop agent playtests of web content → audited, evidence-cited observed descriptions; browser adapters, site profiles (VIVERSE example), human-demo recorder, validation / mismatch / spot-check scripts with a self-test
 - `ado-open-pr` — pre-PR review (lint + lizard measurements, six clean-context reviewers, fixes with the user, review confidence with a complexity score), repo PR templates, existing-PR and preflight guards, optional Confluence release-notes entry
 - `generate-pr-notes/references/pull_request_template.md` — one shared PR template with API impact (compatibility class per route), compatibility and constitution check, deploy notes, spec impact and tests
 - `ado-pr-code-review/references/` — `branch-map.md` (PR target per repo) and `review-profile.md` (reviewers, lint and test commands per repo), with example rows
 
 ### Changed
+- `own-skills/` removed: `agent-playtest` and `ado-pr-teams-notify` moved to `.agent-settings/skills/tools/` and rewritten to the tools conventions (short description, `argument-hint`, When to Use and Arguments sections; the non-standard `trigger:` key is gone). `import-skills.sh` only discovers skills under `.agent-settings/skills/<category>/`, so both now install like every other skill (project, `--global`, `--dedup`). The 2026-10-03 entry below keeps the old path as history.
 - `import-skills.sh` — `--global` installs into `~/.<agent>/skills`; every install checks for skills installed both globally and in the project and cleans them in one step (`--dedup`, `--yes`, `--pick`, `--project`); `--no-color` is accepted
 - `ado-open-pr` — uses the consolidated Azure DevOps MCP tools; target branch comes from the branch map, then the ADO default branch (no hard-coded `develop`)
 - `ado-pr-code-review` — adds commit provenance, runtime correctness and resource leaks, and standards / spec passes
