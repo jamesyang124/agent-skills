@@ -253,6 +253,12 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 
 Skills are organized by category (`playground/`, `tools/`, `workflows/`) in the source, but the installation output is always flat — agent-specific directories (e.g., `.claude/skills/`) contain symlinks directly by skill name.
 
+## Planned
+
+Not in the repo for now, but wanted when a custom planning workflow is built:
+
+- **`grill-me`** and **`grill-with-docs`** from [`mattpocock/skills`](https://github.com/mattpocock/skills). `grill-me` interviews you about a plan, one question at a time, until you reach shared understanding. `grill-with-docs` does the same and keeps `CONTEXT.md` and `docs/adr/` up to date. Both are standalone. They were vendored under `external/` and removed together with `skills-lock.json`; restore with `npx skills add mattpocock/skills --skill grill-me` (and `--skill grill-with-docs`), or fork them into `.agent-settings/skills/workflows/` to adapt them.
+
 ## Resources
 
 - [Claude Code Skills Documentation](https://code.claude.com/docs/en/skills)
