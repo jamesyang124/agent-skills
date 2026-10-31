@@ -43,7 +43,7 @@ Skills that need per-repo values (Jira project key, Confluence space, ADO org, S
 
 It writes one file per topic (`sdd.md`, `code-structure.md`, `atlassian.md`, `azure-devops.md`, …) and an `## Agent skills` pointer in your `CLAUDE.md` or `AGENTS.md`. Credentials never go there; they stay in `~/.env.mcp-<name>` or OAuth.
 
-## All 23 Skills
+## All 22 Skills
 
 ### Setup
 
@@ -62,7 +62,6 @@ It writes one file per topic (`sdd.md`, `code-structure.md`, `atlassian.md`, `az
 | [git-commit-conventional-strict](skills/git-commit-conventional-strict/SKILL.md) | Conventional Commits with gitmoji, tuned for `git-cliff`; splits spec and code changes |
 | [generate-pr-notes](skills/generate-pr-notes/SKILL.md) | Writes a pull request description from the branch diff |
 | [explain-diff-html](skills/explain-diff-html/SKILL.md) | Explains a diff, branch or PR as a rich HTML page |
-| [symlink-worktree-ignored-files](skills/symlink-worktree-ignored-files/SKILL.md) | Symlinks git-ignored files (`.env`, `node_modules`) into another worktree |
 
 ### Azure DevOps
 

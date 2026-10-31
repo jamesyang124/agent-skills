@@ -9,7 +9,7 @@ Visual reference showing exactly which skills and MCP tools to use at each SDD p
 ```mermaid
 graph TD
     P1["1. CONSTITUTION
-    skill: symlink-worktree-ignored-files
+    skill: setup-project-config
     MCP: Atlassian (Confluence)"]
 
     P0["0. PRE-SPECIFY (optional)
@@ -79,8 +79,8 @@ graph TD
 
 ### Constitution Phase
 ```bash
-# Setup development environment
-/symlink-worktree-ignored-files
+# Per-repo skill settings (docs/agents/*.md)
+/setup-project-config
 
 # Store standards
 # Use: MCP Atlassian to create Confluence pages
@@ -165,7 +165,7 @@ spec-kit specify
 
 | SDD Phase | Primary Tool | Purpose | Output |
 |-----------|-------------|---------|---------|
-| **Constitution** | `symlink-worktree-ignored-files` | Environment setup | Dev environment ready |
+| **Constitution** | `setup-project-config` | Environment setup | Dev environment ready |
 | **Constitution** | Atlassian MCP | Document standards | Confluence pages |
 | **Pre-Specify (PO handoff)** | `prd-to-sdd-spec` | Fetch PO's Confluence PRD → local `prd-source.md` for spec-kit | `prd-source.md` (local) |
 | **Specify** | Atlassian MCP + claude-mem | Write spec & remember | Confluence pages + Context |
@@ -186,8 +186,8 @@ spec-kit specify
 ```
 Need to... ?
 │
-├─> Set up development environment?
-│   └─> Use: /symlink-worktree-ignored-files
+├─> Set up this repo for the skills (docs/agents/*.md)?
+│   └─> Use: /setup-project-config
 │
 ├─> Import a PO's Confluence PRD as a local spec-kit source file?
 │   └─> Use: /prd-to-sdd-spec
@@ -342,7 +342,7 @@ Use these to track your progress through the SDD cycle:
 
 ```
 □ Constitution: Standards documented
-  └─> Tools ready: symlink-worktree-ignored-files, Atlassian MCP
+  └─> Tools ready: setup-project-config, Atlassian MCP
 
 □ Specify: Requirements defined
   └─> Specs in Confluence: tech-plan-to-wiki, Atlassian MCP
@@ -371,7 +371,7 @@ Use these to track your progress through the SDD cycle:
 ## 📖 Quick Reference Card
 
 **1. CONSTITUTION**
-- `/symlink-worktree-ignored-files`
+- `/setup-project-config`
 - MCP: Atlassian (Confluence)
 
 **PRE-SPECIFY (PO handoff — optional)**

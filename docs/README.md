@@ -110,7 +110,7 @@ All three guides cover these nine phases of Spec-Driven Development (spec-kit na
 ### 1. Constitution
 Define project standards, architecture, and conventions.
 
-**Skills:** `symlink-worktree-ignored-files`
+**Skills:** `setup-project-config`
 **MCP:** Atlassian (Confluence)
 
 ---
@@ -194,7 +194,7 @@ New requirements or bugs loop back to the appropriate phase (Specify, Plan, or T
 
 | Skill | Purpose | Used In Phases |
 |-------|---------|---------------|
-| `symlink-worktree-ignored-files` | Setup dev environment with worktrees | Constitution |
+| `setup-project-config` | Write per-repo skill settings (`docs/agents/*.md`) | Constitution |
 | `prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` | Pre-Specify |
 | `tech-plan-to-wiki` | Publish local spec-kit files to Confluence design review page | Review Loop, Plan Finalized |
 | `tech-plan-to-ticket` | Create Jira root ticket + subtasks from approved Confluence page | Tasks |

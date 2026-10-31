@@ -28,7 +28,7 @@ graph LR
 ```mermaid
 graph TD
     P1["Phase 1: Constitution
-    skill: symlink-worktree-ignored-files"]
+    skill: setup-project-config"]
 
     P0["Phase 0 (Pre-Specify, optional)
     skill: prd-to-sdd-spec
@@ -86,7 +86,7 @@ graph TD
 
 | Phase | Command | Purpose |
 |-------|---------|---------|
-| **Constitution** | `/symlink-worktree-ignored-files` | Set up dev environment with worktrees |
+| **Constitution** | `/setup-project-config` | Write per-repo skill settings (`docs/agents/*.md`) |
 | **Pre-Specify (optional)** | `/prd-to-sdd-spec` | Fetch Confluence PRD → local `prd-source.md` |
 | **Specify** | `spec-kit specify` | AI-assisted discussion → `spec.md` |
 | **Plan** | `spec-kit plan` | AI technical planning → `plan.md` + `requirements.md` |
@@ -140,10 +140,10 @@ graph LR
 
 ### Phase 1: Constitution
 
-Review architecture standards in Confluence. Set up dev environment.
+Review architecture standards in Confluence. Write per-repo skill settings.
 
 ```bash
-/symlink-worktree-ignored-files
+/setup-project-config
 ```
 
 ### Phase 0 (Pre-Specify, optional)
@@ -297,40 +297,37 @@ npx skills add jamesyang124/agent-skills -g
 /install-atlassian-mcp
 /setup-project-config
 
-# 3. Set up dev environment
-/symlink-worktree-ignored-files
-
-# 4. (Optional) Import PRD from Confluence
+# 3. (Optional) Import PRD from Confluence
 /prd-to-sdd-spec
 
-# 5. Specify
+# 4. Specify
 spec-kit specify
 
-# 6. Plan
+# 5. Plan
 spec-kit plan
 
-# 7. Publish for review
+# 6. Publish for review
 /tech-plan-to-wiki
 
-# 8. After team feedback — re-publish with page ID
+# 7. After team feedback — re-publish with page ID
 /tech-plan-to-wiki [page-id]
 
-# 9. Finalize plan
+# 8. Finalize plan
 # /tech-plan-to-wiki [page-id]  (ask: "Update status to Approved (v1)")
 
-# 10. Create Jira tickets
+# 9. Create Jira tickets
 /tech-plan-to-ticket [page-id]
 
-# 11. Implement & commit
+# 10. Implement & commit
 /git-commit-conventional-strict
 
-# 12. Document API
+# 11. Document API
 /sync-api-spec
 
-# 13. Create PR (phase exit condition)
+# 12. Create PR (phase exit condition)
 /generate-pr-notes
 
-# 14. QA hand-off (after PR is open — RD explicit decision)
+# 13. QA hand-off (after PR is open — RD explicit decision)
 /sdd-qa-to-ticket [root-ticket-key]
 ```
 

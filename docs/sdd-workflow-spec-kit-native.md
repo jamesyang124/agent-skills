@@ -216,7 +216,7 @@ sequenceDiagram
 
 **Unchanged from the standard SDD workflow.** Establish project standards, architecture guidelines, and API conventions in Confluence before any feature work begins.
 
-**Skills:** `symlink-worktree-ignored-files`
+**Skills:** `setup-project-config`
 **MCP:** Atlassian (Confluence)
 
 ---
@@ -403,7 +403,7 @@ Parent: Root ticket
 
 | SDD Phase | spec-kit CLI Action | Agent Skill | MCP Tool | Output |
 |-----------|-------------------|-------------|----------|--------|
-| **Constitution** | — | `symlink-worktree-ignored-files` | Atlassian | Dev environment ready |
+| **Constitution** | — | `setup-project-config` | Atlassian | Repo settings in `docs/agents/` |
 | **Specify** | `spec-kit specify` | — | — | `spec.md` (local) |
 | **Plan** | `spec-kit plan` | — | — | `plan.md` + `requirements.md` (local) |
 | **Plan → Review** | — | `tech-plan-to-wiki` | Atlassian | Design review page in Confluence |
@@ -422,7 +422,7 @@ Parent: Root ticket
 **Scenario:** Notification Service Refactor
 
 ### Step 1: Constitution
-Review architecture standards in Confluence. Set up dev environment with `/symlink-worktree-ignored-files`.
+Review architecture standards in Confluence. Write per-repo skill settings with `/setup-project-config`.
 
 ### Step 2: Specify
 ```bash
