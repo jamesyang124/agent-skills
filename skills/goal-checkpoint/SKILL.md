@@ -1,6 +1,6 @@
 ---
 name: goal-checkpoint
-description: General-purpose goal tracking with automatic checkpoint/resume support. Commits current state and writes a GOAL_STATE.md snapshot when context usage approaches 90%, ensuring the next session can fully restore and continue the work.
+description: General-purpose goal tracking with automatic checkpoint/resume support. Commits current state and writes a GOAL_STATE.md snapshot when context usage approaches 90%, ensuring the next session can fully restore and continue the work. Use when a long multi-session task must survive context limits.
 ---
 
 # Goal Checkpoint

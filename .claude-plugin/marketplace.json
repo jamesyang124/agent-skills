@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "jamesyang124-agent-skills",
+  "description": "Agent skills for Azure DevOps PRs, spec-driven development, MCP setup and git workflows.",
+  "owner": {
+    "name": "James Yang",
+    "url": "https://github.com/jamesyang124"
+  },
+  "plugins": [
+    {
+      "name": "agent-skills",
+      "version": "0.1.0",
+      "source": "./",
+      "description": "Agent skills for Azure DevOps PRs, spec-driven development, MCP setup and git workflows.",
+      "license": "MIT"
+    }
+  ]
+}

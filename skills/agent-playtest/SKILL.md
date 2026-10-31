@@ -1,6 +1,6 @@
 ---
 name: agent-playtest
-description: Run evidence-grounded simulated playtests of interactive web content (browser games, 3D worlds, galleries) with parallel browser subagents that play closed-loop, save screenshots and log every input, then audit, validate and spot-check the descriptions they write. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); includes a human-demo recording mode. Use for content audits, synthetic description data, checking catalog labels against what is observed, or search and recommendation eval data.
+description: Run evidence-grounded simulated playtests of interactive web content (browser games, 3D worlds, galleries) with parallel browser subagents that play closed-loop, save screenshots and log every input, then audit, validate and spot-check the descriptions they write. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); includes a human-demo recording mode. Use when running content audits, synthetic description data, checking catalog labels against what is observed, or search and recommendation eval data.
 argument-hint: "[campaign-id or items to playtest] [site profile] [browser adapter]"
 ---
 

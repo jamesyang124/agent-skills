@@ -1,6 +1,6 @@
 ---
 name: sync-api-spec
-description: "Scans all API routes in the project and maintains docs/agents/api-spec.md — a machine-readable API reference for coding agents, frontend, and product to understand what APIs do. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish step after local file is written. Use at the Implement & PR phase of the SDD workflow or any time you want to keep the API spec file current."
+description: "Scans all API routes in the project and maintains docs/agents/api-spec.md — a machine-readable API reference for coding agents, frontend, and product to understand what APIs do. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish step after local file is written. Use when at the Implement & PR phase of the SDD workflow, or whenever you want to keep the API spec file current."
 argument-hint: "[route-path...]"
 allowed-tools: Read, Glob, Grep
 ---

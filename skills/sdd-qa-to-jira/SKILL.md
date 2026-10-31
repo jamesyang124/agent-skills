@@ -1,6 +1,6 @@
 ---
 name: sdd-qa-to-jira
-description: Reads local spec-kit artifacts and derives BDD QA scenarios, then creates QA sub-tickets under the existing root Jira ticket from Phase 7. Use this as the explicit QA hand-off after a PR is created in the spec-kit native SDD workflow.
+description: Reads local spec-kit artifacts and derives BDD QA scenarios, then creates QA sub-tickets under the existing root Jira ticket from Phase 7. Use when handing off QA after a PR is created in the spec-kit native SDD workflow.
 ---
 
 # SDD QA to Jira

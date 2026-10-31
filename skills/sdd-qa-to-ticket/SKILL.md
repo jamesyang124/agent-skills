@@ -1,6 +1,6 @@
 ---
 name: sdd-qa-to-ticket
-description: Reads local SDD artifacts (from spec-kit, openspec, or similar tools) and derives BDD QA scenarios, then creates QA sub-tickets under the existing root Jira ticket from Phase 7. Use this as the explicit QA hand-off after a PR is created in the SDD workflow.
+description: Reads local SDD artifacts (from spec-kit, openspec, or similar tools) and derives BDD QA scenarios, then creates QA sub-tickets under the existing root Jira ticket from Phase 7. Use when handing off QA after a PR is created in the SDD workflow.
 argument-hint: "[TICKET-123] [feature-dir]"
 ---
 

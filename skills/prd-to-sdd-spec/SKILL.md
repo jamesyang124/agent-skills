@@ -1,6 +1,6 @@
 ---
 name: prd-to-sdd-spec
-description: Fetches an external PRD from Confluence or from a Jira ticket that links to a PRD wiki, and transforms it into a structured local source file that the RD can reference when running SDD tools like spec-kit specify or openspec. Bridges the PO handoff into the SDD workflow.
+description: Fetches an external PRD from Confluence or from a Jira ticket that links to a PRD wiki, and transforms it into a structured local source file that the RD can reference when running SDD tools like spec-kit specify or openspec. Use when a PO hands off a PRD and you need a local source file before running spec-kit specify or openspec.
 argument-hint: "<confluence-page-id|search-hint|TICKET-123>"
 ---
 

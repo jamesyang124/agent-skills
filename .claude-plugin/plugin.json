@@ -1,0 +1,12 @@
+{
+  "name": "agent-skills",
+  "version": "0.1.0",
+  "description": "Agent skills for Azure DevOps PRs, spec-driven development (spec-kit/openspec to Jira and Confluence), MCP setup and git workflows.",
+  "author": {
+    "name": "James Yang"
+  },
+  "homepage": "https://github.com/jamesyang124/agent-skills",
+  "repository": "https://github.com/jamesyang124/agent-skills",
+  "license": "MIT",
+  "skills": "./skills"
+}

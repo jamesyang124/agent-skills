@@ -1,6 +1,6 @@
 ---
 name: tech-plan-to-wiki
-description: Reads local spec-kit artifacts (spec.md, plan.md, requirements.md) and publishes a collaborative design review page to Confluence. Use this at the Plan→Review transition in the spec-kit native SDD workflow to share your technical plan with the team.
+description: Reads local spec-kit artifacts (spec.md, plan.md, requirements.md) and publishes a collaborative design review page to Confluence. Use when at the Plan→Review transition in the spec-kit native SDD workflow to share your technical plan with the team.
 argument-hint: "[feature-dir] [confluence-page-id]"
 ---
 
