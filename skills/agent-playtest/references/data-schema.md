@@ -5,7 +5,7 @@
 ```
 <workspace>/
   campaigns.json                 one entry per campaign (written before the run)
-  <items_dir>/<item_id>/         raw per-item data, written while playing (items_dir defaults to "items"; VIVERSE uses "rooms")
+  <items_dir>/<item_id>/         raw per-item data, written while playing (items_dir defaults to "items"; a profile may rename it, e.g. "rooms")
     playtest.json                {"item_id", "title", "url", "attempts": [...]}; append only
     description.json             observed description + evidence + confidence
     review.json                  optional sourced review notes for local HTML reports
@@ -27,7 +27,7 @@ Keep the two separate in naming too: if you ever load observed fields into a sha
 ```json
 {"id": "2026-10-01_r9", "date": "2026-10-01", "method": "closed_loop", "model": "<player model>",
  "adapter": "ego-browser | playwright | playwright-mcp | ...", "adapter_selftest": "pass 4/4",
- "profile": "profiles/viverse.md", "scope": "<which items and why>", "players": 4,
+ "profile": "docs/agents/playtest/<site>.md", "scope": "<which items and why>", "players": 4,
  "rules": "<campaign-specific additions>", "verified_play_seconds": 30}
 ```
 

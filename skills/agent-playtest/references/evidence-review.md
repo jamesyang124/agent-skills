@@ -24,11 +24,11 @@ Capture the actual content bounds, preserving its HUD, subtitles and controls. R
 
 Ad label, countdown and Skip Ad are clues, not a location-only classifier. Wait or use a positively identified Skip control; never click the creative. Do not save ads as delivered content evidence, count them as play, or crop off their label to disguise them. Inspection for navigation is allowed. A blocker is a valid result.
 
-At most one useful loader frame per attempt, optional and kept as diagnostic evidence, never a representative content frame. Label loader/platform separately from engine; a VIVERSE logo does not prove Unity. Unknown is valid. Preserve historical originals; do not delete them during cleanup.
+At most one useful loader frame per attempt, optional and kept as diagnostic evidence, never a representative content frame. Label loader/platform separately from engine; a platform logo does not prove the engine. Unknown is valid. Preserve historical originals; do not delete them during cleanup.
 
 ## Declared, observed and derived
 
-Keep DB and creator title/description/tags/view count with source and snapshot date. Blank declared values are allowed. Language evidence must separate DB locale, title language, description language, content UI/OCR, subtitles, actually heard audio and generated text language. Ignore shell/ad language; short names can be unknown. Device categories for VIVERSE are HMD, Android, Desktop, iOS; list declared/tested/unknown separately. HMD suggests VR but is not proof of support; emulation is not physical-device testing.
+Keep DB and creator title/description/tags/view count with source and snapshot date. Blank declared values are allowed. Language evidence must separate DB locale, title language, description language, content UI/OCR, subtitles, actually heard audio and generated text language. Ignore shell/ad language; short names can be unknown. Device categories come from the site profile; list declared/tested/unknown separately. A VR headset category suggests VR but is not proof of support; emulation is not physical-device testing.
 
 Preserve summary, environment_style, observable_interactions, gameplay_objectives, mood_pacing, unconfirmed_items, semantic_description, confidence and evidence. Describe mechanics, setting, style and pacing naturally; do not bury them in input timing/loading diaries. Existing 200-word validation remains for compatibility: if evidence cannot support it, mark insufficient rather than padding. No new word-count target is an excuse to invent facts.
 
@@ -46,7 +46,7 @@ Rooms with many frames (more than about 20): view them in chunks of 8-10 and sav
 
 Record separately: structural validity, reached content, verified play, coverage gaps, factual support, declared/observed conflicts and human review status. Use audit ok/rejected/downgraded with a scoped note. Missing evidence is unknown; never manufacture an audit pass. Human reliability remains unknown until human review. For bias/unsupported-claim rates report the definition, numerator, denominator and sample; no model self-confidence as measured accuracy.
 
-For this VIVERSE workflow Astra Medium orchestrates criteria, initial per-item calibration and batch review; Sonnet 5.5 generates, or Sol in Codex-only execution. Record actual model/version/effort. Review all ambiguous cases plus seeded random ordinary cases after calibration; expand review if systematic errors appear. Escalate reasoning only for bounded unresolved questions. Do not run every item through three models. James calibrates the initial sample; cross-model agreement is not ground truth.
+Model roles, who calibrates the initial sample and review sampling rules are workflow choices: take them from the site profile. Record actual model/version/effort. Cross-model agreement is not ground truth.
 
 ## Portable batch / second Mac
 

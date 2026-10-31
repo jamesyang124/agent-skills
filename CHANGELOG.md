@@ -38,7 +38,7 @@ reliably. Removed on that basis: `graphify`/`btw`, the playground skills, `symli
 - `.claude-plugin/plugin.json` and `marketplace.json`: install every skill as one Claude Code plugin (`/plugin install agent-skills --marketplace jamesyang124/agent-skills`)
 - `docs/skill-anatomy.md`: layout, frontmatter and per-project-settings rules for every skill
 - `setup-project-config/templates/` (one seed file per topic) and `references/code-scan.md`
-- `agent-playtest` — closed-loop agent playtests of web content → audited, evidence-cited observed descriptions; browser adapters, site profiles (VIVERSE example), human-demo recorder, validation / mismatch / spot-check scripts with a self-test
+- `agent-playtest` — closed-loop agent playtests of web content → audited, evidence-cited observed descriptions; browser adapters, site profiles, human-demo recorder, validation / mismatch / spot-check scripts with a self-test
 - `ado-open-pr` — pre-PR review (lint + lizard measurements, six clean-context reviewers, fixes with the user, review confidence with a complexity score), repo PR templates, existing-PR and preflight guards, optional Confluence release-notes entry
 - `generate-pr-notes/references/pull_request_template.md` — one shared PR template with API impact (compatibility class per route), compatibility and constitution check, deploy notes, spec impact and tests
 - `ado-pr-code-review/references/` — `branch-map.md` (PR target per repo) and `review-profile.md` (reviewers, lint and test commands per repo), with example rows
@@ -53,6 +53,7 @@ reliably. Removed on that basis: `graphify`/`btw`, the playground skills, `symli
 - `graphify-monitor`, `btw` (the whole `knowledge-graph/` category) and the external `graphify` skill, with their README and docs entries, the `skills-lock.json` entry, the `graphify-out/` and `KNOWLEDGE_SUMMARY.md` ignore rules and the `GOAL_STATE.md` verification record. `btw` only read graphify's output, so it could not work without it.
 
 ### Changed
+- `agent-playtest`: site profiles live in the consuming project at `docs/agents/playtest/<site>.md` (written from `templates/site-profile.md` on first run), like the other per-project settings. The bundled example profile and site-specific wording were removed from the skill.
 - **Flat layout `skills/<name>/`** (was `skills/{tools,workflows}/<name>/`), as in addyosmani/agent-skills; the README groups skills by area instead.
 - **Per-project settings moved from `.agent-settings/project-config.md` to `docs/agents/<topic>.md`** (`sdd.md`, `code-structure.md`, `atlassian.md`, `azure-devops.md`, `sentry.md`, `playwright.md`), following mattpocock/skills: `setup-project-config` (now user-invoked only) writes them plus an `## Agent skills` pointer block in `CLAUDE.md`/`AGENTS.md`, and migrates a legacy `project-config.md`. The files are meant to be committed. `sync-api-spec` requires `code-structure.md`; the other readers (`ado-open-pr`, `spec-recalibrate`, `tech-plan-to-wiki`, `tech-plan-to-ticket`, `sdd-qa-to-ticket`) use their file when present and fall back to detection or asking.
 - Descriptions of `agent-playtest`, `goal-checkpoint`, `prd-to-sdd-spec`, `sdd-qa-to-jira`, `sdd-qa-to-ticket`, `sync-api-spec`, `tech-plan-to-wiki` state their trigger as "Use when ...".

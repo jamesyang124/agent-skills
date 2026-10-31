@@ -21,7 +21,7 @@ Not for load or security testing, and not for gated content: login, paywall, age
 
 ## Arguments
 
-None are required. Invoke `/agent-playtest` with the items or campaign; the skill asks for whatever is missing: browser adapter, site profile (`profiles/<site>.md`), item list and number of players (default at most 4 in parallel). All paths below are relative to this skill's folder.
+None are required. Invoke `/agent-playtest` with the items or campaign; the skill asks for whatever is missing: browser adapter, site profile (`docs/agents/playtest/<site>.md` in the current project), item list and number of players (default at most 4 in parallel). All paths below are relative to this skill's folder.
 
 Every item goes through this pipeline:
 
@@ -47,7 +47,8 @@ Read `references/evidence-review.md` before capture or review: content-only scre
 1. **Pick a browser adapter.** Read `references/browser-adapters.md`. It lists the capabilities a player needs and how
    ego-browser, Playwright and Chrome DevTools provide each one. Record the choice in the campaign entry.
 2. **Pick or write a site profile.** Site-specific rules (URLs, metadata source, paywalls, device gates, embed
-   origins) go in `profiles/<site>.md`, never in the generic protocol. `profiles/viverse.md` is the worked example.
+   origins) go in the project's `docs/agents/playtest/<site>.md`, never in the generic protocol. If it is missing, write it with the user
+   from `templates/site-profile.md`; the skill cannot run without one.
 3. **Set up the workspace** (layout in `references/data-schema.md`). Then add a `campaigns.json` entry and write
    `archive/<campaign>/plan.json` (`templates/plan.example.json`).
 4. **Write the brief** from `templates/agent_brief.md`, filling in the adapter, profile, paths, and any rules specific
@@ -133,7 +134,7 @@ skill improves.
 | `references/audit-and-quality.md` | audit rules, validation checks, spot-check, reliability metrics, report template |
 | `references/human-demo.md` | human-demo recording, comparison checklist, privacy rules |
 | `references/example-human-ai-review.md` | worked example of a full human + AI review (triage → demo → compare → replay), with a reuse checklist |
-| `profiles/viverse.md` | worked example of a site profile |
+| `templates/site-profile.md` | blank site profile; copy to the project's `docs/agents/playtest/<site>.md` |
 | `templates/agent_brief.md`, `templates/plan.example.json` | starting points for a campaign |
 | `scripts/` | `frame_diff.py`, `contact_sheets.py`, `validate_descriptions.py`, `observed_kind_mismatches.py`, `spot_check.py`, `review_sheet.py`, `record_input.py`, `selftest.py` |
 | `references/report-layout.md`, `assets/review/` | approved review-report layout, offline stylesheet, font and licenses |

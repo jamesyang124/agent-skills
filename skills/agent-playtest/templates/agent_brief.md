@@ -7,7 +7,7 @@ This is a real task. Capture real play evidence and write real descriptions. No 
 2. `<SKILL>/references/play-protocol.md` and `references/evidence-review.md`. Follow the capture coverage and source-separation rules.
 3. `<SKILL>/references/data-schema.md`, for the playtest.json and description.json formats. Open 1–2 existing
    `<WORKSPACE>/<ITEMS_DIR>/*/description.json` files and copy their shape.
-4. `<SKILL>/profiles/<PROFILE>.md`, for the site rules.
+4. `<PROJECT>/docs/agents/playtest/<SITE>.md`, for the site rules.
 5. `<WORKSPACE>/archive/<CAMPAIGN_ID>/plan.json`. Your list is `work.<your agent id>`, in priority order.
 
 ## Campaign rules

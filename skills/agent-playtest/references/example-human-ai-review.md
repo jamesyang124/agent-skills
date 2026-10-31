@@ -1,7 +1,7 @@
 # Worked example: human + AI review of items the agents could not play
 
 This is one real run, written up so someone else can repeat the process. Roles: **orchestrator** (the AI session),
-**reviewer** (the human), **players** (AI subagents). Site: a web game catalog (VIVERSE profile). Total reviewer time:
+**reviewer** (the human), **players** (AI subagents). Site: a web game catalog. Total reviewer time:
 about 15 minutes of play plus short narrations.
 
 ## 1. Trigger
