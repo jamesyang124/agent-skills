@@ -43,7 +43,7 @@ Skills that need per-repo values (Jira project key, Confluence space, ADO org, S
 
 It writes one file per topic (`sdd.md`, `code-structure.md`, `atlassian.md`, `azure-devops.md`, …) and an `## Agent skills` pointer in your `CLAUDE.md` or `AGENTS.md`. Credentials never go there; they stay in `~/.env.mcp-<name>` or OAuth.
 
-## All 22 Skills
+## All 19 Skills
 
 ### Setup
 
@@ -86,7 +86,6 @@ It writes one file per topic (`sdd.md`, `code-structure.md`, `atlassian.md`, `az
 | [tech-plan-to-wiki](skills/tech-plan-to-wiki/SKILL.md) | Publishes spec-kit artifacts as a Confluence design review page |
 | [tech-plan-to-ticket](skills/tech-plan-to-ticket/SKILL.md) | Creates a Jira root ticket and subtasks from a design review page |
 | [sdd-qa-to-ticket](skills/sdd-qa-to-ticket/SKILL.md) | Derives BDD QA scenarios and creates Jira QA sub-tickets |
-| [sdd-qa-to-jira](skills/sdd-qa-to-jira/SKILL.md) | Legacy spec-kit-only variant of `sdd-qa-to-ticket` |
 | [spec-recalibrate](skills/spec-recalibrate/SKILL.md) | Updates stale spec docs to match the code that implements them |
 | [sync-api-spec](skills/sync-api-spec/SKILL.md) | Maintains `docs/agents/api-spec.md` from the API routes; optional Confluence publish |
 
@@ -96,9 +95,7 @@ See the [SDD workflow guide](docs/sdd-workflow-spec-kit-native.md), [quick refer
 
 | Skill | What it does |
 |-------|--------------|
-| [goal-checkpoint](skills/goal-checkpoint/SKILL.md) | Commits and snapshots `GOAL_STATE.md` near the context limit so the next session resumes |
 | [agent-playtest](skills/agent-playtest/SKILL.md) | Evidence-grounded simulated playtests of web games and 3D worlds with browser subagents |
-| [sync-skills](skills/sync-skills/SKILL.md) | Installs missing skills from the ClawHub registry into `.agents/skills` |
 
 ## Project Structure
 

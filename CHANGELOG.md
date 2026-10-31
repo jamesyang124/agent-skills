@@ -24,8 +24,8 @@ This repo is now a plain skill catalog, installed the same way as other public s
 | Per-project settings | one git-ignored `.agent-settings/project-config.md` per developer | `docs/agents/<topic>.md` committed in each project (shared by the team) plus an `## Agent skills` pointer in `CLAUDE.md`/`AGENTS.md`, written by `/setup-project-config` | mattpocock/skills (`setup-matt-pocock-skills`) |
 
 Rule of thumb: keep a skill only if a current model or the agent itself does not already do the job
-reliably. Removed on that basis: `graphify`/`btw`, the playground skills, and
-`symlink-worktree-ignored-files` (see Removed).
+reliably. Removed on that basis: `graphify`/`btw`, the playground skills, `symlink-worktree-ignored-files`,
+`sync-skills`, `goal-checkpoint` and `sdd-qa-to-jira` (see Removed).
 
 **Migrating an existing setup**
 1. Remove old symlinked copies (`~/.claude/skills/<name>` pointing into a clone), then
@@ -44,6 +44,7 @@ reliably. Removed on that basis: `graphify`/`btw`, the playground skills, and
 - `ado-pr-code-review/references/` — `branch-map.md` (PR target per repo) and `review-profile.md` (reviewers, lint and test commands per repo), with example rows
 
 ### Removed
+- `sync-skills` (installed from a placeholder ClawHub registry; `npx skills add` / `npx skills update -g` cover it), `goal-checkpoint` (relied on the agent sensing ~90% context and committed `GOAL_STATE.md` into the repo; Claude Code's auto-compaction and plan skills cover it) and `sdd-qa-to-jira` (legacy duplicate of `sdd-qa-to-ticket`).
 - `symlink-worktree-ignored-files`: Claude Code copies git-ignored files into new worktrees from a committed `.worktreeinclude` (gitignore syntax), which copies rather than symlinks, so worktrees no longer share one `node_modules`/`.venv`. The skill also created one symlink per file inside ignored folders (`git ls-files` without `--directory`) and never initialised submodules. For repos with submodules, put "after creating a worktree, run `git submodule update --init --recursive` in it" in `CLAUDE.md`.
 - `.agent-settings/` (`setup.sh`, `skills/import-skills.sh`, `skills/README.md`, `README.md`): `npx skills add` and the Claude Code plugin replace them. Also `docs/agent-settings.md`, `docs/skills.md`, `docs/mcps.md` and the per-skill copies under `docs/tools/` and `docs/workflows/` (each skill's `SKILL.md` is its documentation).
 - `playground/` skills `git-rebase-conflict-resolver` and `git-stale-branch-cleanup` (a current model handles both on request; the files stay in git history) and `install-external-skills` (its three registries do not match the stack and the `skills` CLI already installs interactively; the registry list moved to the README's Planned section). The now-empty `playground/` category is removed too, with the opt-in checkbox menu in `import-skills.sh` (`get_playground_skills`, `prompt_playground_skills` and its call) and every doc mention. `setup-project-config` no longer lists `install-external-skills` as a project-config consumer.
