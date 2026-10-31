@@ -4,7 +4,7 @@ This directory contains shared skills that can be imported into different AI age
 
 ## Overview
 
-Skills are stored centrally in this directory (`.agent-settings/skills/`) and can be imported into specific agent configurations using symbolic links. This approach allows you to:
+Skills live in the repo's top-level `skills/` folder (`skills/<category>/<name>/SKILL.md`, the layout the `skills` CLI discovers). Install them with `npx skills add jamesyang124/agent-skills`. This folder keeps the legacy `import-skills.sh`, which symlinks them from a local checkout into agent folders; it will be removed once the `npx` install has replaced it. This approach allows you to:
 
 - Maintain a single source of truth for each skill
 - Share skills across multiple agent configurations
@@ -14,8 +14,7 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ### Directory Structure
 
 ```
-.agent-settings/skills/
-├── import-skills.sh (skill management script)
+skills/
 ├── tools/                          # Atomic, single-purpose skills
 │   ├── ado-open-pr/
 │   │   └── SKILL.md
@@ -24,17 +23,8 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   ├── ado-pr-resolve-comments/
 │   │   └── SKILL.md
 │   ├── ado-pr-teams-notify/
-│   │   ├── SKILL.md
-│   │   ├── references/
-│   │   └── scripts/
+│   │   └── SKILL.md
 │   ├── agent-playtest/
-│   │   ├── SKILL.md
-│   │   ├── assets/
-│   │   ├── profiles/
-│   │   ├── references/
-│   │   ├── scripts/
-│   │   └── templates/
-│   ├── api-spec-to-confluence/
 │   │   └── SKILL.md
 │   ├── explain-diff-html/
 │   │   └── SKILL.md
@@ -73,11 +63,6 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
     │   └── SKILL.md
     └── tech-plan-to-wiki/
         └── SKILL.md
-
-# Installation output is always flat (by skill name, not category):
-.claude/skills/
-├── generate-pr-notes -> ../../.agent-settings/skills/tools/generate-pr-notes
-└── tech-plan-to-ticket -> ../../.agent-settings/skills/workflows/tech-plan-to-ticket
 ```
 
 ### Creating Skill Symlinks
@@ -118,8 +103,8 @@ If you prefer to create symlinks manually:
 mkdir -p .claude/skills
 
 # Link a skill from .agent-settings to .claude
-ln -s ../../.agent-settings/skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
-ln -s ../../.agent-settings/skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
+ln -s ../../skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
+ln -s ../../skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
 ```
 
 ##### For GitHub Copilot
@@ -150,7 +135,7 @@ This creates:
 ```bash
 # Generic pattern for any agent folder (replace {category} with tools or workflows)
 mkdir -p .{agent-name}/skills
-ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/{skill-name}
+ln -s ../../skills/{category}/{skill-name} .{agent-name}/skills/{skill-name}
 ```
 
 ### Adding New Skills
@@ -158,9 +143,9 @@ ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/
 1. Create the skill in the appropriate category:
    ```bash
    # For a single-purpose action:
-   mkdir -p .agent-settings/skills/tools/my-new-skill
+   mkdir -p skills/tools/my-new-skill
    # For an orchestrated pipeline:
-   mkdir -p .agent-settings/skills/workflows/my-new-skill
+   mkdir -p skills/workflows/my-new-skill
    # Then create SKILL.md inside it
    ```
 
@@ -177,7 +162,7 @@ ln -s ../../.agent-settings/skills/{category}/{skill-name} .{agent-name}/skills/
 
    **Or manually create symlinks:**
    ```bash
-   ln -s ../../.agent-settings/skills/tools/my-new-skill .claude/skills/my-new-skill
+   ln -s ../../skills/tools/my-new-skill .claude/skills/my-new-skill
    ```
 
 ### Verifying Symlinks
@@ -197,12 +182,12 @@ ls -la .claude/skills
 
 # Verify a specific symlink target
 readlink .claude/skills/generate-pr-notes
-# Should output: ../../.agent-settings/skills/tools/generate-pr-notes
+# Should output: ../../skills/tools/generate-pr-notes
 ```
 
 ### Best Practices
 
-1. **Always create skills in `.agent-settings/skills/`** - This is the single source of truth
+1. **Always create skills in `skills/<category>/`** - This is the single source of truth
 2. **Use relative paths** - Use `../` to ensure symlinks work across different environments
 3. **Document your skills** - Each skill should have clear documentation in its SKILL.md file
 4. **Test after linking** - Verify that agents can access the skills after creating symlinks
@@ -217,19 +202,19 @@ readlink .claude/skills/generate-pr-notes
 rm .claude/skills/skill-name
 
 # Recreate with correct path
-ln -s ../../.agent-settings/skills/skill-name .claude/skills/skill-name
+ln -s ../../skills/tools/skill-name .claude/skills/skill-name
 ```
 
 #### Checking if a path is a symlink
 
 ```bash
 file .claude/skills/skill-name
-# Output should indicate "symbolic link to ../../.agent-settings/skills/skill-name"
+# Output should indicate "symbolic link to ../../skills/tools/skill-name"
 ```
 
 ### Available Skills
 
-Current skills in `.agent-settings/skills/`:
+Current skills in `skills/`:
 
 **Tools** (atomic, single-purpose):
 - **setup-project-config** - One-time setup that scans the codebase and generates `.agent-settings/project-config.md` — the shared config read by all Atlassian/ADO skills

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # import-skills.sh
-# Automates importing skills from .agent-settings/skills/ to agent-specific folders
+# Automates importing skills from the repo's skills/ folder to agent-specific folders (symlinks).
+# Legacy local-checkout path: the preferred install is `npx skills add jamesyang124/agent-skills`.
 
 set -e
 
@@ -21,11 +22,12 @@ if [[ "${NO_COLOR:-}" != "" ]] || [[ "$*" == *"--no-color"* ]]; then
     NC=''
 fi
 
-# Get the script directory (now in .agent-settings/skills/)
+# Get the script directory (.agent-settings/skills/); skills live in <repo>/skills/
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENT_SETTINGS_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_ROOT="${PROJECT_ROOT:-$(dirname "$AGENT_SETTINGS_DIR")}"
-SKILLS_SOURCE="$SCRIPT_DIR"
+REPO_ROOT="$(dirname "$AGENT_SETTINGS_DIR")"
+SKILLS_SOURCE="$REPO_ROOT/skills"
 GLOBAL=false
 ORIG_PWD="$PWD"
 DEDUP_PROJECT=""
@@ -230,7 +232,7 @@ list_skills() {
     local skills=($(get_available_skills))
 
     echo ""
-    echo "Available skills in .agent-settings/skills/:"
+    echo "Available skills in skills/:"
     echo ""
 
     if [ ${#skills[@]} -eq 0 ]; then
@@ -358,12 +360,13 @@ prune_agent_skills() {
     fi
 }
 
-# True if the symlink at $1 points into any agent-settings skills tree (this checkout or a repo's submodule copy).
+# True if the symlink at $1 points into an agent-skills skills tree (skills/<category>/, or the older
+# .agent-settings/skills/ layout in a repo's submodule copy).
 is_agent_settings_link() {
     [ -L "$1" ] || return 1
     local resolved
     resolved=$(cd "$(dirname "$1")" && cd "$(readlink "$1")" 2>/dev/null && pwd -P) || return 1
-    [[ "$resolved" == */.agent-settings/skills/* ]]
+    [[ "$resolved" == */skills/tools/* || "$resolved" == */skills/workflows/* || "$resolved" == */.agent-settings/skills/* ]]
 }
 
 # The project whose skills are compared with the global ones.
@@ -438,7 +441,7 @@ show_usage() {
     cat << EOF
 Usage: $0 [OPTIONS] AGENT_NAME [SKILL_NAMES...]
 
-Automates importing skills from .agent-settings/skills/ to agent-specific folders.
+Automates importing skills from the repo's skills/ folder to agent-specific folders.
 
 Arguments:
   AGENT_NAME          Target agent folder name: claude, copilot or codex

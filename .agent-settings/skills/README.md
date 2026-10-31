@@ -4,7 +4,7 @@ This directory contains shared skills that can be imported into different AI age
 
 ## Overview
 
-Skills are stored centrally in this directory (`.agent-settings/skills/`) and can be imported into specific agent configurations using symbolic links. This approach allows you to:
+Skills live in the repo's top-level `skills/` folder (`skills/<category>/<name>/SKILL.md`, the layout the `skills` CLI discovers). Install them with `npx skills add jamesyang124/agent-skills`. This folder keeps the legacy `import-skills.sh`, which symlinks them from a local checkout into agent folders; it will be removed once the `npx` install has replaced it. This approach allows you to:
 
 - Maintain a single source of truth for each skill
 - Share skills across multiple agent configurations
@@ -14,9 +14,7 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 ### Directory Structure
 
 ```
-.agent-settings/skills/
-├── README.md (this file)
-├── import-skills.sh (skill management script)
+skills/
 ├── tools/
 │   ├── ado-open-pr/
 │   │   └── SKILL.md
@@ -25,17 +23,8 @@ Skills are stored centrally in this directory (`.agent-settings/skills/`) and ca
 │   ├── ado-pr-resolve-comments/
 │   │   └── SKILL.md
 │   ├── ado-pr-teams-notify/
-│   │   ├── SKILL.md
-│   │   ├── references/
-│   │   └── scripts/
+│   │   └── SKILL.md
 │   ├── agent-playtest/
-│   │   ├── SKILL.md
-│   │   ├── assets/
-│   │   ├── profiles/
-│   │   ├── references/
-│   │   ├── scripts/
-│   │   └── templates/
-│   ├── api-spec-to-confluence/
 │   │   └── SKILL.md
 │   ├── explain-diff-html/
 │   │   └── SKILL.md
@@ -137,8 +126,8 @@ If you prefer to create symlinks manually:
 mkdir -p .claude/skills
 
 # Link a skill from .agent-settings to .claude
-ln -s ../../.agent-settings/skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
-ln -s ../../.agent-settings/skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
+ln -s ../../skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
+ln -s ../../skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
 ```
 
 ##### For GitHub Copilot
@@ -191,7 +180,7 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 
 1. Create the skill in the appropriate subdirectory:
    ```bash
-   mkdir -p .agent-settings/skills/tools/my-new-skill
+   mkdir -p skills/tools/my-new-skill
    # Create SKILL.md
    ```
 
@@ -202,7 +191,7 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 
 ### Best Practices
 
-1. **Always create skills in `.agent-settings/skills/`** — This is the single source of truth
+1. **Always create skills in `skills/<category>/`** — This is the single source of truth
 2. **Use `tools/` for standalone utilities and `workflows/` for multi-step SDD processes**
 3. **Run `setup-project-config` first** before using any Atlassian (Confluence/Jira) skills
 4. **Use relative paths** — Use `../` to ensure symlinks work across different environments

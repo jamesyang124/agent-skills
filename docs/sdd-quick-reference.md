@@ -341,5 +341,5 @@ spec-kit plan
 - [SDD Skills Map](./sdd-skills-map.md)
 - [GitHub Spec-Kit](https://github.com/github/spec-kit)
 - [Agent Skills README](../README.md)
-- [MCP Setup Guide](../.agent-settings/skills/tools/README.md)
+- [MCP Setup Guide](mcps.md)
 - [Skills Management](../.agent-settings/skills/README.md)

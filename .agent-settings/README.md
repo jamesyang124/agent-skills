@@ -18,11 +18,9 @@ The `.agent-settings` directory serves as a shared repository for:
 ├── README.md                              # This file
 ├── setup.sh                               # One-command skills + MCP setup
 │
-├── skills/                                # Skills for AI agents
+├── skills/                                # Legacy importer; skills live in ../skills/
 │   ├── README.md                          # Skills documentation
-│   ├── import-skills.sh                   # Skill management script
-│   ├── tools/                             # Atomic, single-purpose skills
-│   └── workflows/                         # Multi-step SDD pipeline skills
+│   └── import-skills.sh                   # Symlinks ../skills/<category>/<name> into agent folders
 │
 └── mcps/                                  # MCP server configuration notes
 ```
@@ -114,7 +112,7 @@ In Copilot Chat: type `@@` to browse skills or `@@skill-name` to invoke directly
 
 ### Skills
 
-1. **Central Source of Truth** - Always create/edit skills in `.agent-settings/skills/`, never directly in agent folders
+1. **Central Source of Truth** - Always create/edit skills in `skills/<category>/`, never directly in agent folders
 2. **Use Symlinks** - Import skills using symbolic links to share across agents
 3. **Document Changes** - Update `SKILL.md` files when modifying skill behavior
 4. **Test Before Commit** - Verify skills work in target agents before committing
@@ -172,7 +170,7 @@ ls -la .claude/skills
 .agent-settings/skills/import-skills.sh claude
 
 # Check skill format
-cat .agent-settings/skills/generate-pr-notes/SKILL.md
+cat skills/tools/generate-pr-notes/SKILL.md
 ```
 
 ### MCP Server Connection Issues

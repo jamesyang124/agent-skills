@@ -419,5 +419,5 @@ Use these to track your progress through the SDD cycle:
 - [Detailed Workflow Guide](./sdd-workflow-spec-kit-native.md)
 - [Quick Reference with Examples](./sdd-quick-reference.md)
 - [Agent Skills README](../README.md)
-- [MCP Setup](../.agent-settings/skills/tools/README.md)
+- [MCP Setup](mcps.md)
 - [Skills Management](../.agent-settings/skills/README.md)

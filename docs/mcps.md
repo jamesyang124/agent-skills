@@ -1,7 +1,7 @@
 # Atlassian MCP Integration Setup
 
 > **Note:** The `mcps/` folder has been replaced by the `install-atlassian-mcp` skill.
-> Use the skill instead: `.agent-settings/skills/tools/install-atlassian-mcp/`
+> Use the skill instead: `skills/tools/install-atlassian-mcp/`
 
 ~~This guide explains how to use the `install-atlassian-mcp.sh` script to integrate your agent with Jira and Confluence.~~
 

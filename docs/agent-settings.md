@@ -15,10 +15,8 @@ The `.agent-settings` directory serves as a shared repository for:
 
 ```
 .agent-settings/
-├── skills/                                # Skills for AI agents
-│   ├── import-skills.sh                   # Skill management script
-│   ├── tools/                             # Atomic, single-purpose skills
-│   └── workflows/                         # Multi-step, orchestrated pipeline skills
+├── skills/                                # Legacy importer; skills live in ../skills/
+│   └── import-skills.sh                   # Symlinks ../skills/<category>/<name> into agent folders
 │
 └── mcps/                                  # Legacy notes (see docs/mcps.md);
                                             # MCP install is now skill-based above
@@ -61,10 +59,10 @@ Install Atlassian MCP (Jira/Confluence integration):
 /install-atlassian-mcp
 
 # Or run the bundled script directly
-.agent-settings/skills/tools/install-atlassian-mcp/scripts/install.sh --jira-url https://myteam.atlassian.net
+skills/tools/install-atlassian-mcp/scripts/install.sh --jira-url https://myteam.atlassian.net
 
 # Help
-.agent-settings/skills/tools/install-atlassian-mcp/scripts/install.sh --help
+skills/tools/install-atlassian-mcp/scripts/install.sh --help
 ```
 
 See [`docs/mcps.md`](./mcps.md) for detailed setup.
@@ -96,7 +94,7 @@ This configuration supports the following AI coding assistants:
 .agent-settings/skills/import-skills.sh copilot
 
 # Install Atlassian MCP for Copilot
-.agent-settings/skills/tools/install-atlassian-mcp/scripts/install.sh --agent copilot --jira-url https://myteam.atlassian.net
+skills/tools/install-atlassian-mcp/scripts/install.sh --agent copilot --jira-url https://myteam.atlassian.net
 ```
 
 In Copilot Chat: type `@@` to browse skills or `@@agent-settings.skill-name` to invoke directly.
@@ -120,7 +118,7 @@ This project uses Claude Code as the primary AI assistant with:
 - See `docs/mcps.md` for setup instructions
 
 **Configuration Locations:**
-- Claude Skills: `.claude/skills/` (symlinked from `.agent-settings/skills/`)
+- Claude Skills: `.claude/skills/` (installed with `npx skills add`, or symlinked from `skills/` by the legacy importer)
 - MCP Settings: `.claude/mcp.json` (not yet created)
 - Environment Variables: `.env` (not yet created, should be added to `.gitignore`)
 
@@ -128,7 +126,7 @@ This project uses Claude Code as the primary AI assistant with:
 
 ### Skills
 
-1. **Central Source of Truth** - Always create/edit skills in `.agent-settings/skills/`, never directly in agent folders
+1. **Central Source of Truth** - Always create/edit skills in `skills/<category>/`, never directly in agent folders
 2. **Use Symlinks** - Import skills using symbolic links to share across agents
 3. **Document Changes** - Update `SKILL.md` files when modifying skill behavior
 4. **Test Before Commit** - Verify skills work in target agents before committing
@@ -186,7 +184,7 @@ ls -la .claude/skills
 .agent-settings/skills/import-skills.sh claude
 
 # Check skill format
-cat .agent-settings/skills/generate-pr-notes/SKILL.md
+cat skills/tools/generate-pr-notes/SKILL.md
 ```
 
 ### MCP Server Connection Issues

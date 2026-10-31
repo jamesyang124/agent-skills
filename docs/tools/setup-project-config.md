@@ -8,7 +8,7 @@ codebase and asking for your Confluence and Jira details.
 Other skills (`sync-api-spec`, `ado-open-pr`, `tech-plan-to-wiki`, `sdd-qa-to-ticket`) need to know your project's structure and Atlassian workspace. Instead of
 configuring each skill separately, this skill generates one shared config file that all of them read.
 The authoritative consumer list lives in
-`.agent-settings/skills/tools/setup-project-config/references/config-output-format.md`.
+`skills/tools/setup-project-config/references/config-output-format.md`.
 
 ## When to Run
 

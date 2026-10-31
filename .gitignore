@@ -42,3 +42,7 @@ CLAUDE.md
 
 # goal-checkpoint session snapshot (generated)
 GOAL_STATE.md
+
+# Created when the skills CLI installs into this checkout (npx skills add ... without -g); this repo provides skills, it does not consume them
+skills-lock.json
+.agents/

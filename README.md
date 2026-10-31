@@ -33,9 +33,22 @@ description: A clear description of what this skill does and when to use it
 
 ## Installation
 
-Skills can be easily installed using the provided `import-skills.sh` script, which handles symlinking and setup for various AI agents. For detailed instructions on both automated and manual skill installation, please refer to the [Skills Management README](.agent-settings/skills/README.md).
+Install with the open [`skills`](https://github.com/vercel-labs/skills) CLI, the same way as other public skill repos:
 
-### One-Command Setup (Skills + MCP)
+```bash
+npx skills add jamesyang124/agent-skills --list                     # see what is available
+npx skills add jamesyang124/agent-skills -g                         # pick skills interactively, install for your user
+npx skills add jamesyang124/agent-skills -g --skill ado-open-pr --skill generate-pr-notes   # specific skills
+npx skills update -g                          # update installed skills later
+```
+
+`-g` installs at user level, for every project; leave it out to install into the current project only. Skills live in `skills/<category>/<name>/SKILL.md`, the catalog layout the CLI discovers.
+
+### Legacy: import from a local checkout
+
+`.agent-settings/skills/import-skills.sh` symlinks skills from a local clone into an agent folder (`claude`, `copilot`, `codex`). It still works but will be removed once the `npx` install has fully replaced it; see the [Skills Management README](.agent-settings/skills/README.md).
+
+### One-Command Setup (Skills + MCP, legacy)
 
 To import skills and configure the Atlassian MCP server in a single step, use `setup.sh`:
 
@@ -73,43 +86,43 @@ This project provides a collection of specialized skills to enhance your AI agen
 ### Git Workflow
 
 *   **generate-pr-notes** — Automatically generates comprehensive pull request descriptions from git changes. Analyzes commits or branch diffs and creates a ready-to-paste markdown PR description with title, summary, categorized changes, technical details, and breaking changes.
-    [View Details](.agent-settings/skills/tools/generate-pr-notes/SKILL.md)
+    [View Details](skills/tools/generate-pr-notes/SKILL.md)
 
 *   **git-commit-conventional-strict** — Strict Conventional Commits generator optimized for `git-cliff` changelog automation. Analyzes staged changes, selects the correct type (`feat`, `fix`, `refactor`, etc.) with SemVer mapping, and adds gitmoji. Automatically detects when spec/doc changes and implementation changes are mixed and splits them into two commits (docs first, implementation second).
-    [View Details](.agent-settings/skills/tools/git-commit-conventional-strict/SKILL.md)
+    [View Details](skills/tools/git-commit-conventional-strict/SKILL.md)
 
 ### Project Setup
 
 *   **setup-project-config** — One-time setup skill that generates `.agent-settings/project-config.md` by scanning the codebase (language, framework, directory layout, API prefix, annotation style) and prompting for Confluence and Jira details. All Atlassian skills read from this shared config — run once per project, re-run after structural changes.
-    [View Details](.agent-settings/skills/tools/setup-project-config/SKILL.md)
+    [View Details](skills/tools/setup-project-config/SKILL.md)
 
 ### MCP Installation
 
 *   **install-atlassian-mcp** — Install and configure the Atlassian MCP server (Jira and Confluence) for Claude or GitHub Copilot agents. Supports uvx (recommended) and Docker methods.
-    [View Details](.agent-settings/skills/tools/install-atlassian-mcp/SKILL.md)
+    [View Details](skills/tools/install-atlassian-mcp/SKILL.md)
 
 *   **install-azure-devops-mcp** — Install and configure the Azure DevOps MCP server for Claude or GitHub Copilot agents. Covers work items, repos, pipelines, sprints, and wikis.
-    [View Details](.agent-settings/skills/tools/install-azure-devops-mcp/SKILL.md)
+    [View Details](skills/tools/install-azure-devops-mcp/SKILL.md)
 
 *   **install-playwright-mcp** — Install and configure the Playwright browser-automation MCP server for Claude or GitHub Copilot agents.
-    [View Details](.agent-settings/skills/tools/install-playwright-mcp/SKILL.md)
+    [View Details](skills/tools/install-playwright-mcp/SKILL.md)
 
 *   **install-sentry-mcp** — Install and configure the official Sentry MCP server for Claude or GitHub Copilot agents. Supports remote (OAuth, recommended) and local stdio (npx + access token) methods.
-    [View Details](.agent-settings/skills/tools/install-sentry-mcp/SKILL.md)
+    [View Details](skills/tools/install-sentry-mcp/SKILL.md)
 
 ### Azure DevOps
 
 *   **ado-pr-code-review** — Security-focused code review on an Azure DevOps PR by URL. Posts inline LOC-level comments. Checks for PII exposure, missing input validation (XSS/injection), and error response structure. Requires the Azure DevOps MCP server.
-    [View Details](.agent-settings/skills/tools/ado-pr-code-review/SKILL.md)
+    [View Details](skills/tools/ado-pr-code-review/SKILL.md)
 
 *   **ado-pr-resolve-comments** — Reads active review comments on an Azure DevOps PR and resolves them by applying suggested fixes with user consent. Trivial fixes shown as before/after diffs; non-trivial changes produce a refactoring plan for review. Companion to `ado-pr-code-review`. Requires the Azure DevOps MCP server.
-    [View Details](.agent-settings/skills/tools/ado-pr-resolve-comments/SKILL.md)
+    [View Details](skills/tools/ado-pr-resolve-comments/SKILL.md)
 
 *   **ado-open-pr** — Opens an Azure DevOps pull request for the current branch: pushes the branch, generates the description via `generate-pr-notes`, opens the PR against a target branch, and adds reviewers resolved from teams or explicit emails. By default also syncs drifted spec-kit/openspec docs to match the committed diff before opening the PR. Requires the Azure DevOps MCP server.
-    [View Details](.agent-settings/skills/tools/ado-open-pr/SKILL.md)
+    [View Details](skills/tools/ado-open-pr/SKILL.md)
 
 *   **ado-pr-teams-notify** — Azure DevOps pull-request notifications in a Microsoft Teams channel through one Power Automate flow: one color-coded Adaptive Card per PR (state chip, reviewers, Jira link, Summary, stacked Activity, latest comment) and a one-line thread reply per event so active PRs float to the bottom; draft PRs skipped; many repos/branches into one flow. Covers the Teams Workflows template, export/edit/import of the flow package (generator script), Service Hook subscriptions via REST, end-to-end state tests, backfilling an open PR, adding repos or switching channels, and the gotchas. Browser-agnostic (ego-browser, Playwright, Chrome DevTools MCP); REST steps also run with a PAT only.
-    [View Details](.agent-settings/skills/tools/ado-pr-teams-notify/SKILL.md)
+    [View Details](skills/tools/ado-pr-teams-notify/SKILL.md)
 
 ### Spec-Driven Development (SDD) Workflow
 
@@ -138,42 +151,42 @@ These skills automate handoffs across the SDD lifecycle. See the [SDD Workflow G
 ```
 
 *   **prd-to-sdd-spec** — Fetches a PRD from Confluence or a Jira ticket that links to a PRD wiki, and transforms it into a structured local source file for `spec-kit specify` or `openspec`. Bridges the PO handoff into the SDD workflow. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/prd-to-sdd-spec/SKILL.md)
+    [View Details](skills/workflows/prd-to-sdd-spec/SKILL.md)
 
 *   **tech-plan-to-wiki** — Reads local spec-kit artifacts (`spec.md`, `plan.md`, `requirements.md`) and publishes a collaborative design review page to Confluence. Supports first-publish (Draft) and re-publish (appends revision history). Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/tech-plan-to-wiki/SKILL.md)
+    [View Details](skills/workflows/tech-plan-to-wiki/SKILL.md)
 
 *   **tech-plan-to-ticket** — Fetches a Confluence design review or tech spec page and creates a Jira root ticket (Story) with associated subtasks, or adds subtasks to an existing Jira ticket. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/tech-plan-to-ticket/SKILL.md)
+    [View Details](skills/workflows/tech-plan-to-ticket/SKILL.md)
 
 *   **sdd-qa-to-ticket** — Reads local SDD artifacts and derives BDD QA scenarios (happy paths, edge cases, error paths, non-functional), then creates QA sub-tickets under the existing root Jira ticket. No new root ticket is created. Requires the Atlassian MCP server.
-    [View Details](.agent-settings/skills/workflows/sdd-qa-to-ticket/SKILL.md)
+    [View Details](skills/workflows/sdd-qa-to-ticket/SKILL.md)
 
 *   **sdd-qa-to-jira** — Legacy spec-kit–specific variant of `sdd-qa-to-ticket`. Prefer `sdd-qa-to-ticket` for new projects.
-    [View Details](.agent-settings/skills/workflows/sdd-qa-to-jira/SKILL.md)
+    [View Details](skills/workflows/sdd-qa-to-jira/SKILL.md)
 
 *   **goal-checkpoint** — General-purpose goal tracking with automatic checkpoint/resume support. Commits current state and writes a `GOAL_STATE.md` snapshot when context usage approaches 90%, so the next session can restore and continue.
-    [View Details](.agent-settings/skills/workflows/goal-checkpoint/SKILL.md)
+    [View Details](skills/workflows/goal-checkpoint/SKILL.md)
 
 ### Utilities
 
 *   **sync-api-spec** — Scans all API routes in the project and maintains `docs/agents/api-spec.md` — a machine-readable API reference for agents, frontend, and product. Incremental: only re-scans handlers for new or changed routes. Optional Confluence publish step after local file is written. Use at the Implement & PR phase of the SDD workflow.
-    [View Details](.agent-settings/skills/tools/sync-api-spec/SKILL.md)
+    [View Details](skills/tools/sync-api-spec/SKILL.md)
 
 *   **symlink-worktree-ignored-files** — Guides you to select a target git worktree, then symlinks all git-ignored files and directories (`.env`, `node_modules`, build artifacts, etc.) from the current worktree to the target. Useful for spinning up a new worktree without re-downloading heavy dependencies.
-    [View Details](.agent-settings/skills/tools/symlink-worktree-ignored-files/SKILL.md)
+    [View Details](skills/tools/symlink-worktree-ignored-files/SKILL.md)
 
 *   **sync-skills** — Syncs the local `.agents/skills` directory with the ClawHub registry. Detects which skills are not yet installed and installs them automatically.
-    [View Details](.agent-settings/skills/tools/sync-skills/SKILL.md)
+    [View Details](skills/tools/sync-skills/SKILL.md)
 
 *   **spec-recalibrate** — Recalibrates a repo's spec-driven docs (spec-kit `specs/`, openspec `openspec/specs/`) against the code that now implements them: maps each spec to its code, classifies drift, and with consent updates stale spec docs to match the code — spec docs only, never the implementation.
-    [View Details](.agent-settings/skills/tools/spec-recalibrate/SKILL.md)
+    [View Details](skills/tools/spec-recalibrate/SKILL.md)
 
 *   **explain-diff-html** — Produces a rich HTML explanation of a code change, diff, branch, or PR.
-    [View Details](.agent-settings/skills/tools/explain-diff-html/SKILL.md)
+    [View Details](skills/tools/explain-diff-html/SKILL.md)
 
 *   **agent-playtest** — Evidence-grounded simulated playtests of interactive web content (games, 3D worlds, galleries) with parallel browser subagents: closed-loop play, screenshot evidence, structured observed descriptions kept separate from declared metadata, screenshot audit, validation, human spot-check and reliability report. Browser-agnostic (ego-browser, Playwright, MCP browsers); includes a human-demo mode that records local mouse/keyboard to compare with the agent's attempt.
-    [View Details](.agent-settings/skills/tools/agent-playtest/SKILL.md)
+    [View Details](skills/tools/agent-playtest/SKILL.md)
 
 ## Agent Settings Management
 
@@ -198,36 +211,38 @@ Learn how to integrate these agent skills and MCP tools with GitHub's Spec-Kit f
 
 ```
 .
+├── skills/                      # Installable skills (npx skills add)
+│   ├── tools/                  # Atomic, single-purpose skills
+│   │   ├── ado-open-pr/
+│   │   ├── ado-pr-code-review/
+│   │   ├── ado-pr-resolve-comments/
+│   │   ├── ado-pr-teams-notify/
+│   │   ├── agent-playtest/
+│   │   ├── explain-diff-html/
+│   │   ├── generate-pr-notes/
+│   │   ├── git-commit-conventional-strict/
+│   │   ├── install-atlassian-mcp/
+│   │   ├── install-azure-devops-mcp/
+│   │   ├── install-playwright-mcp/
+│   │   ├── install-sentry-mcp/
+│   │   ├── setup-project-config/
+│   │   ├── spec-recalibrate/
+│   │   ├── symlink-worktree-ignored-files/
+│   │   ├── sync-api-spec/
+│   │   └── sync-skills/
+│   └── workflows/              # Multi-step, orchestrated pipeline skills
+│       ├── goal-checkpoint/
+│       ├── prd-to-sdd-spec/
+│       ├── sdd-qa-to-jira/
+│       ├── sdd-qa-to-ticket/
+│       ├── tech-plan-to-ticket/
+│       └── tech-plan-to-wiki/
 ├── .agent-settings/
 │   ├── project-config.md        # Generated by setup-project-config (gitignored)
+│   ├── setup.sh                 # Legacy one-command setup (skills + Atlassian MCP)
 │   ├── skills/
-│   │   ├── tools/               # Atomic, single-purpose skills
-│   │   │   ├── ado-open-pr/
-│   │   │   ├── ado-pr-code-review/
-│   │   │   ├── ado-pr-resolve-comments/
-│   │   │   ├── ado-pr-teams-notify/
-│   │   │   ├── agent-playtest/
-│   │   │   ├── api-spec-to-confluence/
-│   │   │   ├── explain-diff-html/
-│   │   │   ├── generate-pr-notes/
-│   │   │   ├── git-commit-conventional-strict/
-│   │   │   ├── install-atlassian-mcp/
-│   │   │   ├── install-azure-devops-mcp/
-│   │   │   ├── install-playwright-mcp/
-│   │   │   ├── install-sentry-mcp/
-│   │   │   ├── setup-project-config/
-│   │   │   ├── spec-recalibrate/
-│   │   │   ├── symlink-worktree-ignored-files/
-│   │   │   ├── sync-api-spec/
-│   │   │   └── sync-skills/
-│   │   ├── workflows/           # Multi-step, orchestrated pipeline skills
-│   │   │   ├── goal-checkpoint/
-│   │   │   ├── prd-to-sdd-spec/
-│   │   │   ├── sdd-qa-to-jira/
-│   │   │   ├── sdd-qa-to-ticket/
-│   │   │   ├── tech-plan-to-ticket/
-│   │   │   └── tech-plan-to-wiki/
-│   │   └── import-skills.sh     # Scans all subdirs, installs flat
+│   │   ├── README.md            # Skills management (legacy importer)
+│   │   └── import-skills.sh     # Legacy: symlinks skills/ into agent folders
 │   └── mcps/                    # MCP server configurations
 └── (AI Agent config folders)    # e.g., .claude/, .github/
     └── skills/                  # Symlinked skills (flat, by skill name)
@@ -239,7 +254,7 @@ Skills are organized by category (`tools/`, `workflows/`) in the source, but the
 
 Not in the repo for now, kept here for future use:
 
-- **`grill-me`** and **`grill-with-docs`** from [`mattpocock/skills`](https://github.com/mattpocock/skills). `grill-me` interviews you about a plan, one question at a time, until you reach shared understanding. `grill-with-docs` does the same and keeps `CONTEXT.md` and `docs/adr/` up to date. Both are standalone. They were vendored under `external/` and removed together with `skills-lock.json`; restore with `npx skills add mattpocock/skills --skill grill-me` (and `--skill grill-with-docs`), or fork them into `.agent-settings/skills/workflows/` to adapt them.
+- **`grill-me`** and **`grill-with-docs`** from [`mattpocock/skills`](https://github.com/mattpocock/skills). `grill-me` interviews you about a plan, one question at a time, until you reach shared understanding. `grill-with-docs` does the same and keeps `CONTEXT.md` and `docs/adr/` up to date. Both are standalone. They were vendored under `external/` and removed together with `skills-lock.json`; restore with `npx skills add mattpocock/skills --skill grill-me` (and `--skill grill-with-docs`), or fork them into `skills/workflows/` to adapt them.
 
 - **External skill registries**, to install when a project needs them. The `skills` CLI installs from any of them (`npx skills add <registry> --skill <id>`). They were the list inside the removed `install-external-skills` skill, so check each README for what is current:
   - [`supabase/agent-skills`](https://github.com/supabase/agent-skills): `supabase`, `supabase-postgres-best-practices` (Postgres, Auth, Supabase tooling).
@@ -260,7 +275,7 @@ To contribute a new skill:
 1.  Determine the appropriate category for your skill:
     - **`tools/`** — atomic, single-purpose actions (e.g., generate a commit message, create a PR description)
     - **`workflows/`** — multi-step, orchestrated pipelines (e.g., fetch PRD → transform → publish to Confluence)
-2.  Create a skill directory with a `SKILL.md` file in the correct category under `.agent-settings/skills/<category>/`.
+2.  Create a skill directory with a `SKILL.md` file in the correct category under `skills/<category>/`.
 3.  Use `import-skills.sh` to symlink and test your skill.
 4.  Commit and push your changes.
 
