@@ -16,7 +16,7 @@ This skill is **local-only** — no Azure DevOps or MCP dependency; it only read
 ## Dependencies
 
 - An SDD layout in the repo: **spec-kit** (`.specify/` + `specs/`) or **openspec** (`openspec/`). No layout → nothing to calibrate.
-- Optional: `.agent-settings/project-config.md` (`## SDD Tool`) to pin the tool without detection.
+- Optional: `docs/agents/sdd.md` to pin the tool without detection.
 
 Install with `npx skills add jamesyang124/agent-skills --skill spec-recalibrate -g`.
 
@@ -34,7 +34,7 @@ All optional.
 
 ## Step 1 — Resolve the SDD layout and spec set
 
-1. Resolve the SDD tool: `.agent-settings/project-config.md` → `## SDD Tool` → `Tool:` if present; else detect `.specify`/`.speckit`/`spec-kit.json` → **spec-kit**, `openspec/`/`.openspec`/`openspec.json` → **openspec**. Neither → report *"no SDD layout found — nothing to recalibrate"* and stop.
+1. Resolve the SDD tool: `docs/agents/sdd.md` → `Tool:` if present; else detect `.specify`/`.speckit`/`spec-kit.json` → **spec-kit**, `openspec/`/`.openspec`/`openspec.json` → **openspec**. Neither → report *"no SDD layout found — nothing to recalibrate"* and stop.
 2. Enumerate the **source-of-truth specs** to calibrate:
    - spec-kit: every `specs/<NNN-name>/spec.md` (treat `plan.md` / `tasks.md` as secondary context, calibrated only if present and referenced by the spec).
    - openspec: every capability spec under `openspec/specs/**/spec.md`.

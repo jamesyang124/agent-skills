@@ -115,7 +115,7 @@ Keeps spec-driven docs from drifting behind the code that actually ships in this
 - No SDD layout found → nothing to check, skip silently.
 - The scan itself always runs when reached — there is **no** "do you want to scan?" prompt; consent is asked only per doc edit in step 5. A non-interactive / headless run still scans and **reports** drift but applies no edits (see step 5), so it never hangs.
 
-1. **Resolve the SDD tool and doc roots.** Read `.agent-settings/project-config.md` → `## SDD Tool` → `Tool:` if present. Otherwise detect from the repo root: `.specify/`, `.speckit`, or `spec-kit.json` → **spec-kit**; `openspec/`, `.openspec`, or `openspec.json` → **openspec**. Neither → log *"no SDD layout found — skipping spec alignment"* and continue to Step 2.
+1. **Resolve the SDD tool and doc roots.** Read `docs/agents/sdd.md` → `Tool:` if present. Otherwise detect from the repo root: `.specify/`, `.speckit`, or `spec-kit.json` → **spec-kit**; `openspec/`, `.openspec`, or `openspec.json` → **openspec**. Neither → log *"no SDD layout found — skipping spec alignment"* and continue to Step 2.
 
 2. **Locate the working docs for THIS change** (the ones allowed to drift), plus the read-only rubric:
 

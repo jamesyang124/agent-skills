@@ -290,11 +290,12 @@ New requirement arrives. Cycle back to Specify.
 ## Quick Start
 
 ```bash
-# 1. Set up Atlassian MCP
-./install-atlassian-mcp skill --agent claude
+# 1. Install the skills
+npx skills add jamesyang124/agent-skills -g
 
-# 2. Import skills
-./.agent-settings/skills/import-skills.sh claude
+# 2. Set up Atlassian MCP, then per-repo settings (docs/agents/*.md)
+/install-atlassian-mcp
+/setup-project-config
 
 # 3. Set up dev environment
 /symlink-worktree-ignored-files
@@ -341,5 +342,3 @@ spec-kit plan
 - [SDD Skills Map](./sdd-skills-map.md)
 - [GitHub Spec-Kit](https://github.com/github/spec-kit)
 - [Agent Skills README](../README.md)
-- [MCP Setup Guide](mcps.md)
-- [Skills Management](../.agent-settings/skills/README.md)

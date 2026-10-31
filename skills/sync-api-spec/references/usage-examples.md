@@ -7,7 +7,7 @@
 **User**: "sync api spec"
 
 **Agent**:
-1. Reads `.agent-settings/project-config.md` for framework, router path, handler directory.
+1. Reads `docs/agents/code-structure.md` for framework, router path, handler directory.
 2. Scans the router file — finds 12 routes.
 3. `docs/agents/api-spec.md` does not exist → all 12 routes are new.
 4. Scans all 12 handler functions, extracting auth, params, response shapes.
@@ -53,7 +53,7 @@
 ```
 User: "sync api spec"
     |
-    └─> Read project-config.md
+    └─> Read docs/agents/code-structure.md
         |
         ├─> Missing? → Tell user to run setup-project-config, stop.
         |

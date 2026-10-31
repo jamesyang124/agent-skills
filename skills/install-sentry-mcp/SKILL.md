@@ -143,7 +143,7 @@ environment has not loaded NVM. The token is requested as a password input:
 ## Per-project settings
 
 Auth and connection are global (OAuth / `~/.env.mcp-sentry`). Which **Sentry org/project this repo maps
-to** is per-project — captured by `setup-project-config` under `## MCP: sentry` (Org Slug, Project Slug).
+to** is per-project — captured by `/setup-project-config` in `docs/agents/sentry.md` (Org Slug, Project Slug).
 Run `setup-project-config` after installing to record them.
 
 ## Troubleshooting

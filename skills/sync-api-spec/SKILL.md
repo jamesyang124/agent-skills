@@ -35,10 +35,9 @@ Format is defined in `references/api-spec-format.md`.
 
 ## Process
 
-0.  **Load project configuration**: Read `.agent-settings/project-config.md`.
-    - If the file is missing: tell the user to run `setup-project-config` first (`"set up project config"`), then stop.
-    - If the file uses the legacy schema (has a top-level `## Confluence` / `## Jira` instead of `## MCP: atlassian`): warn that it predates the per-MCP schema and tell the user to re-run `setup-project-config` to migrate — otherwise the Confluence publish step below cannot find the space/parent config.
-    - Use framework, router file path, handler directory, DTO/model directory, and service directory from config throughout.
+0.  **Load project configuration**: The code structure should have been provided to you in `docs/agents/code-structure.md`; run `/setup-project-config` if not, then stop.
+    - Use framework, router file path, handler directory, DTO/model directory, and service directory from it throughout.
+    - A legacy `.agent-settings/project-config.md` without `docs/agents/` → tell the user to run `/setup-project-config`, which migrates it.
 
 0b. **Contract mode check**:
     Ask the user:
@@ -90,7 +89,7 @@ Format is defined in `references/api-spec-format.md`.
         - **Normal mode**: determine changed routes by running `git diff HEAD -- docs/agents/api-spec.md` and extracting only the `## METHOD /path` headings that appear in the diff (added `+` lines). Publish only those endpoint cards.
         - **Contract mode**: publish only the endpoint cards added during the current contract session (the ones written in step 1c).
         - **Promoted routes** (contract → implemented): publish the updated card for each promoted route.
-      - Confluence page: use the space key and parent page from the `## MCP: atlassian` section of `project-config.md`. Page title: `API Spec — {Project Name}`.
+      - Confluence page: use the space key and parent page from `docs/agents/atlassian.md` (ask the user if it is missing). Page title: `API Spec — {Project Name}`.
       - If the Confluence page already exists: update only the sections for the changed endpoints (do not overwrite the full page). If it does not exist: create it with the full spec content.
 
 ---

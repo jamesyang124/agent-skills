@@ -74,7 +74,7 @@ Before using this skill, ensure:
 4.  **Configure Jira Settings (Interactive)**:
     - **Brackets**: Present suggested `[TOPIC]` and `[SERVICE/COMPONENT]` values. Ask the user to confirm or provide new ones. (Applies to new root ticket and subtasks.)
     - **Owner**: Ask the user for the **Assignee** email or name for the tickets.
-    - **Project/Type**: Use **EXAMPLE** as the default **Jira Project Key** and **Story** as the default **Issue Type** for the root ticket (if creating new). Allow the user to override.
+    - **Project/Type**: Use the Jira Project Key and Issue Type from `docs/agents/atlassian.md` as defaults (else **EXAMPLE** and **Story**) for the root ticket (if creating new). Allow the user to override.
 
 5.  **Create Tickets**:
     - **If New Root Ticket**: Use `mcp__atlassian__jira_create_issue` to create the root ticket.

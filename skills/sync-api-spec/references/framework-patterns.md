@@ -1,6 +1,6 @@
 # Framework-Specific Analysis Patterns
 
-Use the framework value from `project-config.md` (`## Code Structure` → `Framework`) to select the correct strategy.
+Use the framework value from `docs/agents/code-structure.md` (`Framework`) to select the correct strategy.
 
 ---
 

@@ -1,8 +1,9 @@
 ---
 name: setup-project-config
-description: One-time setup skill that generates .agent-settings/project-config.md — a namespaced per-MCP project-settings file. Scans the codebase for structure, discovers installed MCPs from .mcp.json, and prompts for each MCP's project-scoped (non-secret) fields plus the SDD tool. Credentials stay in the global ~/.env.mcp-* store. Run before using MCP-backed skills. Use when setting up skills for the first time, configuring per-project MCP settings (Atlassian/Playwright/Sentry/Azure DevOps), or asked to init/recalibrate project config.
-argument-hint: "(no arguments - auto-detects setup vs re-calibration)"
-allowed-tools: Read, Glob, Grep, Bash, Write
+description: "Configures a repo for these skills: writes per-topic settings to docs/agents/*.md (SDD tool, code structure, and project-scoped values for installed MCPs - Atlassian, Azure DevOps, Sentry, Playwright) and adds an `## Agent skills` pointer block to CLAUDE.md or AGENTS.md. Credentials stay in the global ~/.env.mcp-* store. Use when setting up skills in a repo for the first time, when a skill says to run setup-project-config, or when asked to update project settings (e.g. change Jira project key, framework changed)."
+argument-hint: "[topic, e.g. atlassian] (optional - default sets up every topic)"
+disable-model-invocation: true
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
 ---
 
 # Setup Project Config
@@ -13,279 +14,97 @@ allowed-tools: Read, Glob, Grep, Bash, Write
 npx skills add jamesyang124/agent-skills --skill setup-project-config -g
 ```
 
-## Dependencies
+Scaffold the per-repo settings the other skills read. Each topic is one small file under `docs/agents/`,
+committed with the repo so teammates share it. Different repos get different files; a topic that does not
+apply (no Sentry MCP, no SDD tool) gets no file.
 
-No external skills or MCPs required. Only needs read access to the project codebase.
+| File | Holds | Read by |
+|------|-------|---------|
+| `docs/agents/sdd.md` | SDD tool + its commands | `ado-open-pr`, `spec-recalibrate`, `tech-plan-to-wiki`, `sdd-qa-to-ticket` |
+| `docs/agents/code-structure.md` | language, framework, router/handler/DTO dirs, API prefix, doc style | `sync-api-spec` (**required**) |
+| `docs/agents/atlassian.md` | Confluence space, parent pages, Jira project key / issue type | `sync-api-spec`, `tech-plan-to-wiki`, `tech-plan-to-ticket` |
+| `docs/agents/azure-devops.md` | organization, project, default repo | Azure DevOps MCP users |
+| `docs/agents/sentry.md` | org slug, project slug | Sentry MCP users |
+| `docs/agents/playwright.md` | base URL, allowed domains, user-agent | Playwright MCP users |
 
----
+**Secrets never go in these files.** Tokens, PATs, passwords and connection URLs stay in
+`~/.env.mcp-<name>` (or OAuth). A value in `docs/agents/` is a non-secret per-repo override; blank or
+absent → the global env value stands.
 
-Generates `.agent-settings/project-config.md` — the shared per-project config file. Consumers and the
-sections they read are listed authoritatively in
-`references/config-output-format.md` (currently `sync-api-spec`, `ado-open-pr`, `tech-plan-to-wiki`,
-`sdd-qa-to-ticket`).
+This is a prompt-driven skill, not a script. Explore, present what you found, confirm, then write.
 
-**Detect mode automatically** based on whether `.agent-settings/project-config.md` already exists:
-- **No file** → Mode A: Initial Setup
-- **File exists, legacy schema** (has a top-level `## Confluence` or `## Jira` section) → **Mode M: Migrate first**, then Mode B
-- **File exists, current schema** (`## MCP: <name>` sections) → Mode B: Re-calibration
+## Process
 
-> **Always run the legacy check on any existing file before Mode B.** Older configs (pre per-MCP schema)
-> used flat `## Confluence` / `## Jira` sections that upgraded consumers no longer read — so they break
-> silently. Migrate them before anything else.
+### 1. Explore
 
----
+Read what exists; don't assume.
 
-## Arguments
+- `CLAUDE.md` / `AGENTS.md` at the repo root: does either exist? Is there already an `## Agent skills` block?
+- `docs/agents/`: which topic files already exist? Existing ones are updated, not recreated.
+- Legacy `.agent-settings/project-config.md`: if present, migrate it (step 2a).
+- Installed MCPs: `.mcp.json`, `.claude/mcp.json` (`mcpServers` keys), `.vscode/mcp.json` (`servers` keys).
+  Only installed MCPs get a topic. Warn if one is installed but its `~/.env.mcp-<name>` / OAuth is missing.
+- `git remote -v`: a `dev.azure.com` / `visualstudio.com` remote pre-fills `azure-devops.md`.
+- SDD tool: `.specify/`, `.speckit` or `spec-kit.json` → spec-kit; `openspec/`, `.openspec` or `openspec.json` → openspec.
+- Code structure: follow [references/code-scan.md](references/code-scan.md).
 
-None. The mode is detected from `.agent-settings/project-config.md`: missing file → **Mode A** (initial setup); legacy schema → **Mode M** (migrate) then **Mode B**; current schema → **Mode B** (re-calibration).
+If the user named a topic (e.g. `atlassian`), explore and ask only for that topic.
 
----
+### 2. Present findings and ask
 
-## Trigger phrases
+Summarise what was detected and what is missing. Then take the topics in order: one topic, one answer,
+then the next. Lead each with the detected or recommended value so the user can accept it in a word.
+Skip a topic when exploration settled it or it does not apply.
 
-- **Initial setup**: "set up project config", "init project config", "configure skills"
-- **Re-calibrate**: "recalibrate project config", "update project config", "my framework changed", "rescan project structure"
-- **Update Atlassian only**: "update confluence settings", "change jira project key"
+The fields per topic are the ones in its template under [templates/](templates/). For Atlassian parent
+pages, ask for up to 3 `name, page ID` pairs and stop at the first blank.
 
----
+#### 2a. Legacy migration
 
-## Mode A: Initial Setup
+If `.agent-settings/project-config.md` exists, show this mapping before writing and keep every user value:
 
-### Phase 1 — Code Scan (automated)
+| Legacy section | New file |
+|----------------|----------|
+| `## MCP: atlassian` (or older `## Confluence` + `## Jira`) | `atlassian.md` |
+| `## MCP: azure-devops` / `sentry` / `playwright` | `azure-devops.md` / `sentry.md` / `playwright.md` |
+| `## SDD Tool` | `sdd.md` |
+| `## Code Structure` + `## Documentation Format` | `code-structure.md` |
 
-Scan the project root to detect:
+After writing, offer to delete the legacy file and the then-empty `.agent-settings/` folder.
 
-**Language & framework**:
-- `go.mod` present → Go. Check imports for `github.com/gin-gonic/gin` → Gin; `github.com/labstack/echo` → Echo; `github.com/go-chi/chi` → Chi
-- `package.json` present → Node. Check dependencies for `express`, `fastify`, `koa`, `hapi`
-- `pyproject.toml` or `requirements.txt` → Python. Check for `fastapi`, `flask`, `django`
-- `Cargo.toml` → Rust. Check for `actix-web`, `axum`
+### 3. Confirm
 
-**Router file** — search in this order until found:
-1. `router/router.go`
-2. `cmd/*/main.go`
-3. `internal/router/*.go`
-4. `app/router.go`
-5. `routes/routes.go`
-6. `server/server.go`
-7. For Node: `src/routes/index.js`, `routes/index.js`, `app.js`
+Show a draft of each topic file and of the `## Agent skills` block. Let the user edit before writing.
 
-**Handler directory** — look for files matching `*handler*`, `*controller*` patterns:
-- Go: `handler/`, `handlers/`, `internal/handler/`
-- Node/Python: `controllers/`, `handlers/`, `routes/`
+### 4. Write
 
-**DTO/model directory**:
-- Go: `dto/`, `model/`, `models/`
-- Node: `types/`, `schema/`, `models/`, `interfaces/`
-- Python: `schemas/`, `models/`
+**Pick the rules file:**
+- If `CLAUDE.md` exists, edit it.
+- Else if `AGENTS.md` exists, edit it.
+- If neither exists, ask which one to create; don't pick for them.
 
-**Service directory**:
-- `service/`, `services/`, `usecase/`, `usecases/`, `domain/`
+Never create `AGENTS.md` when `CLAUDE.md` exists (or vice versa). If an `## Agent skills` block already
+exists, update it in place; don't touch the surrounding sections.
 
-**API base path prefix** — scan router file for repeated prefix patterns:
-- Look for lines like `r.Group("/api/v1")` or `router.GET("/api/v1/..."`
-- Extract the common prefix shared by most routes
+The block has one line per topic file written:
 
-**Documentation format**:
-- Swaggo: search for `// @Summary` in handler files
-- JSDoc: search for `@param`, `@returns` in JS/TS files
-- OpenAPI spec file: look for `openapi.yaml`, `swagger.yaml`, `api.yaml`
-- FastAPI/automatic: check for `@app.get`, `@router.post` decorators with docstrings
+```markdown
+## Agent skills
 
-**SDD tool**:
-- Check for `.speckit` or `spec-kit.json` → `spec-kit`
-- Check for `openspec.json` or `.openspec` → `openspec`
-- If neither found → note as "not detected — will prompt"
-
-After scanning, show the agent's findings before prompting:
-```
-Detected project structure:
-  Language:    Go
-  Framework:   Gin (github.com/gin-gonic/gin)
-  Router file: router/router.go
-  Handlers:    handler/
-  DTOs:        dto/
-  Services:    service/
-  API prefix:  /api/v1/
-  Doc style:   Swaggo annotations
-  SDD tool:    spec-kit
+- SDD: spec-kit. See `docs/agents/sdd.md`.
+- Code structure: Go / Gin. See `docs/agents/code-structure.md`.
+- Atlassian: Jira PROJ, Confluence space ENG. See `docs/agents/atlassian.md`.
+- Azure DevOps: my-org/my-project. See `docs/agents/azure-devops.md`.
 ```
 
-If anything could not be detected, note it as "not detected — will prompt".
+Then write each topic file from its template. Re-runs rewrite only the topics that changed and keep hand
+edits elsewhere.
 
-### Phase 2 — MCP-scoped prompts (driven by installed MCPs)
+For the Atlassian parent-page table, build each URL as `{base}/spaces/{Space Key}/pages/{ID}`, where
+`base` is the file's Base URL override if present, else `CONFLUENCE_URL` from `~/.env.mcp-atlassian`.
+If neither is available, leave the URL cell blank.
 
-**What this phase captures — and what it does NOT.** Three planes, three homes:
+### 5. Done
 
-| Plane | Home | This phase? |
-|-------|------|-------------|
-| Secrets / tokens / connection URL | global `~/.env.mcp-<name>` (or OAuth) | never — not prompted, not stored here |
-| Auto-derivable from the codebase | `## Code Structure` (Phase 1) | no — auto-detected |
-| Per-project, user-chosen, non-secret MCP behavior | `## MCP: <name>` sections | **yes** |
-
-`project-config.md` is a **namespaced per-MCP settings file**. Each installed MCP that has project-scoped
-knobs gets one `## MCP: <name>` section. Credentials always stay in the global env store.
-
-**Precedence:** `~/.env.mcp-<name>` dominates as the authoritative source (connection + all secrets).
-A `project-config.md` field is a per-project *override* that wins only when explicitly present; blank or
-absent → the global env value stands. project-config never replaces the env store, only layers non-secret
-overrides on top.
-
-**Step 1 — Discover installed MCPs.** Read the MCP registration for the active agent (do not depend on
-env files existing — Playwright has no creds, Sentry-remote uses OAuth):
-
-```bash
-# Claude
-cat .mcp.json .claude/mcp.json 2>/dev/null
-# Copilot / VS Code
-cat .vscode/mcp.json 2>/dev/null
-```
-
-Collect the `mcpServers` (Copilot uses `servers`) keys → the set of installed MCP names. If none found,
-tell the user no MCPs are registered and skip to the SDD-tool prompt.
-
-**Step 2 — For each installed MCP that appears in the registry below, prompt only its scoped fields.**
-Skip MCPs that are not installed. Skip fields the user leaves blank. For each MCP, note whether its
-credential store is present and warn if the MCP is installed but its creds/OAuth are missing.
-
-Then, regardless of MCPs:
-
-**SDD tool** (top-level, not an MCP) — ask: "Which SDD tool does your team use? (`spec-kit` / `openspec`)"
-— pre-fill with the Phase 1 detected value if any, default `spec-kit`.
-- If `spec-kit`: commands are `spec-kit specify` / `spec-kit plan`
-- If `openspec`: ask: "What are the specify and plan commands for openspec in your project?"
-
----
-
-### Per-MCP scoped-field registry
-
-Each MCP's own install/consumer skill owns its schema; this table is the orchestrator's copy. When a skill
-adds or drops a project-scoped field, update its row here and the matching block in
-`references/config-output-format.md`.
-
-**`atlassian`** — creds: `~/.env.mcp-atlassian` (`CONFLUENCE_URL`, `JIRA_URL` + tokens)
-- Confluence Space Key — e.g., `ENG`
-- Common Parent Pages — up to 3; for each: page name + page ID
-  - Prompt: "Enter parent page 1 name and ID (e.g., 'Technical Design, 1234567890'), or press Enter to skip"; stop at first skip
-- Jira Project Key — e.g., `PROJ`
-- Jira Issue Type — default `Story`
-- *(optional)* Base URL override — only if this repo targets a **different** instance than the global env; omit otherwise, do not prompt unless asked
-
-**`playwright`** — creds: none (local browser automation)
-- User-Agent — e.g., `HTCVRSDET`; press Enter to skip
-- Allowed Domains — comma-separated; e.g., `portal.your-org.com, docs.your-org.com`
-- Base URL — default target origin, e.g., `https://staging.example.com`
-- *(optional)* Viewport / Headless — only if the user has non-default needs
-
-**`sentry`** — creds: OAuth (remote `mcp.sentry.dev`) or `SENTRY_ACCESS_TOKEN` (local stdio); no URL/token prompted here
-- Org Slug — e.g., `my-org`
-- Project Slug — e.g., `my-proj`
-
-**`azure-devops` (ado)** — creds: `~/.env.mcp-azure-devops` (PAT)
-- Organization — e.g., `my-org`
-- Project — e.g., `my-project`
-- Default Repo — e.g., `my-repo`
-
-Unknown / unlisted MCP names: note them as detected but skip (no known scoped schema); the owning skill
-can add a row when it needs project-scoped config.
-
-### Phase 3 — Confirm and Write
-
-Display all detected + entered values in the final config format, then ask:
-```
-Write this to .agent-settings/project-config.md? (y/n)
-```
-
-On confirmation, write the file using the format defined below.
-
----
-
-## Mode M: Migrate legacy schema
-
-Runs when an existing `project-config.md` still uses the flat pre-MCP layout. **Detect** by grepping the
-file for a top-level `## Confluence` or `## Jira` heading (the current schema has neither — Atlassian lives
-under `## MCP: atlassian`).
-
-### Phase 1 — Announce and map
-
-Tell the user the config predates the per-MCP schema and that consumers (e.g. `sync-api-spec`) no longer
-read the old sections, so it must be migrated. Show the exact field mapping before touching the file:
-
-```
-Legacy project-config.md detected. Migrating to per-MCP schema:
-
-  ## Confluence → ## MCP: atlassian
-    - Space Key            → Confluence Space Key
-    - Common Parent Pages  → (kept as-is under ## MCP: atlassian)
-    - Page Title Format    → (kept as-is)
-  ## Jira → ## MCP: atlassian
-    - Default Project Key  → Jira Project Key
-    - Default Issue Type   → Jira Issue Type
-  Base URL (both)          → dropped (inherited from ~/.env.mcp-atlassian);
-                             kept only if it differs from the global env value → Base URL override
-
-  ## Code Structure / ## Documentation Format / ## SDD Tool → unchanged
-
-Rewrite in the new format? (y/n)
-```
-
-### Phase 2 — Rewrite
-
-On `y`, merge `## Confluence` + `## Jira` into a single `## MCP: atlassian` section per the mapping,
-preserving every user value (space key, parent-page table, project key, issue type). Drop each `Base URL`
-unless it differs from the global env `CONFLUENCE_URL` / `JIRA_URL`, in which case keep it as an
-`Base URL` override line. Leave `## Code Structure`, `## Documentation Format`, and `## SDD Tool` intact.
-Write the file, then continue into **Mode B** (re-scan + diff) as normal.
-
-On `n`, warn that Atlassian-backed skills will not find their config until migrated, and stop.
-
----
-
-## Mode B: Re-calibration
-
-### Phase 1 — Re-scan code structure (automated)
-
-Re-run the same code scan as Mode A Phase 1 to get fresh detected values.
-
-### Phase 2 — Diff against existing config
-
-Read the existing `.agent-settings/project-config.md`. Compare the `## Code Structure` section
-values against the freshly detected values. Show only what changed:
-
-```
-Re-scan detected changes:
-
-  Framework:    Gin → Echo
-  Router file:  router/router.go → internal/server/routes.go
-  API prefix:   /api/v1/ → unchanged
-  SDD tool:     spec-kit → unchanged
-
-MCP-scoped settings are unchanged (not re-prompted).
-
-Apply these changes? (y/n, or describe corrections to make first)
-```
-
-If nothing changed in Code Structure, say so:
-```
-Re-scan found no changes to code structure. MCP-scoped settings unchanged.
-Nothing to update.
-```
-
-**`## MCP: <name>` sections are NOT re-prompted** unless the trigger phrase specifically targets one
-(e.g., "update confluence settings", "change jira project key", "update playwright domains"). In that
-case, skip the code scan and prompt only for that MCP's scoped fields.
-
-Also re-run **Step 1 (discover installed MCPs)**: if a new MCP was installed since last run, offer to add
-its `## MCP: <name>` section; if an MCP was removed, note its now-orphaned section but do not delete it
-without asking.
-
-### Phase 3 — Patch and Write
-
-Apply only the changed fields to `project-config.md`, preserving all other `## MCP: <name>` sections and
-the SDD Tool section. Rewrite the file with merged values.
-
----
-
-## Output Format & Notes
-
-When writing the config file, use the format defined in `references/config-output-format.md` (in this skill's folder).
+Tell the user which files were written and which skills now read them (table above). They can edit
+`docs/agents/*.md` directly later; re-run this skill only to add a topic or rescan the code structure.

@@ -69,7 +69,7 @@ If a source file is missing, populate the section with `[TODO — source file no
 
 ## Process
 
-> **Before proceeding**: Check `.agent-settings/project-config.md` for the `## SDD Tool` section. Use the configured tool name (e.g., `spec-kit` or `openspec`) in all user-facing messages and artifact location hints. Fall back to `spec-kit` if the section is absent or the file does not exist.
+> **Before proceeding**: Check `docs/agents/sdd.md` for the SDD tool and use its name (e.g., `spec-kit` or `openspec`) in all user-facing messages and artifact location hints. Fall back to `spec-kit` if the file does not exist. Take the default Confluence space and parent page from `docs/agents/atlassian.md` when present; otherwise ask.
 
 ### Step 1: Locate SDD Artifacts
 

@@ -56,7 +56,7 @@ Read **Step 5 — Standards and spec** in `ado-pr-code-review/SKILL.md` for the 
 review this diff on both axes yourself (do not invoke another skill):
 
 - **Conventions:** the repo's documented coding standards: `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`,
-  `docs/agents/`, `.agent-settings/project-config.md`, and the naming, import and layering rules in its lint
+  `docs/agents/`, and the naming, import and layering rules in its lint
   configs. Check what a linter cannot: naming, where code lives, error-handling and logging conventions.
   The orchestrator runs the linter itself; do not repeat lint output.
 - **Principles:** if the repo has a constitution (`.specify/memory/constitution.md`, or `openspec/project.md`), read

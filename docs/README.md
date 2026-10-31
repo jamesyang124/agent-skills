@@ -6,26 +6,13 @@ This directory contains comprehensive guides for integrating agent skills and MC
 
 ## 📚 Available Guides
 
-### Setup & Configuration
+### Contributing
 
 | Guide | Description |
 |-------|-------------|
-| [Agent Settings](./agent-settings.md) | Central config guide: skills, MCPs, supported AI assistants |
-| [Skills Management](./skills.md) | Import, symlink, and manage skills across agents |
-| [MCP Setup](./agent-settings.md) | MCP server setup via install skills |
+| [Skill Anatomy](./skill-anatomy.md) | Layout, frontmatter rules and conventions every skill follows |
 
-### Skills Reference
-
-**Tools** (atomic, single-purpose):
-- [setup-project-config](./tools/setup-project-config.md) — One-time codebase scan + Atlassian config
-- [sync-api-spec](./tools/sync-api-spec.md) — Scan all API routes, maintain `docs/agents/api-spec.md`
-- [generate-pr-notes](./tools/generate-pr-notes.md) — Auto-generate pull request descriptions
-- [git-commit-conventional-strict](./tools/git-commit-conventional-strict.md) — Strict Conventional Commits with gitmoji
-- [symlink-worktree-ignored-files](./tools/symlink-worktree-ignored-files.md) — Symlink git-ignored files to another worktree
-
-**Workflows** (multi-step, orchestrated pipelines):
-- [tech-plan-to-ticket](./workflows/tech-plan-to-ticket.md) — Create Jira tickets from a Confluence design review
-- [sdd-qa-to-ticket](./workflows/sdd-qa-to-ticket.md) — Derive BDD QA scenarios and create Jira QA sub-tickets
+Each skill's own `SKILL.md` under [`../skills/`](../skills/) is its reference documentation.
 
 ---
 
@@ -239,9 +226,7 @@ New requirements or bugs loop back to the appropriate phase (Specify, Plan, or T
 
 ### Project Resources
 - [Agent Skills Main README](../README.md)
-- [Skills Management Guide](./skills.md)
-- [Skills Management Guide](./skills.md)
-- [Agent Settings Guide](./agent-settings.md)
+- [Skill Anatomy](./skill-anatomy.md)
 
 ---
 

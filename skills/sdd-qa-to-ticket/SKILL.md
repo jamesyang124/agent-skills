@@ -80,7 +80,7 @@ If the user hasn't explicitly confirmed readiness, surface this: "This skill cre
 
 ### Step 2: Locate SDD Artifacts
 
-> **Before proceeding**: Check `.agent-settings/project-config.md` for the `## SDD Tool` section. Use the configured tool name in artifact location hints and user-facing messages. Fall back to `spec-kit` if absent.
+> **Before proceeding**: Check `docs/agents/sdd.md` for the SDD tool and use its name in artifact location hints and user-facing messages. Fall back to `spec-kit` if absent.
 
 - Scan the current working directory (and one level up) for `*.md` files.
 - Skip: `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`.

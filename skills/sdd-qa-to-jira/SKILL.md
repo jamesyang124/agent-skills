@@ -19,7 +19,7 @@ All QA sub-tickets **must follow** the BDD template at:
 **IMPORTANT**: This skill requires the **Atlassian MCP Server** to be installed and configured.
 
 Before using this skill, ensure:
-1. ✅ Atlassian MCP server is installed (see `.agent-settings/mcps/install-atlassian-mcp.sh`)
+1. ✅ Atlassian MCP server is installed (see the `install-atlassian-mcp` skill)
 2. ✅ Credentials are configured in `.env.mcp-atlassian`
 3. ✅ A PR is open (this is the prerequisite that proves implementation is committed and reviewable)
 4. ✅ The existing root Jira ticket key from Phase 7 is available (e.g. `PROJ-101`)
@@ -28,9 +28,9 @@ Before using this skill, ensure:
    - `mcp__atlassian__jira_create_issue`
    - `mcp__atlassian__jira_add_comment`
 
-If the MCP server is not configured, guide the user to run:
+If the MCP server is not configured, guide the user to install it with the `install-atlassian-mcp` skill:
 ```bash
-.agent-settings/mcps/install-atlassian-mcp.sh
+npx skills add jamesyang124/agent-skills --skill install-atlassian-mcp -g
 ```
 
 ## Input Sources (Tiered by Priority)
