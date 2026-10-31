@@ -583,6 +583,6 @@ SDET can now claim and execute in any order.
 ## References
 
 - [SDD Skills Map](./sdd-skills-map.md)
-- [tech-plan-to-wiki Skill](./../skills/workflows/tech-plan-to-wiki/SKILL.md)
+- [tech-plan-to-wiki Skill](./../skills/tech-plan-to-wiki/SKILL.md)
 - [GitHub Spec-Kit Repository](https://github.com/github/spec-kit)
 - [Spec-Driven Development Guide](https://github.com/github/spec-kit/blob/main/spec-driven.md)

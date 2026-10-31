@@ -8,7 +8,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IMPORT_SKILLS="$SCRIPT_DIR/skills/import-skills.sh"
-INSTALL_MCP="$(dirname "$SCRIPT_DIR")/skills/tools/install-atlassian-mcp/scripts/install.sh"
+INSTALL_MCP="$(dirname "$SCRIPT_DIR")/skills/install-atlassian-mcp/scripts/install.sh"
 
 # Colors
 RED='\033[0;31m'

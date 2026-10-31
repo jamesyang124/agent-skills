@@ -103,8 +103,8 @@ If you prefer to create symlinks manually:
 mkdir -p .claude/skills
 
 # Link a skill from .agent-settings to .claude
-ln -s ../../skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
-ln -s ../../skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
+ln -s ../../skills/generate-pr-notes .claude/skills/generate-pr-notes
+ln -s ../../skills/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
 ```
 
 ##### For GitHub Copilot
@@ -140,12 +140,9 @@ ln -s ../../skills/{category}/{skill-name} .{agent-name}/skills/{skill-name}
 
 ### Adding New Skills
 
-1. Create the skill in the appropriate category:
+1. Create the skill directory:
    ```bash
-   # For a single-purpose action:
-   mkdir -p skills/tools/my-new-skill
-   # For an orchestrated pipeline:
-   mkdir -p skills/workflows/my-new-skill
+   mkdir -p skills/my-new-skill
    # Then create SKILL.md inside it
    ```
 
@@ -162,7 +159,7 @@ ln -s ../../skills/{category}/{skill-name} .{agent-name}/skills/{skill-name}
 
    **Or manually create symlinks:**
    ```bash
-   ln -s ../../skills/tools/my-new-skill .claude/skills/my-new-skill
+   ln -s ../../skills/my-new-skill .claude/skills/my-new-skill
    ```
 
 ### Verifying Symlinks
@@ -182,7 +179,7 @@ ls -la .claude/skills
 
 # Verify a specific symlink target
 readlink .claude/skills/generate-pr-notes
-# Should output: ../../skills/tools/generate-pr-notes
+# Should output: ../../skills/generate-pr-notes
 ```
 
 ### Best Practices
@@ -202,14 +199,14 @@ readlink .claude/skills/generate-pr-notes
 rm .claude/skills/skill-name
 
 # Recreate with correct path
-ln -s ../../skills/tools/skill-name .claude/skills/skill-name
+ln -s ../../skills/skill-name .claude/skills/skill-name
 ```
 
 #### Checking if a path is a symlink
 
 ```bash
 file .claude/skills/skill-name
-# Output should indicate "symbolic link to ../../skills/tools/skill-name"
+# Output should indicate "symbolic link to ../../skills/skill-name"
 ```
 
 ### Available Skills

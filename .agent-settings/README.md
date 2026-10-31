@@ -170,7 +170,7 @@ ls -la .claude/skills
 .agent-settings/skills/import-skills.sh claude
 
 # Check skill format
-cat skills/tools/generate-pr-notes/SKILL.md
+cat skills/generate-pr-notes/SKILL.md
 ```
 
 ### MCP Server Connection Issues

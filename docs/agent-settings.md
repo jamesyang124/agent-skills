@@ -59,10 +59,10 @@ Install Atlassian MCP (Jira/Confluence integration):
 /install-atlassian-mcp
 
 # Or run the bundled script directly
-skills/tools/install-atlassian-mcp/scripts/install.sh --jira-url https://myteam.atlassian.net
+skills/install-atlassian-mcp/scripts/install.sh --jira-url https://myteam.atlassian.net
 
 # Help
-skills/tools/install-atlassian-mcp/scripts/install.sh --help
+skills/install-atlassian-mcp/scripts/install.sh --help
 ```
 
 See [`docs/mcps.md`](./mcps.md) for detailed setup.
@@ -94,7 +94,7 @@ This configuration supports the following AI coding assistants:
 .agent-settings/skills/import-skills.sh copilot
 
 # Install Atlassian MCP for Copilot
-skills/tools/install-atlassian-mcp/scripts/install.sh --agent copilot --jira-url https://myteam.atlassian.net
+skills/install-atlassian-mcp/scripts/install.sh --agent copilot --jira-url https://myteam.atlassian.net
 ```
 
 In Copilot Chat: type `@@` to browse skills or `@@agent-settings.skill-name` to invoke directly.
@@ -184,7 +184,7 @@ ls -la .claude/skills
 .agent-settings/skills/import-skills.sh claude
 
 # Check skill format
-cat skills/tools/generate-pr-notes/SKILL.md
+cat skills/generate-pr-notes/SKILL.md
 ```
 
 ### MCP Server Connection Issues

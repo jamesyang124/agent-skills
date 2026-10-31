@@ -1,7 +1,7 @@
 # Atlassian MCP Integration Setup
 
 > **Note:** The `mcps/` folder has been replaced by the `install-atlassian-mcp` skill.
-> Use the skill instead: `skills/tools/install-atlassian-mcp/`
+> Use the skill instead: `skills/install-atlassian-mcp/`
 
 ~~This guide explains how to use the `install-atlassian-mcp.sh` script to integrate your agent with Jira and Confluence.~~
 
@@ -13,7 +13,7 @@ The script configures a connection to the Atlassian MCP server, which runs in a 
 
 ## Usage
 
-Run the script from the `skills/tools/` directory or project root.
+Run the script from the `skills/` directory or project root.
 
 ### Interactive Installation
 

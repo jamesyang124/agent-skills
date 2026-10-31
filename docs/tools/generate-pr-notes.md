@@ -2,7 +2,7 @@
 
 ## Overview
 
-Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and fills the shared PR template (`skills/tools/generate-pr-notes/references/pull_request_template.md`). The same template is used by `ado-open-pr` and can be copied into a repo as `.azuredevops/pull_request_template.md`.
+Automatically generate pull request notes based on git changes. Analyzes commits or branch diffs and fills the shared PR template (`skills/generate-pr-notes/references/pull_request_template.md`). The same template is used by `ado-open-pr` and can be copied into a repo as `.azuredevops/pull_request_template.md`.
 
 ## When to Use
 

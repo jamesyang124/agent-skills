@@ -126,8 +126,8 @@ If you prefer to create symlinks manually:
 mkdir -p .claude/skills
 
 # Link a skill from .agent-settings to .claude
-ln -s ../../skills/tools/generate-pr-notes .claude/skills/generate-pr-notes
-ln -s ../../skills/tools/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
+ln -s ../../skills/generate-pr-notes .claude/skills/generate-pr-notes
+ln -s ../../skills/git-commit-conventional-strict .claude/skills/git-commit-conventional-strict
 ```
 
 ##### For GitHub Copilot
@@ -180,7 +180,7 @@ Copilot reads skills from `.claude/skills/` per project (and `~/.claude/skills` 
 
 1. Create the skill in the appropriate subdirectory:
    ```bash
-   mkdir -p skills/tools/my-new-skill
+   mkdir -p skills/my-new-skill
    # Create SKILL.md
    ```
 

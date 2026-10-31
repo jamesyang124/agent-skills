@@ -76,11 +76,11 @@ get_relative_path() {
     fi
 }
 
-# Resolve a skill name to its full path (under tools/ or workflows/)
+# Resolve a skill name to its full path (skills/<name>)
 find_skill_path() {
     local skill_name=$1
     local result
-    result=$(find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d -name "$skill_name" | head -1)
+    result=$(find "$SKILLS_SOURCE" -mindepth 1 -maxdepth 1 -type d -name "$skill_name" | head -1)
     echo "$result"
 }
 
@@ -91,7 +91,7 @@ get_available_skills() {
         exit 1
     fi
 
-    find "$SKILLS_SOURCE" -mindepth 2 -maxdepth 2 -type d \
+    find "$SKILLS_SOURCE" -mindepth 1 -maxdepth 1 -type d \
         -exec basename {} \;
 }
 
@@ -128,7 +128,7 @@ create_skill_link() {
     skills_dir=$(get_agent_skills_dir "$agent_name")
     local link_path="$skills_dir/$skill_name"
 
-    # Resolve skill to its category subdir (tools/ or workflows/)
+    # Resolve skill to skills/<name>
     local skill_abs_path
     skill_abs_path=$(find_skill_path "$skill_name")
     if [ -z "$skill_abs_path" ]; then
@@ -366,7 +366,7 @@ is_agent_settings_link() {
     [ -L "$1" ] || return 1
     local resolved
     resolved=$(cd "$(dirname "$1")" && cd "$(readlink "$1")" 2>/dev/null && pwd -P) || return 1
-    [[ "$resolved" == */skills/tools/* || "$resolved" == */skills/workflows/* || "$resolved" == */.agent-settings/skills/* ]]
+    [[ "$resolved" == */skills/* || "$resolved" == */.agent-settings/skills/* ]]
 }
 
 # The project whose skills are compared with the global ones.
