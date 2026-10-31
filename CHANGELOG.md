@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `scripts/validate-skills.sh` and `.github/workflows/validate-skills.yml`: CI checks frontmatter keys, name = folder, "Use when" descriptions (max 1024 chars), relative links in skills, README and docs, and that the `skills` CLI finds every skill; warns on SKILL.md over 500 lines
 - `.claude-plugin/plugin.json` and `marketplace.json`: install every skill as one Claude Code plugin (`/plugin install agent-skills --marketplace jamesyang124/agent-skills`)
 - `docs/skill-anatomy.md`: layout, frontmatter and per-project-settings rules for every skill
 - `setup-project-config/templates/` (one seed file per topic) and `references/code-scan.md`

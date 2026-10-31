@@ -27,7 +27,8 @@ Thumbs.db
 .gemini
 .claude
 .codex
-.github
+.github/*
+!.github/workflows/
 
 # Submodules (local use only, not committed to template repo)
 .gitmodules
