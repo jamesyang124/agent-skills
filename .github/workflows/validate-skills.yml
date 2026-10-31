@@ -14,7 +14,7 @@ jobs:
         run: scripts/validate-skills.sh
       - name: skills CLI discovers every skill
         run: |
-          found=$(npx -y skills add . --list 2>&1 | sed -n 's/.*Found \([0-9]*\) skills.*/\1/p')
+          found=$(npx -y skills add . --list 2>&1 | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g' | sed -n 's/.*Found \([0-9]*\) skills.*/\1/p')
           expected=$(ls -d skills/*/ | wc -l)
           echo "found=$found expected=$expected"
           [ "$found" -eq "$expected" ]
