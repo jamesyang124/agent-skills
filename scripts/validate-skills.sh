@@ -39,6 +39,8 @@ for dir in skills/*/; do
   [ ${#desc} -le 1024 ] || err "$name" "description is ${#desc} chars (max 1024)"
   grep -qi "use when" <<<"$desc" || err "$name" "description has no 'Use when' trigger"
 
+  grep -q -- "--skill $name " "$f" || err "$name" "missing install line (npx skills add jamesyang124/agent-skills --skill $name -g)"
+
   lines=$(wc -l <"$f" | tr -d ' ')
   [ "$lines" -le 500 ] || warn "$name" "SKILL.md is $lines lines (keep under 500)"
 

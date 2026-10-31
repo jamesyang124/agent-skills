@@ -5,6 +5,12 @@ description: Use when the user asks for a rich explanation of a code change, dif
 
 # Explain Diff
 
+## Install this skill
+
+```bash
+npx skills add jamesyang124/agent-skills --skill explain-diff-html -g
+```
+
 Please make me a rich, interactive explanation of the specified code change.
 
 It should have these sections:

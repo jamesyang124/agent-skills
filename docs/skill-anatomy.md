@@ -39,7 +39,7 @@ allowed-tools: Read, Bash                    # optional
 Common order (sections a skill doesn't need are left out):
 
 1. `# Title`
-2. `## Install this skill`: the `npx skills add jamesyang124/agent-skills --skill <name> -g` line
+2. `## Install this skill`: the `npx skills add jamesyang124/agent-skills --skill <name> -g` line **(checked)**
 3. `## Dependencies`: other skills, MCPs or CLIs it needs
 4. Overview / when to use
 5. Process: numbered steps the agent follows

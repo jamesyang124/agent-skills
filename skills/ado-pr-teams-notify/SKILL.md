@@ -6,6 +6,12 @@ argument-hint: "[setup | test | backfill-pr <N> | add-repo <repo=branch> | switc
 
 # ADO pull requests → one card per PR in a Teams channel
 
+## Install this skill
+
+```bash
+npx skills add jamesyang124/agent-skills --skill ado-pr-teams-notify -g
+```
+
 ```
 Azure DevOps Service Hooks (4 per repo) ──HTTP POST──▶ Power Automate flow (Teams "webhook alerts" template, one URL)
    created · commented · updated(any type)          │ Switch on eventType

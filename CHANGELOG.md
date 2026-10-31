@@ -14,7 +14,7 @@ This repo is now a plain skill catalog, installed the same way as other public s
 ([vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills),
 [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills),
 [mattpocock/skills](https://github.com/mattpocock/skills)) instead of from a local clone with
-`.agent-settings/` scripts. Three choices, each copied from the repo that does it best:
+`.agent-settings/` scripts. Each choice is copied from the repo that does it best:
 
 | Area | Before | Now | Follows |
 |------|--------|-----|---------|
@@ -32,9 +32,12 @@ reliably. Removed on that basis: `graphify`/`btw`, the playground skills, `symli
    `npx skills add jamesyang124/agent-skills -g`.
 2. In each project, run `/setup-project-config`; it converts `.agent-settings/project-config.md` to
    `docs/agents/*.md` and offers to delete the old file.
+3. Projects that vendored this repo as an ignored `agent-skills/` clone (listed in `.gitmodules`, linked through a
+   `.agent-settings` symlink and `.claude/skills/*` links) can delete the clone, the symlink, the stale links and the
+   `.gitmodules` entry.
 
 ### Added
-- `scripts/validate-skills.sh` and `.github/workflows/validate-skills.yml`: CI checks frontmatter keys, name = folder, "Use when" descriptions (max 1024 chars), relative links in skills, README and docs, and that the `skills` CLI finds every skill; warns on SKILL.md over 500 lines
+- `scripts/validate-skills.sh` and `.github/workflows/validate-skills.yml`: CI checks frontmatter keys, name = folder, the install line, "Use when" descriptions (max 1024 chars), relative links in skills, README and docs, and that the `skills` CLI finds every skill; warns on SKILL.md over 500 lines
 - `.claude-plugin/plugin.json` and `marketplace.json`: install every skill as one Claude Code plugin (`/plugin install agent-skills --marketplace jamesyang124/agent-skills`)
 - `docs/skill-anatomy.md`: layout, frontmatter and per-project-settings rules for every skill
 - `setup-project-config/templates/` (one seed file per topic) and `references/code-scan.md`
@@ -53,19 +56,18 @@ reliably. Removed on that basis: `graphify`/`btw`, the playground skills, `symli
 - `graphify-monitor`, `btw` (the whole `knowledge-graph/` category) and the external `graphify` skill, with their README and docs entries, the `skills-lock.json` entry, the `graphify-out/` and `KNOWLEDGE_SUMMARY.md` ignore rules and the `GOAL_STATE.md` verification record. `btw` only read graphify's output, so it could not work without it.
 
 ### Changed
-- `agent-playtest`: site profiles live in the consuming project at `docs/agents/playtest/<site>.md` (written from `templates/site-profile.md` on first run), like the other per-project settings. The bundled example profile and site-specific wording were removed from the skill.
-- **Flat layout `skills/<name>/`** (was `skills/{tools,workflows}/<name>/`), as in addyosmani/agent-skills; the README groups skills by area instead.
+
+Repo:
+- **Install with `npx skills add jamesyang124/agent-skills`** (or the Claude Code plugin). Every skill's copy-install block is now one `npx skills add jamesyang124/agent-skills --skill <name> -g` line, and runtime paths are relative to the skill folder (`<skill-dir>/scripts/...`, `references/...`) so installed skills work outside this repo.
+- **Flat layout `skills/<name>/`** (was `.agent-settings/skills/{tools,workflows}/<name>/`, plus `own-skills/`), as in addyosmani/agent-skills; the README groups skills by area instead.
 - **Per-project settings moved from `.agent-settings/project-config.md` to `docs/agents/<topic>.md`** (`sdd.md`, `code-structure.md`, `atlassian.md`, `azure-devops.md`, `sentry.md`, `playwright.md`), following mattpocock/skills: `setup-project-config` (now user-invoked only) writes them plus an `## Agent skills` pointer block in `CLAUDE.md`/`AGENTS.md`, and migrates a legacy `project-config.md`. The files are meant to be committed. `sync-api-spec` requires `code-structure.md`; the other readers (`ado-open-pr`, `spec-recalibrate`, `tech-plan-to-wiki`, `tech-plan-to-ticket`, `sdd-qa-to-ticket`) use their file when present and fall back to detection or asking.
-- Descriptions of `agent-playtest`, `goal-checkpoint`, `prd-to-sdd-spec`, `sdd-qa-to-jira`, `sdd-qa-to-ticket`, `sync-api-spec`, `tech-plan-to-wiki` state their trigger as "Use when ...".
-- `sdd-qa-to-jira` points to the `install-atlassian-mcp` skill instead of the deleted `.agent-settings/mcps/install-atlassian-mcp.sh`.
-- README restructured: Quick Start (npx + plugin), per-project setup, all skills grouped by area, project structure, contributing.
-- **Install with `npx skills add jamesyang124/agent-skills`.** Skills moved from `.agent-settings/skills/{tools,workflows}/` to the top-level `skills/{tools,workflows}/`, the catalog layout the open `skills` CLI discovers. The CLI now finds all 23 skills; before, it fell back to a deep scan and skipped three.
+- README restructured: Quick Start (npx + plugin), per-project setup, all skills grouped by area, project structure, contributing. SDD guides point the Constitution phase at `setup-project-config` and no longer list `claude-mem`, which this repo never set up.
+- `.gitignore`: ignores `skills-lock.json` and `.agents/` (created when the CLI installs into a checkout) and keeps `.github/workflows/`.
+
+Skills:
+- Every skill has an `## Install this skill` section and a description with a "Use when ..." trigger.
+- `agent-playtest`: site profiles live in the consuming project at `docs/agents/playtest/<site>.md` (written from `templates/site-profile.md` on first run). The bundled example profile and site-specific wording were removed. `own-skills/agent-playtest` and `ado-pr-teams-notify` were rewritten to the repo conventions (the non-standard `trigger:` key is gone).
 - `ado-open-pr`, `generate-pr-notes`, `sync-api-spec`: quote the `description` so the frontmatter is valid YAML (an unquoted `: ` made the `skills` CLI skip them).
-- Every skill's copy-install block (`cp <agent-settings-repo>/.agent-settings/skills/...`) is now one `npx skills add jamesyang124/agent-skills --skill <name> -g` line. Runtime paths are relative to the skill folder (`<skill-dir>/scripts/install.sh`, `references/...`) so installed skills work outside this repo; `symlink-worktree-ignored-files/scripts/run_skill.sh` calls `symlink.sh` next to itself (its old path was already broken).
-- `import-skills.sh` and `setup.sh` read skills from `skills/` (both removed later in this release with `.agent-settings/`). README install section is `npx`-first; project trees regenerated from the real folders (the old README tree listed a missing `api-spec-to-confluence`).
-- `.gitignore`: `skills-lock.json` and `.agents/`, which the CLI creates when it installs into a project.
-- `own-skills/` removed: `agent-playtest` and `ado-pr-teams-notify` moved to `.agent-settings/skills/tools/` and rewritten to the tools conventions (short description, `argument-hint`, When to Use and Arguments sections; the non-standard `trigger:` key is gone). `import-skills.sh` only discovers skills under `.agent-settings/skills/<category>/`, so both now install like every other skill (project, `--global`, `--dedup`). The 2026-10-03 entry below keeps the old path as history.
-- `import-skills.sh` — `--global` installs into `~/.<agent>/skills`; every install checks for skills installed both globally and in the project and cleans them in one step (`--dedup`, `--yes`, `--pick`, `--project`); `--no-color` is accepted
 - `ado-open-pr` — uses the consolidated Azure DevOps MCP tools; target branch comes from the branch map, then the ADO default branch (no hard-coded `develop`)
 - `ado-pr-code-review` — adds commit provenance, runtime correctness and resource leaks, and standards / spec passes
 - `generate-pr-notes` — fills the shared template; the global install copies the whole folder

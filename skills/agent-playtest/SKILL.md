@@ -6,6 +6,12 @@ argument-hint: "[campaign-id or items to playtest] [site profile] [browser adapt
 
 # Agent playtest: closed-loop play → screenshot evidence → described, audited data
 
+## Install this skill
+
+```bash
+npx skills add jamesyang124/agent-skills --skill agent-playtest -g
+```
+
 Many catalog entries (rooms, games, worlds, apps) have publisher text that is wrong, empty, or templated. This skill gets an
 **observed** description: an agent actually opens each item, plays it, records what it saw, and writes a description in which
 every claim cites a screenshot. The output stays separate from the publisher's **declared** data and never overwrites it.

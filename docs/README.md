@@ -184,7 +184,7 @@ RD makes a conscious hand-off decision after the PR is open. Agent derives BDD s
 ### 9. Iterate
 New requirements or bugs loop back to the appropriate phase (Specify, Plan, or Tasks).
 
-**MCP:** Atlassian (Jira + Confluence sync), claude-mem
+**MCP:** Atlassian (Jira + Confluence sync)
 
 ---
 
@@ -209,7 +209,6 @@ New requirements or bugs loop back to the appropriate phase (Specify, Plan, or T
 |-----|---------|---------------|
 | Atlassian (Confluence) | Spec and doc storage | Constitution, Specify, Plan, Iterate |
 | Atlassian (Jira) | Task management | Tasks, Iterate |
-| claude-mem | Context and learning | Specify, Plan, Tasks, Iterate |
 
 ---
 

@@ -158,8 +158,8 @@ git commit -m "feat(api): ✨ implement user authentication endpoint"
 
   - remove interactive menu option and --agent flag value
   - add explicit whitelist guard in install scripts
-  - reject unsupported agents in import-skills.sh
-  - drop references from .agent-settings docs
+  - reject unsupported agents in the installer
+  - drop references from the docs
   ```
 - **Spec + Implementation (split)**:
   - Commit 1: `docs(api): 📝 define product search filtering spec`

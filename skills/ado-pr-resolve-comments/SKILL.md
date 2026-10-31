@@ -7,6 +7,12 @@ allowed-tools: Bash(git *), Bash(make *), Bash(go *), Bash(golangci-lint *), Bas
 
 # Azure DevOps PR — Resolve Review Comments
 
+## Install this skill
+
+```bash
+npx skills add jamesyang124/agent-skills --skill ado-pr-resolve-comments -g
+```
+
 ## Companion skill (optional): `diagnosing-bugs`
 
 From `mattpocock/skills` (`skills/engineering/diagnosing-bugs/`). It replaces the older `diagnose`

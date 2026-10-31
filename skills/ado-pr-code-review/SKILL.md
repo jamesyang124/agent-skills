@@ -7,6 +7,12 @@ allowed-tools: Skill, Agent, Bash, Read, mcp__azure-devops-mcp__repo_repository,
 
 # Azure DevOps PR Code Review
 
+## Install this skill
+
+```bash
+npx skills add jamesyang124/agent-skills --skill ado-pr-code-review -g
+```
+
 ## Companion skills (optional)
 
 Both come from `mattpocock/skills` (`skills/engineering/<name>/`). If one is not installed, the review
@@ -648,7 +654,7 @@ grows with traffic is ðŸ”´ Critical; a defect with a bounded or rare impact is ð
 
 1. The standards pass reviews the PR range `{target-branch merge-base}..{lastMergeSourceCommit}` on two axes itself:
    - **Standards**: does the change follow this repo's documented coding standards (CLAUDE.md, constitution,
-     `.agent-settings`, the central review rules), read from the target branch (Step 2)? When the PR edits a rule
+     `docs/agents/`, the central review rules), read from the target branch (Step 2)? When the PR edits a rule
      file, also check that code already on the target branch still complies (`review-findings.md` part 2).
    - **Spec**: does the change match what the Jira ticket / PR description / linked spec asked for? Feed it the
      ticket key and PR description. This also cross-checks the scope check in Step 2.5.

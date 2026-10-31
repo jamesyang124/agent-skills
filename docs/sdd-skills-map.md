@@ -29,7 +29,7 @@ graph TD
 
     P4["3. PLAN — Review & Refine
     skill: tech-plan-to-wiki re-publish
-    MCP: Atlassian + claude-mem"]
+    MCP: Atlassian"]
 
     P4b["3. PLAN FINALIZED
     skill: tech-plan-to-wiki
@@ -50,8 +50,7 @@ graph TD
     MCP: Atlassian (Jira)"]
 
     P6["5. ITERATE
-    MCP: Atlassian (Jira + Confluence)
-    MCP: claude-mem"]
+    MCP: Atlassian (Jira + Confluence)"]
 
     SPECIFY["SPECIFY"]
     PLAN["PLAN"]
@@ -119,7 +118,6 @@ spec-kit specify
 
 # Document architecture decisions
 # Use: MCP Atlassian → Confluence
-# Use: MCP claude-mem → Store decisions
 ```
 
 ### Tasks Phase
@@ -154,9 +152,6 @@ spec-kit specify
 ```bash
 # Sync status across tools
 # Use: MCP Atlassian → Update Jira & Confluence
-
-# Record learnings
-# Use: MCP claude-mem → Store context
 ```
 
 ---
@@ -165,19 +160,18 @@ spec-kit specify
 
 | SDD Phase | Primary Tool | Purpose | Output |
 |-----------|-------------|---------|---------|
-| **Constitution** | `setup-project-config` | Environment setup | Dev environment ready |
+| **Constitution** | `setup-project-config` | Per-repo skill settings | `docs/agents/*.md` |
 | **Constitution** | Atlassian MCP | Document standards | Confluence pages |
 | **Pre-Specify (PO handoff)** | `prd-to-sdd-spec` | Fetch PO's Confluence PRD → local `prd-source.md` for spec-kit | `prd-source.md` (local) |
-| **Specify** | Atlassian MCP + claude-mem | Write spec & remember | Confluence pages + Context |
+| **Specify** | Atlassian MCP | Write spec & remember | Confluence pages + Context |
 | **Specify → Plan (spec-kit native)** | `tech-plan-to-wiki` | Publish local spec-kit files to Confluence for team review | Design Review page in Confluence |
-| **Plan** | Atlassian MCP + claude-mem | Document & track | Plans + Decisions |
+| **Plan** | Atlassian MCP | Document & track | Plans + Decisions |
 | **Tasks** | `sync-api-spec` | Scan all routes, update API spec file | `docs/agents/api-spec.md` |
 | **Tasks** | `tech-plan-to-ticket` | Task creation | Jira tickets |
 | **Tasks** | `git-commit-conventional-strict` | Version control | Semantic commits |
 | **Tasks** | `generate-pr-notes` | PR documentation | Pull request notes |
 | **QA Gate** | `sdd-qa-to-ticket` | QA hand-off after PR — BDD scenarios → Jira sub-tickets | QA sub-tickets under existing root ticket |
 | **Iterate** | Atlassian MCP | Sync status | Updated tickets/docs |
-| **Iterate** | claude-mem MCP | Learn & improve | Stored context |
 
 ---
 
@@ -213,11 +207,8 @@ Need to... ?
 ├─> Store/retrieve documentation?
 │   └─> Use: MCP Atlassian (Confluence)
 │
-├─> Manage tasks/tickets?
-│   └─> Use: MCP Atlassian (Jira)
-│
-└─> Remember context/decisions?
-    └─> Use: MCP claude-mem
+└─> Manage tasks/tickets?
+    └─> Use: MCP Atlassian (Jira)
 ```
 
 ---
@@ -267,7 +258,7 @@ Need to... ?
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
   Action: Refine TDD based on team review
-  Tool:   MCP Atlassian + claude-mem
+  Tool:   MCP Atlassian
   Result: Finalized Tech Design Document in Confluence
 
 
@@ -326,11 +317,6 @@ Need to... ?
   Input:  "Learned: RS256 requires key pair management"
   Result: Added to Confluence "Auth Lessons Learned"
 
-  Action: Store decision
-  Tool:   MCP claude-mem
-  Input:  "Decision: Use RS256 over HS256 for better security"
-  Result: Context stored for future auth work
-
   Next: Bug reported → Go back to TASKS for fix
 ```
 
@@ -363,7 +349,7 @@ Use these to track your progress through the SDD cycle:
   └─> QA sub-tickets created: sdd-qa-to-ticket
 
 □ Iterate: Status synced and learnings captured
-  └─> Context stored: Atlassian MCP, claude-mem
+  └─> Status synced: Atlassian MCP
 ```
 
 ---
@@ -380,7 +366,7 @@ Use these to track your progress through the SDD cycle:
 
 **2. SPECIFY**
 - `spec-kit specify` (reference `prd-source.md`)
-- MCP: Atlassian (Confluence) + claude-mem
+- MCP: Atlassian (Confluence)
 
 **2→3. SPECIFY → PLAN (spec-kit native)**
 - `/tech-plan-to-wiki`
@@ -388,7 +374,7 @@ Use these to track your progress through the SDD cycle:
 
 **3. PLAN — Review Loop (re-publish after feedback)**
 - `/tech-plan-to-wiki [page-id]`
-- MCP: Atlassian (Confluence) + claude-mem
+- MCP: Atlassian (Confluence)
 
 **3. PLAN FINALIZED**
 - `/tech-plan-to-wiki [page-id]` → ask: "Update status to Approved (v1)"
@@ -402,7 +388,7 @@ Use these to track your progress through the SDD cycle:
 - `/git-commit-conventional-strict`
 - `/sync-api-spec` (after commit)
 - `/generate-pr-notes` (phase exit condition)
-- MCP: Atlassian (Jira + Confluence) + claude-mem
+- MCP: Atlassian (Jira + Confluence)
 
 **4c. QA GATE (after PR — RD explicit decision)**
 - `/sdd-qa-to-ticket [root-ticket-key]`
@@ -410,7 +396,6 @@ Use these to track your progress through the SDD cycle:
 
 **5. ITERATE**
 - MCP: Atlassian (Jira + Confluence)
-- MCP: claude-mem
 
 ---
 
